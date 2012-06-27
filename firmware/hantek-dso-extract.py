@@ -29,12 +29,9 @@ import parsepe
 
 def find_model(filename):
 	filename = os.path.split(filename)[-1]
-	m = re.search('^dso([a-z0-9]+)1.sys$', filename, re.I)
+	m = re.search('^dso([25])[a-z0-9]+1.sys$', filename, re.I)
 	if m:
-		model = m.group(1).upper()
-		model = model.replace('X86', '').replace('AMD64', '').replace('IA64', '')
-		if model == '520A':
-			model = '5200A'
+		model = m.group(1) + 'xxx'
 	else:
 		model = 'unknown'
 
