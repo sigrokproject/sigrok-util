@@ -2,11 +2,66 @@
 README
 -------------------------------------------------------------------------------
 
-This is a collection of various sigrok-related utilities.
+The sigrok project aims at creating a portable, cross-platform,
+Free/Libre/Open-Source signal analysis software suite that supports various
+device types (such as logic analyzers, oscilloscopes, multimeters, and more).
+
+sigrok-util is a collection of various sigrok-related utilities.
 
 
-Further information
--------------------
+Status
+------
 
-http://sigrok.org
+sigrok-util is in development and has not yet had official tarball releases.
+
+Distro packagers should NOT package this, yet.
+
+
+Requirements
+------------
+
+ - git
+ - Python >= 3.0
+
+
+Building and installing
+-----------------------
+
+In order to get the sigrok-util source code and build it, run:
+
+ $ git clone git://sigrok.org/sigrok-util
+ $ cd sigrok-util
+ $ make
+
+For installing sigrok-util:
+
+ $ make install
+
+Please see the following wiki pages for more detailed instructions:
+
+ http://sigrok.org/wiki/Linux
+ http://sigrok.org/wiki/Mac_OS_X
+ http://sigrok.org/wiki/Windows
+ http://sigrok.org/wiki/FreeBSD
+
+
+Mailing lists
+-------------
+
+There are two mailing lists for sigrok/sigrok-util:
+
+ https://lists.sourceforge.net/lists/listinfo/sigrok-devel
+ https://lists.sourceforge.net/lists/listinfo/sigrok-commits
+
+
+IRC
+---
+
+You can find the sigrok developers in the #sigrok IRC channel on Freenode.
+
+
+Website
+-------
+
+ http://sigrok.org/wiki/Sigrok-util
 
