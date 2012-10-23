@@ -21,7 +21,6 @@
 #include <glib.h>
 #include "libsigrok.h"
 #include "libsigrok-internal.h"
-#include "config.h"
 #include "protocol.h"
 
 SR_PRIV int ${lib}_receive_data(int fd, int revents, void *cb_data)

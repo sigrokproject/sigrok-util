@@ -20,7 +20,6 @@
 #include <glib.h>
 #include "libsigrok.h"
 #include "libsigrok-internal.h"
-#include "config.h"
 #include "protocol.h"
 
 SR_PRIV struct sr_dev_driver driver_info;
