@@ -17,8 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LIBSIGROK_${upper}_H
-#define LIBSIGROK_${upper}_H
+#ifndef LIBSIGROK_HARDWARE_${upper}_PROTOCOL_H
+#define LIBSIGROK_HARDWARE_${upper}_PROTOCOL_H
 
 /** Private, per-device-instance driver context. */
 struct dev_context {
