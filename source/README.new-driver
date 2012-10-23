@@ -1,0 +1,27 @@
+The 'new-driver' script is meant to reduce the "red tape" involved in creating
+a new hardware driver for sigrok. It checks out a new copy of libsigrok from
+the git repository, makes entries in the build system for your device, and
+creates source code stubs to help you get started.
+
+If you're writing a driver for a new multimeter (DMM) called the
+'Flupe Goodluck', invoke the script like this:
+
+	./new-driver Flupe Goodluck
+
+The output will show something like this:
+
+Cloning into 'libsigrok'...
+[master d5f915f] flupe-goodluck: initial driver skeleton
+ 6 files changed, 321 insertions(+)
+ create mode 100644 hardware/flupe-goodluck/Makefile.am
+ create mode 100644 hardware/flupe-goodluck/api.c
+ create mode 100644 hardware/flupe-goodluck/protocol.c
+ create mode 100644 hardware/flupe-goodluck/protocol.h
+0001-flupe-goodluck-initial-driver-skeleton.patch
+
+The last line shows the name of the patch file that's created for you. It's
+a proper git mail patch, and can be applied to your tree like this:
+
+cd /some/path/libsigrok
+git am /some/place/0001-flupe-goodluck-initial-driver-skeleton.patch
+

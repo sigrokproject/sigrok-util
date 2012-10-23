@@ -1,0 +1,265 @@
+#!/usr/bin/python3
+#
+# This file is part of the sigrok project.
+#
+# Copyright (C) 2012 Bert Vermeulen <bert@biot.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+import os
+import sys
+import tempfile
+from subprocess import Popen, PIPE
+import shutil
+import re
+import socket
+import datetime
+
+TMPL_AUTOCONF_AC_ARG_ENABLE = """AC_ARG_ENABLE(${short}, AC_HELP_STRING([--enable-${short}],
+          [enable ${name} driver support [default=yes]]),
+          [HW_${upper}="$enableval"],
+          [HW_${upper}=yes])
+AM_CONDITIONAL(HW_${upper}, test x$HW_${upper} = xyes)
+if test "x$HW_${upper}" = "xyes"; then
+    AC_DEFINE(HAVE_HW_${upper}, 1, [${name} driver support])
+fi
+
+"""
+TMPL_AUTOCONF_AC_CONFIG_FILES = "\t\t hardware/${short}/Makefile\n"
+TMPL_AUTOCONF_SUMMARY = 'echo "  - ${summary}"\n'
+TMPL_HWMAKE_SUBDIR = '\t${short}'
+FILE_DRV_MAKEFILE = 'drv-Makefile.am'
+FILE_DRV_API = 'drv-api.c'
+FILE_DRV_PROTOCOL = 'drv-protocol.c'
+FILE_DRV_PROTOCOL_H = 'drv-protocol.h'
+
+def tmpl(template):
+    out = re.sub(r'\${([^}]+)}', lambda x: str(names[x.group(1)]), template)
+
+    return out
+
+
+def tmpl_file(filename):
+    template = open(TMPLDIR + '/' + filename).read()
+
+    return tmpl(template)
+
+
+def new_driver():
+    tmp = tempfile.mkdtemp()
+    try:
+        os.chdir(tmp)
+        out, err = Popen("git clone " + LIBSR, shell=True, stderr=PIPE).communicate()
+        if err:
+            raise Exception(err.decode())
+        gitdir = tmp + '/libsigrok/'
+        do_configure_ac(gitdir)
+        do_hwmake(gitdir)
+        do_driverskel(gitdir)
+        make_patch(gitdir)
+    except Exception as e:
+        print(e)
+    shutil.rmtree(tmp)
+
+
+def do_configure_ac(gitdir):
+    cacpath = gitdir + 'configure.ac'
+    configure_ac = open(cacpath).read()
+
+    # add AC_ARG_ENABLE option
+    out = ''
+    state = 'copy'
+    for line in configure_ac.split('\n')[:-1]:
+        if state == 'copy':
+            if line == "# Hardware support '--enable' options.":
+                state = 'acarg'
+        elif state == 'acarg':
+            m = re.match('AC_ARG_ENABLE\(([^,]+)', line)
+            if m:
+                drv_short = m.group(1)
+                if drv_short.lower() > names['short']:
+                    out += tmpl(TMPL_AUTOCONF_AC_ARG_ENABLE)
+                    state = 'done'
+            if line == '# Checks for libraries.':
+                # new one at the end
+                out += tmpl(TMPL_AUTOCONF_AC_ARG_ENABLE)
+                state = 'done'
+        out += line + '\n'
+    if state != 'done':
+        raise Exception('AC_ARG_ENABLE markers not found in configure.ac')
+    configure_ac = out
+
+    # add driver Makefile to AC_CONFIG_FILES
+    out = ''
+    state = 'copy'
+    for line in configure_ac.split('\n')[:-1]:
+        if state == 'copy':
+            if line.find("AC_CONFIG_FILES([Makefile") > -1:
+                state = 'acconf'
+        elif state == 'acconf':
+            m = re.match('\t\t hardware/([^/]+)/Makefile', line)
+            if m:
+                drv_short = m.group(1)
+                if drv_short.lower() > names['short']:
+                    out += tmpl(TMPL_AUTOCONF_AC_CONFIG_FILES)
+                    state = 'done'
+            else:
+                # new one at the end
+                out += tmpl(TMPL_AUTOCONF_AC_CONFIG_FILES)
+                state = 'done'
+        out += line + '\n'
+    if state != 'done':
+        raise Exception('AC_CONFIG_FILES marker not found in configure.ac')
+    configure_ac = out
+
+    # add summary line
+    out = ''
+    state = 'copy'
+    names['summary'] = "%s%s $HW_%s" % (names['name'],
+            '.' * (32 - len(names['name'])), names['upper'])
+    for line in configure_ac.split('\n')[:-1]:
+        if state == 'copy':
+            if line.find('Enabled hardware drivers') > -1:
+                state = 'echo'
+        elif state == 'echo':
+            m = re.match('echo "  - ([^\.]+)', line)
+            if m:
+                drv_short = m.group(1)
+                if drv_short.lower() > names['name'].lower():
+                    out += tmpl(TMPL_AUTOCONF_SUMMARY)
+                    state = 'done'
+            else:
+                # new one at the end
+                out += tmpl(TMPL_AUTOCONF_SUMMARY)
+                state = 'done'
+        out += line + '\n'
+    if state != 'done':
+        raise Exception('summary marker not found in configure.ac')
+    configure_ac = out
+
+    open(cacpath, 'w').write(configure_ac)
+
+
+def do_hwmake(gitdir):
+    path = gitdir + 'hardware/Makefile.am'
+    hwmake = open(path).read()
+
+    # add AC_ARG_ENABLE option
+    out = ''
+    state = 'copy'
+    for line in hwmake.split('\n')[:-1]:
+        if state == 'copy':
+            if line.find('SUBDIRS =') > -1:
+                state = 'subdirs'
+        elif state == 'subdirs':
+            m = re.match('\t([^ \\\]+\s*\\\)', line)
+            if m:
+                drv_short = m.group(1)
+                if drv_short.lower() > names['short']:
+                    out += tmpl(TMPL_HWMAKE_SUBDIR) + ' \\\n'
+                    state = 'done'
+            else:
+                out += tmpl(TMPL_HWMAKE_SUBDIR) + ' \\\n'
+                state = 'done'
+        out += line + '\n'
+    if state != 'done':
+        raise Exception('SUBDIRS markers not found in hardware/Makefile.am')
+    hwmake = out
+
+    open(path, 'w').write(hwmake)
+
+
+def do_driverskel(gitdir):
+    drvdir = gitdir + 'hardware/' + names['short']
+    os.mkdir(drvdir)
+    open(drvdir + '/Makefile.am', 'w').write(tmpl_file(FILE_DRV_MAKEFILE))
+    open(drvdir + '/api.c', 'w').write(tmpl_file(FILE_DRV_API))
+    open(drvdir + '/protocol.c', 'w').write(tmpl_file(FILE_DRV_PROTOCOL))
+    open(drvdir + '/protocol.h', 'w').write(tmpl_file(FILE_DRV_PROTOCOL_H))
+
+
+def make_patch(gitdir):
+    os.chdir(gitdir)
+    command('git add hardware/' + names['short'])
+    cmd = 'git commit -m "%s: initial driver skeleton" ' % names['short']
+    cmd += 'configure.ac hardware/Makefile.am hardware/' + names['short']
+    command(cmd)
+    cmd = "git format-patch HEAD~1"
+    out, err = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE).communicate()
+    if err:
+        raise Exception(err.decode())
+    patch = out.decode().strip()
+    shutil.move(gitdir + '/' + patch, scriptdir + '/' + patch)
+    print(patch)
+
+
+def command(cmd):
+    out, err = Popen(cmd, shell=True, stderr=PIPE).communicate()
+    if err:
+        raise Exception(err.decode())
+
+
+def parse_gitconfig():
+	try:
+		author = email = None
+		for line in open(os.environ['HOME'] + '/.gitconfig').readlines():
+			m = re.match('\s*(\w+)\s*=\s*(.*)\s*$', line)
+			if m:
+				key, value = m.groups()
+				if key == 'name':
+					author = value
+				elif key == 'email':
+					email = value
+				if author and email:
+					break
+	except:
+		pass
+	if not author or not email:
+		print("Please put your name and email in ~/.gitconfig")
+		sys.exit()
+
+	return author, email
+
+#
+# main
+#
+
+scriptdir = os.getcwd()
+if socket.gethostname() == 'sigrok':
+	LIBSR = '/data/git/libsigrok'
+	TMPLDIR = '/data/tools/tmpl'
+else:
+	LIBSR = 'git://sigrok.org/libsigrok'
+	TMPLDIR = scriptdir
+
+if len(sys.argv) < 2:
+    print("Usage: new-driver.py <name>")
+    sys.exit()
+
+author, email = parse_gitconfig()
+name = ' '.join(sys.argv[1:])
+names = {
+    'name': name,
+    'short': re.sub('[^a-z0-9]', '-', name.lower()),
+    'lib': re.sub('[^a-z0-9]', '_', name.lower()),
+    'upper': re.sub('[^A-Z0-9]', '_', name.upper()),
+    'libupper': re.sub('[^A-Z0-9]', '', name.upper()),
+	'year': datetime.datetime.now().year,
+	'author': author,
+	'email': email,
+}
+new_driver()
+
+
