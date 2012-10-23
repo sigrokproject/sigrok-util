@@ -23,10 +23,8 @@
 #include "config.h"
 #include "protocol.h"
 
-
 SR_PRIV struct sr_dev_driver driver_info;
 static struct sr_dev_driver *di = &${lib}_driver_info;
-
 
 /* Properly close and free all devices. */
 static int clear_instances(void)
@@ -59,7 +57,7 @@ static int hw_init(void)
 	struct drv_context *drvc;
 
 	if (!(drvc = g_try_malloc0(sizeof(struct drv_context)))) {
-		sr_err("${short}: driver context malloc failed.");
+		sr_err("${short}: Driver context malloc failed.");
 		return SR_ERR;
 	}
 
@@ -76,6 +74,7 @@ static GSList *hw_scan(GSList *options)
 	GSList *devices;
 
 	(void)options;
+
 	devices = NULL;
 	drvc = di->priv;
 	drvc->instances = NULL;
@@ -96,7 +95,6 @@ static GSList *hw_dev_list(void)
 
 static int hw_dev_open(struct sr_dev_inst *sdi)
 {
-
 	/* TODO */
 
 	return SR_OK;
@@ -104,7 +102,6 @@ static int hw_dev_open(struct sr_dev_inst *sdi)
 
 static int hw_dev_close(struct sr_dev_inst *sdi)
 {
-
 	/* TODO */
 
 	return SR_OK;
@@ -112,7 +109,6 @@ static int hw_dev_close(struct sr_dev_inst *sdi)
 
 static int hw_cleanup(void)
 {
-
 	clear_instances();
 
 	/* TODO */
@@ -121,10 +117,8 @@ static int hw_cleanup(void)
 }
 
 static int hw_info_get(int info_id, const void **data,
-       const struct sr_dev_inst *sdi)
+		       const struct sr_dev_inst *sdi)
 {
-
-
 	switch (info_id) {
 	/* TODO */
 	default:
@@ -135,7 +129,7 @@ static int hw_info_get(int info_id, const void **data,
 }
 
 static int hw_dev_config_set(const struct sr_dev_inst *sdi, int hwcap,
-		const void *value)
+			     const void *value)
 {
 	int ret;
 
@@ -153,18 +147,16 @@ static int hw_dev_config_set(const struct sr_dev_inst *sdi, int hwcap,
 }
 
 static int hw_dev_acquisition_start(const struct sr_dev_inst *sdi,
-		void *cb_data)
+				    void *cb_data)
 {
-
 	/* TODO */
 
 	return SR_OK;
 }
 
 static int hw_dev_acquisition_stop(const struct sr_dev_inst *sdi,
-		void *cb_data)
+				   void *cb_data)
 {
-
 	(void)cb_data;
 
 	if (sdi->status != SR_ST_ACTIVE)

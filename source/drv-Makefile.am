@@ -23,11 +23,11 @@ if HW_${upper}
 noinst_LTLIBRARIES = libsigrokhw${lib}.la
 
 libsigrokhw${lib}_la_SOURCES = \
-    api.c \
-    protocol.c \
-    protocol.h
+	api.c \
+	protocol.c \
+	protocol.h
 
 libsigrokhw${lib}_la_CFLAGS = \
-    -I$(top_srcdir)
+	-I$(top_srcdir)
 
 endif

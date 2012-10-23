@@ -17,13 +17,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <stdlib.h>
 #include <glib.h>
 #include "libsigrok.h"
 #include "libsigrok-internal.h"
 #include "config.h"
 #include "protocol.h"
-#include <stdlib.h>
-
 
 SR_PRIV int ${lib}_receive_data(int fd, int revents, void *cb_data)
 {
@@ -37,7 +36,7 @@ SR_PRIV int ${lib}_receive_data(int fd, int revents, void *cb_data)
 		return TRUE;
 
 	if (revents == G_IO_IN) {
-        /* TODO */
+		/* TODO */
 	}
 
 	return TRUE;
