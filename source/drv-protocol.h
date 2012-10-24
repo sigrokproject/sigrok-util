@@ -26,12 +26,12 @@
 
 /* Message logging helpers with driver-specific prefix string. */
 #define DRIVER_LOG_DOMAIN "${short}: "
-#define SR_LOG(l, s, args...) sr_log(l, DRIVER_LOG_DOMAIN s, ## args)
-#define SR_SPEW(s, args...) sr_spew(DRIVER_LOG_DOMAIN s, ## args)
-#define SR_DBG(s, args...) sr_dbg(DRIVER_LOG_DOMAIN s, ## args)
-#define SR_INFO(s, args...) sr_info(DRIVER_LOG_DOMAIN s, ## args)
-#define SR_WARN(s, args...) sr_warn(DRIVER_LOG_DOMAIN s, ## args)
-#define SR_ERR(s, args...) sr_err(DRIVER_LOG_DOMAIN s, ## args)
+#define sr_log(l, s, args...) sr_log(l, DRIVER_LOG_DOMAIN s, ## args)
+#define sr_spew(s, args...) sr_spew(DRIVER_LOG_DOMAIN s, ## args)
+#define sr_dbg(s, args...) sr_dbg(DRIVER_LOG_DOMAIN s, ## args)
+#define sr_info(s, args...) sr_info(DRIVER_LOG_DOMAIN s, ## args)
+#define sr_warn(s, args...) sr_warn(DRIVER_LOG_DOMAIN s, ## args)
+#define sr_err(s, args...) sr_err(DRIVER_LOG_DOMAIN s, ## args)
 
 /** Private, per-device-instance driver context. */
 struct dev_context {

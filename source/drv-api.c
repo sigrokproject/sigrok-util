@@ -56,7 +56,7 @@ static int hw_init(void)
 	struct drv_context *drvc;
 
 	if (!(drvc = g_try_malloc0(sizeof(struct drv_context)))) {
-		SR_ERR("Driver context malloc failed.");
+		sr_err("Driver context malloc failed.");
 		return SR_ERR;
 	}
 
@@ -121,7 +121,7 @@ static int hw_info_get(int info_id, const void **data,
 	switch (info_id) {
 	/* TODO */
 	default:
-		SR_ERR("Unknown info_id: %d.", info_id);
+		sr_err("Unknown info_id: %d.", info_id);
 		return SR_ERR_ARG;
 	}
 
@@ -134,7 +134,7 @@ static int hw_dev_config_set(const struct sr_dev_inst *sdi, int hwcap,
 	int ret;
 
 	if (sdi->status != SR_ST_ACTIVE) {
-		SR_ERR("Device inactive, can't set config options.");
+		sr_err("Device inactive, can't set config options.");
 		return SR_ERR;
 	}
 
@@ -142,7 +142,7 @@ static int hw_dev_config_set(const struct sr_dev_inst *sdi, int hwcap,
 	switch (hwcap) {
 	/* TODO */
 	default:
-		SR_ERR("Unknown hardware capability: %d.", hwcap);
+		sr_err("Unknown hardware capability: %d.", hwcap);
 		ret = SR_ERR_ARG;
 	}
 
