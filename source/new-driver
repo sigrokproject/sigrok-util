@@ -29,12 +29,12 @@ import datetime
 
 TMPL_AUTOCONF_AC_ARG_ENABLE = """\
 AC_ARG_ENABLE(${short}, AC_HELP_STRING([--enable-${short}],
-	      [enable ${name} driver support [default=yes]]),
+	      [enable ${name} support [default=yes]]),
 	      [HW_${upper}="$enableval"],
 	      [HW_${upper}=yes])
 AM_CONDITIONAL(HW_${upper}, test x$HW_${upper} = xyes)
 if test "x$HW_${upper}" = "xyes"; then
-	AC_DEFINE(HAVE_HW_${upper}, 1, [${name} driver support])
+	AC_DEFINE(HAVE_HW_${upper}, 1, [${name} support])
 fi
 
 """
