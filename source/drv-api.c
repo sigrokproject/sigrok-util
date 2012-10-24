@@ -121,6 +121,7 @@ static int hw_info_get(int info_id, const void **data,
 	switch (info_id) {
 	/* TODO */
 	default:
+		sr_err("${short}: Unknown info_id: %d.", info_id);
 		return SR_ERR_ARG;
 	}
 
@@ -132,13 +133,16 @@ static int hw_dev_config_set(const struct sr_dev_inst *sdi, int hwcap,
 {
 	int ret;
 
-	if (sdi->status != SR_ST_ACTIVE)
+	if (sdi->status != SR_ST_ACTIVE) {
+		sr_err("${short}: Device inactive, can't set config options.");
 		return SR_ERR;
+	}
 
 	ret = SR_OK;
 	switch (hwcap) {
 	/* TODO */
 	default:
+		sr_err("${short}: Unknown hardware capability: %d.", hwcap);
 		ret = SR_ERR_ARG;
 	}
 
@@ -158,8 +162,10 @@ static int hw_dev_acquisition_stop(const struct sr_dev_inst *sdi,
 {
 	(void)cb_data;
 
-	if (sdi->status != SR_ST_ACTIVE)
+	if (sdi->status != SR_ST_ACTIVE) {
+		sr_err("${short}: Device inactive, can't stop acquisition.");
 		return SR_ERR;
+	}
 
 	/* TODO */
 
