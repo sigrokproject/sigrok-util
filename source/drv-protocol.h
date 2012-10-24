@@ -20,6 +20,19 @@
 #ifndef LIBSIGROK_HARDWARE_${upper}_PROTOCOL_H
 #define LIBSIGROK_HARDWARE_${upper}_PROTOCOL_H
 
+#include <stdint.h>
+#include "libsigrok.h"
+#include "libsigrok-internal.h"
+
+/* Message logging helpers with driver-specific prefix string. */
+#define DRIVER_LOG_DOMAIN "${short}: "
+#define SR_LOG(l, s, args...) sr_log(l, DRIVER_LOG_DOMAIN s, ## args)
+#define SR_SPEW(s, args...) sr_spew(DRIVER_LOG_DOMAIN s, ## args)
+#define SR_DBG(s, args...) sr_dbg(DRIVER_LOG_DOMAIN s, ## args)
+#define SR_INFO(s, args...) sr_info(DRIVER_LOG_DOMAIN s, ## args)
+#define SR_WARN(s, args...) sr_warn(DRIVER_LOG_DOMAIN s, ## args)
+#define SR_ERR(s, args...) sr_err(DRIVER_LOG_DOMAIN s, ## args)
+
 /** Private, per-device-instance driver context. */
 struct dev_context {
 	/** The current sampling limit (in number of samples). */
