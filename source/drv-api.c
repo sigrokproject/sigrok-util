@@ -22,7 +22,7 @@
 #include "libsigrok-internal.h"
 #include "protocol.h"
 
-SR_PRIV struct sr_dev_driver driver_info;
+SR_PRIV struct sr_dev_driver ${lib}_driver_info;
 static struct sr_dev_driver *di = &${lib}_driver_info;
 
 /* Properly close and free all devices. */
