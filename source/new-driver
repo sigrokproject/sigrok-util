@@ -29,9 +29,9 @@ import datetime
 
 TMPL_AUTOCONF_AC_ARG_ENABLE = """\
 AC_ARG_ENABLE(${short}, AC_HELP_STRING([--enable-${short}],
-	      [enable ${name} support [default=yes]]),
-	      [HW_${upper}="$enableval"],
-	      [HW_${upper}=yes])
+	[enable ${name} support [default=yes]]),
+	[HW_${upper}="$enableval"],
+	[HW_${upper}=yes])
 AM_CONDITIONAL(HW_${upper}, test x$HW_${upper} = xyes)
 if test "x$HW_${upper}" = "xyes"; then
 	AC_DEFINE(HAVE_HW_${upper}, 1, [${name} support])
@@ -41,6 +41,21 @@ fi
 TMPL_AUTOCONF_AC_CONFIG_FILES = "\t\t hardware/${short}/Makefile\n"
 TMPL_AUTOCONF_SUMMARY = 'echo "  - ${summary}"\n'
 TMPL_HWMAKE_SUBDIR = '\t${short}'
+TMPL_HWMAKE_DRIVERLIB = """if HW_${upper}
+libsigrokhardware_la_LIBADD += ${short}/libsigrok_hw_${lib}.la
+endif
+
+"""
+TMPL_HWDRIVER_EXTERN = """\
+#ifdef HAVE_HW_${upper}
+extern SR_PRIV struct sr_dev_driver ${lib}_driver_info;
+#endif
+"""
+TMPL_HWDRIVER_DIPTR = """\
+#ifdef HAVE_HW_${upper}
+	&${lib}_driver_info,
+#endif
+"""
 FILE_DRV_MAKEFILE = 'drv-Makefile.am'
 FILE_DRV_API = 'drv-api.c'
 FILE_DRV_PROTOCOL = 'drv-protocol.c'
@@ -67,6 +82,7 @@ def new_driver():
             raise Exception(err.decode())
         gitdir = tmp + '/libsigrok/'
         do_configure_ac(gitdir)
+        do_hwdriver(gitdir)
         do_hwmake(gitdir)
         do_driverskel(gitdir)
         make_patch(gitdir)
@@ -153,11 +169,48 @@ def do_configure_ac(gitdir):
     open(cacpath, 'w').write(configure_ac)
 
 
+def do_hwdriver(gitdir):
+    path = gitdir + 'hwdriver.c'
+    hwdriver = open(path).read()
+    # add HAVE_HW_thing extern and pointers
+    out = ''
+    state = 'copy'
+    for line in hwdriver.split('\n')[:-1]:
+        if state == 'copy':
+            if line.find('/** @cond PRIVATE */') == 0:
+                state = 'extern'
+            elif line.find('static struct sr_dev_driver *drivers_list') == 0:
+                state = 'diptr'
+        elif state in ('extern', 'diptr'):
+            if state == 'extern':
+                entry = tmpl(TMPL_HWDRIVER_EXTERN)
+                next_state = 'copy'
+            else:
+                entry = tmpl(TMPL_HWDRIVER_DIPTR)
+                next_state = 'done'
+            m = re.match('#ifdef HAVE_.._(.*)', line)
+            if m:
+                drv = m.group(1)
+                if drv > names['upper']:
+                    out += entry
+                    state = next_state
+            elif not re.match('(extern|\t&|#endif)', line):
+                # new one at the end
+                out += entry
+                state = next_state
+        out += line + '\n'
+    if state != 'done':
+        raise Exception('HAVE_* markers not found in hwdriver.c')
+    hwdriver = out
+
+    open(path, 'w').write(hwdriver)
+
+
 def do_hwmake(gitdir):
     path = gitdir + 'hardware/Makefile.am'
     hwmake = open(path).read()
 
-    # add AC_ARG_ENABLE option
+    # add SUBDIRS entry
     out = ''
     state = 'copy'
     for line in hwmake.split('\n')[:-1]:
@@ -170,13 +223,23 @@ def do_hwmake(gitdir):
                 drv_short = m.group(1)
                 if drv_short.lower() > names['short']:
                     out += tmpl(TMPL_HWMAKE_SUBDIR) + ' \\\n'
-                    state = 'done'
+                    state = 'driverlib'
             else:
                 out += tmpl(TMPL_HWMAKE_SUBDIR) + ' \\\n'
-                state = 'done'
+                state = 'driverlib'
+        elif state == 'driverlib':
+            m = re.match('if [A-Z]{2}_(.*)$', line)
+            if m:
+                drv_short = m.group(1)
+                if drv_short > names['upper']:
+                    out += tmpl(TMPL_HWMAKE_DRIVERLIB)
+                    state = 'done'
         out += line + '\n'
-    if state != 'done':
-        raise Exception('SUBDIRS markers not found in hardware/Makefile.am')
+    if state == 'driverlib':
+        # reached end of file, add it in here
+        out += tmpl(TMPL_HWMAKE_DRIVERLIB).strip()
+    elif state != 'done':
+        raise Exception('markers not found in hardware/Makefile.am')
     hwmake = out
 
     open(path, 'w').write(hwmake)
@@ -195,7 +258,7 @@ def make_patch(gitdir):
     os.chdir(gitdir)
     command('git add hardware/' + names['short'])
     cmd = 'git commit -m "%s: Initial driver skeleton." ' % names['short']
-    cmd += 'configure.ac hardware/Makefile.am hardware/' + names['short']
+    cmd += 'configure.ac hwdriver.c hardware/Makefile.am hardware/' + names['short']
     command(cmd)
     cmd = "git format-patch HEAD~1"
     out, err = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE).communicate()
