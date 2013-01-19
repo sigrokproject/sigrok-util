@@ -1,0 +1,131 @@
+#!/bin/bash
+##
+## This file is part of the sigrok-util project.
+##
+## Copyright (C) 2013 Uwe Hermann <uwe@hermann-uwe.de>
+##
+## This program is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation; either version 2 of the License, or
+## (at your option) any later version.
+##
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the Free Software
+## Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
+##
+
+# The path where your Android toolchain directory is located.
+TOOLCHAIN=$HOME/android/android-arm-toolchain
+
+# The path where the cross-compiled packages will be installed.
+PREFIX=$HOME/sr_android
+
+# The path where to download files to and where to build packages.
+BUILDDIR=./sr_android_build
+
+# You usually don't need to change anything below this line.
+
+# -----------------------------------------------------------------------------
+
+VER_LIBICONV=1.14
+VER_GETTEXT=0.18.2
+VER_LIBFFI=3.0.11
+VER_GLIB=2.34.3
+VER_LIBZIP=0.10.1
+VER_LIBUSB=0.1.12
+VER_LIBFTDI=0.20
+
+SF_MIRROR=switch.dl.sourceforge.net
+
+# -----------------------------------------------------------------------------
+
+# We need to find tools in the toolchain and in the install directory.
+export PATH=$PREFIX/bin:$TOOLCHAIN/bin:$PATH
+
+# Define some helper variables.
+C="--host=arm-linux-androideabi --prefix=$PREFIX"
+P="$PREFIX/lib/pkgconfig"
+
+# Remove build directory contents (if any) and create a new build dir.
+rm -rf $BUILDDIR
+mkdir $BUILDDIR
+cd $BUILDDIR
+
+# Get the latest versions of config.guess/config.sub that know about Android.
+git clone git://git.savannah.gnu.org/config.git
+
+# -----------------------------------------------------------------------------
+
+## # TODO: Doesn't build yet.
+## # libiconv (needed for glib)
+## wget http://ftp.gnu.org/pub/gnu/libiconv/libiconv-$VER_LIBICONV.tar.gz
+## tar xfz libiconv-$VER_LIBICONV.tar.gz
+## cd libiconv-$VER_LIBICONV
+## cp -f ../config/config.guess build-aux
+## cp -f ../config/config.sub build-aux
+## cp -f ../config/config.guess libcharset/build-aux
+## cp -f ../config/config.sub libcharset/build-aux
+## ./configure $C && make && make install
+## cd ..
+
+## # TODO: Needs libiconv
+## # gettext (needed for glib)
+## wget http://ftp.gnu.org/pub/gnu/gettext/gettext-$VER_GETTEXT.tar.gz
+## tar xfz gettext-$VER_GETTEXT.tar.gz
+## cd gettext-$VER_GETTEXT
+## ./configure $C && make && make install
+## cd ..
+
+# zlib (needed for glib and libzip)
+# TODO
+
+# pcre (needed for glib)
+# TODO
+
+# libffi (needed for glib)
+wget ftp://sourceware.org/pub/libffi/libffi-$VER_LIBFFI.tar.gz
+tar xfz libffi-$VER_LIBFFI.tar.gz
+cd libffi-$VER_LIBFFI
+./configure $C && make && make install
+cd ..
+
+## # TODO: Not all build-dependencies build, yet.
+## # glib
+## wget ftp://ftp.gnome.org/pub/gnome/sources/glib/2.34/glib-$VER_GLIB.tar.xz
+## tar xfJ glib-$VER_GLIB.tar.xz
+## cd glib-$VER_GLIB
+## ./configure $C && make && make install
+## cd ..
+
+# libzip
+wget http://www.nih.at/libzip/libzip-$VER_LIBZIP.tar.gz
+tar xfz libzip-$VER_LIBZIP.tar.gz
+cd libzip-$VER_LIBZIP
+cp -f ../config/config.guess .
+cp -f ../config/config.sub .
+./configure $C && make && make install
+cd ..
+
+# libusb-0.1 (not used directly, but needed for libftdi)
+wget http://$SF_MIRROR/project/libusb/libusb-0.1%20%28LEGACY%29/$VER_LIBUSB/libusb-$VER_LIBUSB.tar.gz
+tar xfz libusb-$VER_LIBUSB.tar.gz
+cd libusb-$VER_LIBUSB
+cp -f ../config/config.guess .
+cp -f ../config/config.sub .
+./configure $C && make && make install
+cd ..
+
+# libftdi
+wget http://www.intra2net.com/en/developer/libftdi/download/libftdi-$VER_LIBFTDI.tar.gz
+tar xfz libftdi-$VER_LIBFTDI.tar.gz
+cd libftdi-$VER_LIBFTDI
+cp -f ../config/config.guess .
+cp -f ../config/config.sub .
+./configure $C && make && make install
+cd ..
+

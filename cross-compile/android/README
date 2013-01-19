@@ -1,0 +1,40 @@
+-------------------------------------------------------------------------------
+README
+-------------------------------------------------------------------------------
+
+This is a small script for cross-compiling sigrok and its dependencies
+for Android systems.
+
+
+Status
+------
+
+Work in progress. This does NOT yet fully work.
+
+
+Requirements
+------------
+
+ - bash
+ - gcc
+ - make
+ - git
+ - pkg-config (>= 0.22)
+ - Android cross-compile toolchain
+
+
+Building
+--------
+
+ $ ./sigrok-cross-android
+
+Per default it expects the Android cross toolchain in:
+
+ $HOME/android/android-arm-toolchain
+
+Per default it will install the cross-compiled packages in:
+
+ $HOME/sr_android
+
+Please edit the script if you want to change any settings.
+
