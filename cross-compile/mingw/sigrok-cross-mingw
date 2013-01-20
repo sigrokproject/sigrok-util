@@ -1,0 +1,133 @@
+#!/bin/bash
+##
+## This file is part of the sigrok-util project.
+##
+## Copyright (C) 2013 Uwe Hermann <uwe@hermann-uwe.de>
+##
+## This program is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation; either version 2 of the License, or
+## (at your option) any later version.
+##
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the Free Software
+## Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
+##
+
+# The path where your MXE directory is located.
+MXE=$HOME/mxe-git
+
+# The path where the cross-compiled packages will be installed.
+PREFIX=$HOME/sr_mingw
+
+# The path where to download files to and where to build packages.
+BUILDDIR=./sr_mingw_build
+
+# You usually don't need to change anything below this line.
+
+# -----------------------------------------------------------------------------
+
+VER_LIBUSB_1_0=1.0.9
+
+SF_MIRROR=switch.dl.sourceforge.net
+
+# -----------------------------------------------------------------------------
+
+# We need to find tools in the toolchain and in the install directory.
+export PATH=$PREFIX/bin:$MXE/usr/bin:$PATH
+
+P="$PREFIX/lib/pkgconfig"
+P2="$MXE/usr/i686-pc-mingw32/lib/pkgconfig"
+C="--host=i686-pc-mingw32 --prefix=$PREFIX"
+CM="-DCMAKE_TOOLCHAIN_FILE=$MXE/usr/i686-pc-mingw32/share/cmake/mxe-conf.cmake"
+L="--disable-shared --enable-static"
+
+# Remove build directory contents (if any) and create a new build dir.
+rm -rf $BUILDDIR
+mkdir $BUILDDIR
+cd $BUILDDIR
+
+# -----------------------------------------------------------------------------
+
+# libusb-1.0
+wget http://$SF_MIRROR/project/libusb/libusb-1.0/libusb-$VER_LIBUSB_1_0/libusb-$VER_LIBUSB_1_0.tar.bz2
+tar xfj libusb-$VER_LIBUSB_1_0.tar.bz2
+cd libusb-$VER_LIBUSB_1_0
+./configure $C $L && make install
+cd ..
+
+# Python3
+# Cross-compiling Python is highly non-trivial, so we avoid it for now.
+# The download below is a repackaged tarball of the official Python 3.2.3 MSI
+# installer for Windows: http://python.org/ftp/python/3.2.3/python-3.2.3.msi
+# The MSI file has been installed on a Windows box and then the c:\Python32
+# files have been stored in the Python32.tar.gz tarball.
+mkdir -p $PREFIX
+wget http://www.sigrok.org/tmp/Python32.tar.gz -O $PREFIX/Python32.tar.gz
+tar xzf $PREFIX/Python32.tar.gz -C $PREFIX
+
+# Create a dummy python3-config that points to Python32 above.
+mkdir -p $PREFIX/bin
+cat >$PREFIX/bin/python3-config <<EOF 
+#!/usr/bin/python3
+import sys
+import getopt
+valid_opts = ['includes', 'cflags', 'libs', 'ldflags']
+opts, args = getopt.getopt(sys.argv[1:], '', valid_opts)
+opt_flags = [flag for (flag, val) in opts]
+for opt in opt_flags: 
+    if opt in ('--includes', '--cflags'):
+        print('-I$PREFIX/Python32/include')
+    elif opt in ('--libs', '--ldflags'):
+        print('-L$PREFIX/Python32/libs -lpython32')
+EOF
+chmod 755 $PREFIX/bin/python3-config
+
+# libsigrok
+git clone git://sigrok.org/libsigrok
+cd libsigrok
+./autogen.sh
+PKG_CONFIG_PATH_i686_pc_mingw32=$P ./configure $C $L --disable-alsa --disable-link-mso19 && make install
+cd ..
+
+# libsigrokdecode
+git clone git://sigrok.org/libsigrokdecode
+cd libsigrokdecode
+./autogen.sh
+PYTHON3_CONFIG=$PREFIX/bin/python3-config PKG_CONFIG_PATH_i686_pc_mingw32=$P ./configure $C $L && make install
+cd ..
+
+# sigrok-cli
+git clone git://sigrok.org/sigrok-cli
+cd sigrok-cli
+./autogen.sh
+PKG_CONFIG_PATH_i686_pc_mingw32=$P:$P2 ./configure $C && make install
+cd ..
+
+## TODO: Doesn't fully work, yet.
+## # sigrok-qt
+## git clone git://sigrok.org/sigrok-qt
+## cd sigrok-qt
+## PKG_CONFIG_PATH_i686_pc_mingw32=$P:$P2 qmake -spec win32-g++
+## make
+## # TODO: make install
+## cd ..
+
+# sigrok-gtk
+git clone git://sigrok.org/sigrok-gtk
+cd sigrok-gtk
+./autogen.sh
+PKG_CONFIG_PATH_i686_pc_mingw32=$P:$P2 ./configure $C && make install
+cd ..
+
+# PulseView
+git clone git://sigrok.org/pulseview
+cd pulseview
+LDFLAGS="-llzma -llcms" PKG_CONFIG_PATH_i686_pc_mingw32=$P:$P2 cmake $CM -DCMAKE_INSTALL_PREFIX:PATH=$PREFIX . && make install
+cd ..
+

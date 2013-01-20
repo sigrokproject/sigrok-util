@@ -1,0 +1,55 @@
+-------------------------------------------------------------------------------
+README
+-------------------------------------------------------------------------------
+
+This is a small script for cross-compiling sigrok and its dependencies
+for Windows/MinGW systems.
+
+
+Status
+------
+
+Work in progress. This does NOT yet fully work.
+
+
+Requirements
+------------
+
+ - bash
+ - gcc
+ - make
+ - git
+ - pkg-config (>= 0.22)
+ - MXE
+
+
+MXE setup
+---------
+
+First, setup the MXE cross-compile environment for MinGW/Windows:
+
+ $ cd $HOME
+ $ git clone https://github.com/mxe/mxe.git mxe-git
+ $ cd mxe-git
+ $ make gcc glib libzip libftdi gtk2 qt boost nsis
+
+This will take a while.
+
+See http://mxe.cc for details on MXE.
+
+
+Building
+--------
+
+ $ ./sigrok-cross-mingw
+
+Per default it expects MXE in:
+
+ $HOME/mxe-git
+
+Per default it will install the cross-compiled packages in:
+
+ $HOME/sr_mingw
+
+Please edit the script if you want to change any settings.
+
