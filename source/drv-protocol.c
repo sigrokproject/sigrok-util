@@ -25,6 +25,8 @@
 
 SR_PRIV int ${lib}_receive_data(int fd, int revents, void *cb_data)
 {
+	(void)fd;
+
 	const struct sr_dev_inst *sdi;
 	struct dev_context *devc;
 

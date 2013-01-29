@@ -55,19 +55,7 @@ static int clear_instances(void)
 
 static int hw_init(struct sr_context *sr_ctx)
 {
-	struct drv_context *drvc;
-
-	if (!(drvc = g_try_malloc0(sizeof(struct drv_context)))) {
-		sr_err("Driver context malloc failed.");
-		return SR_ERR_MALLOC;
-	}
-
-	/* TODO */
-
-	drvc->sr_ctx = sr_ctx;
-	di->priv = drvc;
-
-	return SR_OK;
+	return std_hw_init(sr_ctx, di, DRIVER_LOG_DOMAIN);
 }
 
 static GSList *hw_scan(GSList *options)
@@ -97,6 +85,8 @@ static GSList *hw_dev_list(void)
 
 static int hw_dev_open(struct sr_dev_inst *sdi)
 {
+	(void)sdi;
+
 	/* TODO */
 
 	return SR_OK;
@@ -104,6 +94,8 @@ static int hw_dev_open(struct sr_dev_inst *sdi)
 
 static int hw_dev_close(struct sr_dev_inst *sdi)
 {
+	(void)sdi;
+
 	/* TODO */
 
 	return SR_OK;
@@ -118,10 +110,13 @@ static int hw_cleanup(void)
 	return SR_OK;
 }
 
-static int hw_info_get(int info_id, const void **data,
-		       const struct sr_dev_inst *sdi)
+static int hw_config_get(int id, const void **value,
+			 const struct sr_dev_inst *sdi)
 {
-	switch (info_id) {
+	(void)sdi;
+	(void)value;
+
+	switch (id) {
 	/* TODO */
 	default:
 		return SR_ERR_ARG;
@@ -130,9 +125,11 @@ static int hw_info_get(int info_id, const void **data,
 	return SR_OK;
 }
 
-static int hw_dev_config_set(const struct sr_dev_inst *sdi, int hwcap,
-			     const void *value)
+static int hw_config_set(int id, const void *value,
+			 const struct sr_dev_inst *sdi)
 {
+	(void)value;
+
 	int ret;
 
 	if (sdi->status != SR_ST_ACTIVE) {
@@ -141,19 +138,36 @@ static int hw_dev_config_set(const struct sr_dev_inst *sdi, int hwcap,
 	}
 
 	ret = SR_OK;
-	switch (hwcap) {
+	switch (id) {
 	/* TODO */
 	default:
-		sr_err("Unknown hardware capability: %d.", hwcap);
+		sr_err("Unknown hardware capability: %d.", id);
 		ret = SR_ERR_ARG;
 	}
 
 	return ret;
 }
 
+static int hw_config_list(int key, const void **data,
+			  const struct sr_dev_inst *sdi)
+{
+	(void)sdi;
+	(void)data;
+
+	switch (key) {
+	default:
+		return SR_ERR_ARG;
+	}
+
+	return SR_OK;
+}
+
 static int hw_dev_acquisition_start(const struct sr_dev_inst *sdi,
 				    void *cb_data)
 {
+	(void)sdi;
+	(void)cb_data;
+
 	/* TODO */
 
 	return SR_OK;
@@ -182,10 +196,11 @@ SR_PRIV struct sr_dev_driver ${lib}_driver_info = {
 	.scan = hw_scan,
 	.dev_list = hw_dev_list,
 	.dev_clear = clear_instances,
+	.config_get = hw_config_get,
+	.config_set = hw_config_set,
+	.config_list = hw_config_list,
 	.dev_open = hw_dev_open,
 	.dev_close = hw_dev_close,
-	.info_get = hw_info_get,
-	.dev_config_set = hw_dev_config_set,
 	.dev_acquisition_start = hw_dev_acquisition_start,
 	.dev_acquisition_stop = hw_dev_acquisition_stop,
 	.priv = NULL,
