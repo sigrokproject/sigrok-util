@@ -17,9 +17,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <glib.h>
-#include "libsigrok.h"
-#include "libsigrok-internal.h"
 #include "protocol.h"
 
 SR_PRIV struct sr_dev_driver ${lib}_driver_info;

@@ -21,6 +21,7 @@
 #define LIBSIGROK_HARDWARE_${upper}_PROTOCOL_H
 
 #include <stdint.h>
+#include <glib.h>
 #include "libsigrok.h"
 #include "libsigrok-internal.h"
 
