@@ -92,7 +92,7 @@ chmod 755 $PREFIX/bin/python3-config
 git clone git://sigrok.org/libsigrok
 cd libsigrok
 ./autogen.sh
-PKG_CONFIG_PATH_i686_pc_mingw32=$P ./configure $C $L --disable-alsa --disable-link-mso19 && make install
+PKG_CONFIG_PATH_i686_pc_mingw32=$P ./configure $C $L && make install
 cd ..
 
 # libsigrokdecode
