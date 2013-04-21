@@ -128,6 +128,6 @@ cd ..
 # PulseView
 git clone git://sigrok.org/pulseview
 cd pulseview
-LDFLAGS="-llzma -llcms" PKG_CONFIG_PATH_i686_pc_mingw32=$P:$P2 cmake $CM -DCMAKE_INSTALL_PREFIX:PATH=$PREFIX . && make install
+LDFLAGS="-llzma -llcms" PKG_CONFIG_PATH_i686_pc_mingw32=$P:$P2 cmake $CM -DCMAKE_INSTALL_PREFIX:PATH=$PREFIX -DDISABLE_WERROR=y . && make install
 cd ..
 
