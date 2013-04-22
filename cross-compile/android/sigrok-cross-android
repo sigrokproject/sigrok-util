@@ -34,6 +34,7 @@ BUILDDIR=./sr_android_build
 
 VER_LIBICONV=1.14
 VER_GETTEXT=0.18.2
+VER_ZLIB=1.2.7
 VER_PCRE=8.32
 VER_LIBFFI=3.0.11
 VER_GLIB=2.34.3
@@ -83,7 +84,12 @@ git clone git://git.savannah.gnu.org/config.git
 ## cd ..
 
 # zlib (needed for glib and libzip)
-# TODO
+wget http://zlib.net/zlib-$VER_ZLIB.tar.gz
+tar xfvz zlib-$VER_ZLIB.tar.gz
+cd zlib-$VER_ZLIB
+# Note: zlib's configure doesn't understand --host, we need to pass $CC.
+CC=arm-linux-androideabi-gcc ./configure --prefix=$PREFIX && make && make install
+cd ..
 
 # pcre (needed for glib)
 wget ftp://ftp.csx.cam.ac.uk/pub/software/programming/pcre/pcre-$VER_PCRE.tar.gz
