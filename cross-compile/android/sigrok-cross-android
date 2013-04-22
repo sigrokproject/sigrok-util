@@ -34,6 +34,7 @@ BUILDDIR=./sr_android_build
 
 VER_LIBICONV=1.14
 VER_GETTEXT=0.18.2
+VER_PCRE=8.32
 VER_LIBFFI=3.0.11
 VER_GLIB=2.34.3
 VER_LIBZIP=0.10.1
@@ -85,7 +86,11 @@ git clone git://git.savannah.gnu.org/config.git
 # TODO
 
 # pcre (needed for glib)
-# TODO
+wget ftp://ftp.csx.cam.ac.uk/pub/software/programming/pcre/pcre-$VER_PCRE.tar.gz
+tar xfvz pcre-$VER_PCRE.tar.gz
+cd pcre-$VER_PCRE
+./configure $C && make && make install
+cd ..
 
 # libffi (needed for glib)
 wget ftp://sourceware.org/pub/libffi/libffi-$VER_LIBFFI.tar.gz
