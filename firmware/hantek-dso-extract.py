@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 ##
-## This file is part of the sigrok project.
+## This file is part of the sigrok-util project.
 ##
 ## Copyright (C) 2012 Bert Vermeulen <bert@biot.com>
 ##
