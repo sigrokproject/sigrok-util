@@ -42,6 +42,18 @@ See the following wiki page for more (OS-specific) instructions:
  http://sigrok.org/wiki/Building
 
 
+Copyright and license
+---------------------
+
+sigrok-util contains various tools that are licensed under different terms.
+
+Some are licensed under the terms of the GNU GPL version 2 (or later),
+others under the terms of the GNU GPL version 3 (or later).
+
+Please see the individual source files for the full list of copyright holders
+and the license that applies to the respective tool.
+
+
 Mailing lists
 -------------
 
