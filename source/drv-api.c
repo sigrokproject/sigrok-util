@@ -22,40 +22,13 @@
 SR_PRIV struct sr_dev_driver ${lib}_driver_info;
 static struct sr_dev_driver *di = &${lib}_driver_info;
 
-/* Properly close and free all devices. */
-static int clear_instances(void)
+
+static int init(struct sr_context *sr_ctx)
 {
-	struct sr_dev_inst *sdi;
-	struct drv_context *drvc;
-	struct dev_context *devc;
-	GSList *l;
-
-	if (!(drvc = di->priv))
-		return SR_OK;
-
-	for (l = drvc->instances; l; l = l->next) {
-		if (!(sdi = l->data))
-			continue;
-		if (!(devc = sdi->priv))
-			continue;
-
-		/* TODO */
-
-		sr_dev_inst_free(sdi);
-	}
-
-	g_slist_free(drvc->instances);
-	drvc->instances = NULL;
-
-	return SR_OK;
+	return std_hw_init(sr_ctx, di, LOG_PREFIX);
 }
 
-static int hw_init(struct sr_context *sr_ctx)
-{
-	return std_hw_init(sr_ctx, di, DRIVER_LOG_DOMAIN);
-}
-
-static GSList *hw_scan(GSList *options)
+static GSList *scan(GSList *options)
 {
 	struct drv_context *drvc;
 	GSList *devices;
@@ -66,12 +39,13 @@ static GSList *hw_scan(GSList *options)
 	drvc = di->priv;
 	drvc->instances = NULL;
 
-	/* TODO */
+	/* TODO: scan for devices, either based on a SR_CONF_CONN option
+	 * or on a USB scan. */
 
 	return devices;
 }
 
-static GSList *hw_dev_list(void)
+static GSList *dev_list(void)
 {
 	struct drv_context *drvc;
 
@@ -80,106 +54,118 @@ static GSList *hw_dev_list(void)
 	return drvc->instances;
 }
 
-static int hw_dev_open(struct sr_dev_inst *sdi)
+static int dev_clear(void)
+{
+	return std_dev_clear(di, NULL);
+}
+
+static int dev_open(struct sr_dev_inst *sdi)
 {
 	(void)sdi;
 
-	/* TODO */
+	/* TODO: get handle from sdi->conn and open it. */
+
+	sdi->status = SR_ST_ACTIVE;
 
 	return SR_OK;
 }
 
-static int hw_dev_close(struct sr_dev_inst *sdi)
+static int dev_close(struct sr_dev_inst *sdi)
 {
 	(void)sdi;
 
-	/* TODO */
+	/* TODO: get handle from sdi->conn and close it. */
+
+	sdi->status = SR_ST_INACTIVE;
 
 	return SR_OK;
 }
 
-static int hw_cleanup(void)
+static int cleanup(void)
 {
-	clear_instances();
+	dev_clear();
 
-	/* TODO */
+	/* TODO: free other driver resources, if any. */
 
 	return SR_OK;
 }
 
-static int hw_config_get(int id, const void **value,
-			 const struct sr_dev_inst *sdi)
+static int config_get(int key, GVariant **data, const struct sr_dev_inst *sdi)
 {
-	(void)sdi;
-	(void)value;
-
-	switch (id) {
-	/* TODO */
-	default:
-		return SR_ERR_ARG;
-	}
-
-	return SR_OK;
-}
-
-static int hw_config_set(int id, const void *value,
-			 const struct sr_dev_inst *sdi)
-{
-	(void)value;
-
 	int ret;
 
-	if (sdi->status != SR_ST_ACTIVE) {
-		sr_err("Device inactive, can't set config options.");
-		return SR_ERR;
-	}
+	(void)sdi;
+	(void)data;
 
 	ret = SR_OK;
-	switch (id) {
+	switch (key) {
 	/* TODO */
 	default:
-		sr_err("Unknown hardware capability: %d.", id);
-		ret = SR_ERR_ARG;
+		return SR_ERR_NA;
 	}
 
 	return ret;
 }
 
-static int hw_config_list(int key, const void **data,
-			  const struct sr_dev_inst *sdi)
+static int config_set(int key, GVariant *data, const struct sr_dev_inst *sdi)
 {
+	int ret;
+
+	(void)data;
+
+	if (sdi->status != SR_ST_ACTIVE)
+		return SR_ERR_DEV_CLOSED;
+
+	ret = SR_OK;
+	switch (key) {
+	/* TODO */
+	default:
+		ret = SR_ERR_NA;
+	}
+
+	return ret;
+}
+
+static int config_list(int key, GVariant **data, const struct sr_dev_inst *sdi)
+{
+	int ret;
+
 	(void)sdi;
 	(void)data;
 
+	ret = SR_OK;
 	switch (key) {
+	/* TODO */
 	default:
-		return SR_ERR_ARG;
+		return SR_ERR_NA;
 	}
 
-	return SR_OK;
+	return ret;
 }
 
-static int hw_dev_acquisition_start(const struct sr_dev_inst *sdi,
+static int dev_acquisition_start(const struct sr_dev_inst *sdi,
 				    void *cb_data)
 {
 	(void)sdi;
 	(void)cb_data;
 
-	/* TODO */
+	if (sdi->status != SR_ST_ACTIVE)
+		return SR_ERR_DEV_CLOSED;
+
+	/* TODO: configure hardware, reset acquisition state, set up
+	 * callbacks and send header packet. */
 
 	return SR_OK;
 }
 
-static int hw_dev_acquisition_stop(struct sr_dev_inst *sdi, void *cb_data)
+static int dev_acquisition_stop(struct sr_dev_inst *sdi, void *cb_data)
 {
 	(void)cb_data;
 
-	if (sdi->status != SR_ST_ACTIVE) {
-		sr_err("Device inactive, can't stop acquisition.");
-		return SR_ERR;
-	}
+	if (sdi->status != SR_ST_ACTIVE)
+		return SR_ERR_DEV_CLOSED;
 
-	/* TODO */
+	/* TODO: stop acquisition. */
 
 	return SR_OK;
 }
@@ -188,17 +174,17 @@ SR_PRIV struct sr_dev_driver ${lib}_driver_info = {
 	.name = "${short}",
 	.longname = "${name}",
 	.api_version = 1,
-	.init = hw_init,
-	.cleanup = hw_cleanup,
-	.scan = hw_scan,
-	.dev_list = hw_dev_list,
-	.dev_clear = clear_instances,
-	.config_get = hw_config_get,
-	.config_set = hw_config_set,
-	.config_list = hw_config_list,
-	.dev_open = hw_dev_open,
-	.dev_close = hw_dev_close,
-	.dev_acquisition_start = hw_dev_acquisition_start,
-	.dev_acquisition_stop = hw_dev_acquisition_stop,
+	.init = init,
+	.cleanup = cleanup,
+	.scan = scan,
+	.dev_list = dev_list,
+	.dev_clear = dev_clear,
+	.config_get = config_get,
+	.config_set = config_set,
+	.config_list = config_list,
+	.dev_open = dev_open,
+	.dev_close = dev_close,
+	.dev_acquisition_start = dev_acquisition_start,
+	.dev_acquisition_stop = dev_acquisition_stop,
 	.priv = NULL,
 };

@@ -301,12 +301,12 @@ def parse_gitconfig():
 #
 
 scriptdir = os.getcwd()
-if socket.gethostname() == 'sigrok':
-    LIBSR = '/data/git/libsigrok'
-    TMPLDIR = '/data/tools/tmpl'
-else:
-    LIBSR = 'git://sigrok.org/libsigrok'
-    TMPLDIR = scriptdir
+if scriptdir.split('/')[-2:] != ['sigrok-util', 'source']:
+	print("Please call this script from the 'source' directory.")
+	sys.exit(1)
+
+LIBSR = 'git://sigrok.org/libsigrok'
+TMPLDIR = scriptdir
 
 if len(sys.argv) < 2:
     print("Usage: new-driver <name>")
