@@ -25,7 +25,7 @@
 #include "libsigrok.h"
 #include "libsigrok-internal.h"
 
-/* Message logging helpers with driver-specific prefix string. */
+/* Message logging helpers with subsystem-specific prefix string. */
 #define LOG_PREFIX "${short}: "
 #define sr_log(l, s, args...) sr_log(l, LOG_PREFIX s, ## args)
 #define sr_spew(s, args...) sr_spew(LOG_PREFIX s, ## args)
