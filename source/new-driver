@@ -144,7 +144,7 @@ def do_configure_ac(gitdir):
     # add summary line
     out = ''
     state = 'copy'
-    names['summary'] = "%s%s $HW_%s" % (names['name'],
+    names['summary'] = "%s%s $HW_%s" % (names['short'],
             '.' * (32 - len(names['name'])), names['upper'])
     for line in configure_ac.split('\n')[:-1]:
         if state == 'copy':
