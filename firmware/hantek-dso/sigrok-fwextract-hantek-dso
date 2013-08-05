@@ -66,7 +66,7 @@ def unsparse(data):
 
 
 def usage():
-	print("hantek-dso-extract.py <driverfile>")
+	print("sigrok-fwextract-hantek-dso <driverfile>")
 	sys.exit()
 
 

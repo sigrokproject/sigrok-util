@@ -33,7 +33,7 @@ def extract_bitstream(elf, lv):
                    'saleae-logic16-fpga-'+lv+'.bitstream')
 
 def usage():
-    print("saleae-logic16-extract.py <programfile>")
+    print("sigrok-fwextract-saleae-logic16 <programfile>")
     sys.exit()
 
 
