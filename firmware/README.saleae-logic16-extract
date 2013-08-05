@@ -1,0 +1,13 @@
+The saleae-logic16-extract.py tool extracts FPGA bitstreams from the
+vendor software forh the Saleae Logic16 USB logic analyzer. Download
+the Linux version (either 32-bit or 64-bit will do), and unpack it
+to find the main binary called "Logic".
+
+Usage:
+
+$ ./saleae-logic16-extract.py Logic
+saved 149516 bytes to saleae-logic16-fpga-18.bitstream
+saved 149516 bytes to saleae-logic16-fpga-33.bitstream
+
+Copy the resulting files over to the location where sigrok installed its
+firmware files. By default this is /usr/local/share/sigrok-firmware
