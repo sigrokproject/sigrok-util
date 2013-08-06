@@ -22,7 +22,6 @@
 SR_PRIV struct sr_dev_driver ${lib}_driver_info;
 static struct sr_dev_driver *di = &${lib}_driver_info;
 
-
 static int init(struct sr_context *sr_ctx)
 {
 	return std_init(sr_ctx, di, LOG_PREFIX);
@@ -47,11 +46,7 @@ static GSList *scan(GSList *options)
 
 static GSList *dev_list(void)
 {
-	struct drv_context *drvc;
-
-	drvc = di->priv;
-
-	return drvc->instances;
+	return ((struct drv_context *)(di->priv))->instances;
 }
 
 static int dev_clear(void)
