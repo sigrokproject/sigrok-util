@@ -4,13 +4,16 @@ sigrok\-fwextract\-saleae\-logic16 \- Extract Saleae Logic16 firmware
 .SH "SYNOPSIS"
 .B sigrok\-fwextract\-saleae\-logic16 [FILE]
 .SH "DESCRIPTION"
-This tool extracts FPGA bitstreams from the vendor software for the
-Saleae Logic16 USB logic analyzer. Download the Linux version (either 32-bit
-or 64-bit will do), and unpack it to find the main binary called "Logic".
+This tool extracts FX2 firmware and FPGA bitstreams from the vendor
+software for the Saleae Logic16 USB logic analyzer. Download the Linux
+version (either 32-bit or 64-bit will do), and unpack it to find the
+main binary called "Logic".
 .PP
 In order to extract the firmware/bitstreams, run the following command:
 .PP
 .B "  $ sigrok-fwextract-saleae-logic16 Logic"
+.br
+.RB "  saved 5214 bytes to saleae-logic16-fx2.fw"
 .br
 .RB "  saved 149516 bytes to saleae-logic16-fpga-18.bitstream"
 .br

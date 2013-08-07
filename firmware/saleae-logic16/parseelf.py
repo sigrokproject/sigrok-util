@@ -68,6 +68,23 @@ class elf:
                                     ('st_name', 'st_value', 'st_size',
                                      'st_info', 'st_other', 'st_shndx'))
 
+    def parse_rela(this):
+        return this.read_struct('NNn', ('r_offset', 'r_info', 'r_addend'))
+
+    def parse_rel(this):
+        return this.read_struct('NN', ('r_offset', 'r_info'))
+
+    def fixup_reloc(this, reloc):
+        if not 'r_addend' in reloc:
+            reloc['r_addend'] = 0
+        if this.elf_wordsize == 64:
+            reloc['r_sym'] = reloc['r_info'] >> 32
+            reloc['r_type'] = reloc['r_info'] & 0xffffffff
+        else:
+            reloc['r_sym'] = reloc['r_info'] >> 8
+            reloc['r_type'] = reloc['r_info'] & 0xff
+        return reloc
+
     def parse_symbols(this, symsecname, strsecname):
         try:
             symsechdr = this.find_section(symsecname)
@@ -76,9 +93,19 @@ class elf:
             return {}
         strsec = this.read_section(strsechdr)
         this.file.seek(symsechdr['sh_offset'])
-        syms = [this.parse_symbol() for i in
+        syms = [dict(this.parse_symbol(),number=i) for i in
                 range(0, symsechdr['sh_size'] // symsechdr['sh_entsize'])]
         return {this.get_name(sym['st_name'], strsec): sym for sym in syms}
+
+    def parse_relocs(this, section):
+        this.file.seek(section['sh_offset'])
+        if section['sh_type'] == 4:
+            relocs = [this.fixup_reloc(this.parse_rela()) for i in
+                      range(0, section['sh_size'] // section['sh_entsize'])]
+        else:
+            relocs = [this.fixup_reloc(this.parse_rel()) for i in
+                      range(0, section['sh_size'] // section['sh_entsize'])]
+        return relocs
 
     def address_to_offset(this, addr):
         for section in this.shdrs:
@@ -125,6 +152,18 @@ class elf:
 
         this.symtab = this.parse_symbols('.symtab', '.strtab')
         this.dynsym = this.parse_symbols('.dynsym', '.dynstr')
+
+        this.relocs = {}
+        for section in this.shdrs:
+            if section['sh_type'] == 4 or section['sh_type'] == 9:
+                rels = {}
+                symsec = this.shdrs[section['sh_link']]
+                if this.get_name(symsec['sh_name']) == '.symtab':
+                    rels['symbols'] = this.symtab
+                elif this.get_name(symsec['sh_name']) == '.dynsym':
+                    rels['symbols'] = this.dynsym
+                rels['relocs'] = this.parse_relocs(section)
+                this.relocs[this.get_name(section['sh_name'])] = rels
 
     def __del__(this):
         try:
