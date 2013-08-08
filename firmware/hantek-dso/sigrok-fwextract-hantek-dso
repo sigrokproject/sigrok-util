@@ -88,6 +88,3 @@ try:
 	print("saved %d bytes to %s" % (len(blob), outfile))
 except Exception as e:
 	print("Error: %s" % str(e))
-
-
-
