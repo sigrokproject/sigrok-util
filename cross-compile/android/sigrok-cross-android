@@ -19,6 +19,8 @@
 ## Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
 ##
 
+set -e
+
 # The path where your Android toolchain directory is located.
 TOOLCHAIN=$HOME/android/android-arm-toolchain
 
@@ -72,7 +74,9 @@ git clone git://git.savannah.gnu.org/config.git
 ## cp -f ../config/config.sub build-aux
 ## cp -f ../config/config.guess libcharset/build-aux
 ## cp -f ../config/config.sub libcharset/build-aux
-## ./configure $C && make && make install
+## ./configure $C
+## make
+## make install
 ## cd ..
 
 ## # TODO: Needs libiconv
@@ -80,7 +84,9 @@ git clone git://git.savannah.gnu.org/config.git
 ## wget http://ftp.gnu.org/pub/gnu/gettext/gettext-$VER_GETTEXT.tar.gz
 ## tar xfz gettext-$VER_GETTEXT.tar.gz
 ## cd gettext-$VER_GETTEXT
-## ./configure $C && make && make install
+## ./configure $C
+## make
+## make install
 ## cd ..
 
 # zlib (needed for glib and libzip)
@@ -88,21 +94,27 @@ wget http://zlib.net/zlib-$VER_ZLIB.tar.gz
 tar xfvz zlib-$VER_ZLIB.tar.gz
 cd zlib-$VER_ZLIB
 # Note: zlib's configure doesn't understand --host, we need to pass $CC.
-CC=arm-linux-androideabi-gcc ./configure --prefix=$PREFIX && make && make install
+CC=arm-linux-androideabi-gcc ./configure --prefix=$PREFIX
+make
+make install
 cd ..
 
 # pcre (needed for glib)
 wget ftp://ftp.csx.cam.ac.uk/pub/software/programming/pcre/pcre-$VER_PCRE.tar.gz
 tar xfvz pcre-$VER_PCRE.tar.gz
 cd pcre-$VER_PCRE
-./configure $C && make && make install
+./configure $C
+make
+make install
 cd ..
 
 # libffi (needed for glib)
 wget ftp://sourceware.org/pub/libffi/libffi-$VER_LIBFFI.tar.gz
 tar xfz libffi-$VER_LIBFFI.tar.gz
 cd libffi-$VER_LIBFFI
-./configure $C && make && make install
+./configure $C
+make
+make install
 cd ..
 
 ## # TODO: Not all build-dependencies build, yet.
@@ -110,7 +122,9 @@ cd ..
 ## wget ftp://ftp.gnome.org/pub/gnome/sources/glib/2.34/glib-$VER_GLIB.tar.xz
 ## tar xfJ glib-$VER_GLIB.tar.xz
 ## cd glib-$VER_GLIB
-## ./configure $C && make && make install
+## ./configure $C
+## make
+## make install
 ## cd ..
 
 # libzip
@@ -119,7 +133,9 @@ tar xfz libzip-$VER_LIBZIP.tar.gz
 cd libzip-$VER_LIBZIP
 cp -f ../config/config.guess .
 cp -f ../config/config.sub .
-./configure $C && make && make install
+./configure $C
+make
+make install
 cd ..
 
 # libusb-0.1 (not used directly, but needed for libftdi)
@@ -128,7 +144,9 @@ tar xfz libusb-$VER_LIBUSB.tar.gz
 cd libusb-$VER_LIBUSB
 cp -f ../config/config.guess .
 cp -f ../config/config.sub .
-./configure $C && make && make install
+./configure $C
+make
+make install
 cd ..
 
 # libftdi
@@ -137,6 +155,8 @@ tar xfz libftdi-$VER_LIBFTDI.tar.gz
 cd libftdi-$VER_LIBFTDI
 cp -f ../config/config.guess .
 cp -f ../config/config.sub .
-./configure $C && make && make install
+./configure $C
+make
+make install
 cd ..
 
