@@ -65,19 +65,26 @@ git clone git://git.savannah.gnu.org/config.git
 
 # -----------------------------------------------------------------------------
 
-## # TODO: Doesn't build yet.
-## # libiconv (needed for glib)
-## wget http://ftp.gnu.org/pub/gnu/libiconv/libiconv-$VER_LIBICONV.tar.gz
-## tar xfz libiconv-$VER_LIBICONV.tar.gz
-## cd libiconv-$VER_LIBICONV
-## cp -f ../config/config.guess build-aux
-## cp -f ../config/config.sub build-aux
-## cp -f ../config/config.guess libcharset/build-aux
-## cp -f ../config/config.sub libcharset/build-aux
-## ./configure $C
-## make
-## make install
-## cd ..
+# libiconv (needed for glib)
+wget http://ftp.gnu.org/pub/gnu/libiconv/libiconv-$VER_LIBICONV.tar.gz
+tar xfz libiconv-$VER_LIBICONV.tar.gz
+cd libiconv-$VER_LIBICONV
+cp -f ../config/config.guess build-aux
+cp -f ../config/config.sub build-aux
+cp -f ../config/config.guess libcharset/build-aux
+cp -f ../config/config.sub libcharset/build-aux
+./configure $C --enable-shared
+make lib/localcharset.h
+cd libcharset
+make
+make install
+cd ../lib
+make
+make install
+cd ..
+test -d $PREFIX/include || mkdir $PREFIX/include
+cp include/iconv.h.inst $PREFIX/include/iconv.h
+cd ..
 
 ## # TODO: Needs libiconv
 ## # gettext (needed for glib)
