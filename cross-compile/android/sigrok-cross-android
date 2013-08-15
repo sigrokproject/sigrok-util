@@ -86,15 +86,15 @@ test -d $PREFIX/include || mkdir $PREFIX/include
 cp include/iconv.h.inst $PREFIX/include/iconv.h
 cd ..
 
-## # TODO: Needs libiconv
-## # gettext (needed for glib)
-## wget http://ftp.gnu.org/pub/gnu/gettext/gettext-$VER_GETTEXT.tar.gz
-## tar xfz gettext-$VER_GETTEXT.tar.gz
-## cd gettext-$VER_GETTEXT
-## ./configure $C
-## make
-## make install
-## cd ..
+# gettext (needed for glib)
+wget http://ftp.gnu.org/pub/gnu/gettext/gettext-$VER_GETTEXT.tar.gz
+tar xfz gettext-$VER_GETTEXT.tar.gz
+cd gettext-$VER_GETTEXT
+./configure $C --enable-shared --disable-libasprintf
+cd gettext-runtime
+make
+make install
+cd ../..
 
 # zlib (needed for glib and libzip)
 wget http://zlib.net/zlib-$VER_ZLIB.tar.gz
