@@ -103,7 +103,7 @@ cd ..
 wget ftp://ftp.csx.cam.ac.uk/pub/software/programming/pcre/pcre-$VER_PCRE.tar.gz
 tar xfvz pcre-$VER_PCRE.tar.gz
 cd pcre-$VER_PCRE
-./configure $C
+./configure $C --disable-cpp
 make
 make install
 cd ..
@@ -145,8 +145,9 @@ cd libusb-$VER_LIBUSB
 cp -f ../config/config.guess .
 cp -f ../config/config.sub .
 ./configure $C
-make
-make install
+# explicitly exclude libusbpp.la from lib_LTLIBRARIES, and skip subdirs
+make lib_LTLIBRARIES=libusb.la SUBDIRS=.
+make lib_LTLIBRARIES=libusb.la SUBDIRS=. install
 cd ..
 
 # libftdi
