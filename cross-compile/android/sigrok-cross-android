@@ -168,3 +168,11 @@ make
 make install
 cd ..
 
+# libsigrok
+git clone git://sigrok.org/libsigrok
+cd libsigrok
+./autogen.sh
+LDFLAGS=-L$PREFIX/lib CPPFLAGS="-I$PREFIX/include -I$PREFIX/lib/libzip/include" PKG_CONFIG_LIBDIR=$PREFIX/lib/pkgconfig ./configure $C --disable-alsa --disable-link-mso19 --disable-kecheng-kc-330b
+make
+make install
+cd ..
