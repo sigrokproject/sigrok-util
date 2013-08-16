@@ -126,7 +126,7 @@ cd ..
 
 ## # glib
 wget https://github.com/djdeath/glib/archive/android.zip
-unzip android.zip
+unzip -q android.zip
 cd glib-android
 ./autogen.sh
 LDFLAGS=-L$PREFIX/lib CPPFLAGS=-I$PREFIX/include glib_cv_stack_grows=no glib_cv_uscore=no ac_cv_func_posix_getpwuid_r=no ac_cv_func_posix_getgrgid_r=no ./configure $C --disable-modular-tests
