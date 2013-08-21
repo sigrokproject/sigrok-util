@@ -32,12 +32,6 @@ BUILDDIR=./sr_mingw_build
 
 # -----------------------------------------------------------------------------
 
-VER_LIBUSB_1_0=1.0.9
-
-SF_MIRROR=switch.dl.sourceforge.net
-
-# -----------------------------------------------------------------------------
-
 # We need to find tools in the toolchain and in the install directory.
 export PATH=$PREFIX/bin:$MXE/usr/bin:$PATH
 
@@ -53,13 +47,6 @@ mkdir $BUILDDIR
 cd $BUILDDIR
 
 # -----------------------------------------------------------------------------
-
-# libusb-1.0
-wget http://$SF_MIRROR/project/libusb/libusb-1.0/libusb-$VER_LIBUSB_1_0/libusb-$VER_LIBUSB_1_0.tar.bz2
-tar xfj libusb-$VER_LIBUSB_1_0.tar.bz2
-cd libusb-$VER_LIBUSB_1_0
-./configure $C $L && make install
-cd ..
 
 # Python3
 # Cross-compiling Python is highly non-trivial, so we avoid it for now.
