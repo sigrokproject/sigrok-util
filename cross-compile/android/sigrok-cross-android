@@ -51,9 +51,12 @@ SF_MIRROR=switch.dl.sourceforge.net
 # We need to find tools in the toolchain and in the install directory.
 export PATH=$PREFIX/bin:$TOOLCHAIN/bin:$PATH
 
+# Tell pkg-config to only look for our cross-built stuff
+export PKG_CONFIG_LIBDIR="$PREFIX/lib/pkgconfig"
+export -n PKG_CONFIG_PATH
+
 # Define some helper variables.
 C="--host=arm-linux-androideabi --prefix=$PREFIX"
-P="$PREFIX/lib/pkgconfig"
 
 # Remove build directory contents (if any) and create a new build dir.
 rm -rf $BUILDDIR
@@ -130,7 +133,7 @@ unzip -q android.zip
 cd glib-android
 ./autogen.sh
 # Note: Manual LDFLAGS/CPPFLAGS needed for libiconv, rest uses pkg-config.
-PKG_CONFIG_PATH=$P LDFLAGS=-L$PREFIX/lib CPPFLAGS=-I$PREFIX/include glib_cv_stack_grows=no glib_cv_uscore=no ac_cv_func_posix_getpwuid_r=no ac_cv_func_posix_getgrgid_r=no ./configure $C --disable-modular-tests
+LDFLAGS=-L$PREFIX/lib CPPFLAGS=-I$PREFIX/include glib_cv_stack_grows=no glib_cv_uscore=no ac_cv_func_posix_getpwuid_r=no ac_cv_func_posix_getgrgid_r=no ./configure $C --disable-modular-tests
 make
 make install
 cd ..
@@ -173,7 +176,7 @@ cd ..
 git clone git://sigrok.org/libsigrok
 cd libsigrok
 ./autogen.sh
-LDFLAGS=-L$PREFIX/lib CPPFLAGS="-I$PREFIX/include -I$PREFIX/lib/libzip/include" PKG_CONFIG_LIBDIR=$PREFIX/lib/pkgconfig ./configure $C --disable-alsa --disable-link-mso19 --disable-kecheng-kc-330b
+LDFLAGS=-L$PREFIX/lib CPPFLAGS="-I$PREFIX/include -I$PREFIX/lib/libzip/include" ./configure $C --disable-alsa --disable-link-mso19 --disable-kecheng-kc-330b
 make
 make install
 cd ..
