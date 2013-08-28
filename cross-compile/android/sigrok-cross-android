@@ -43,6 +43,7 @@ VER_GLIB=2.34.3
 VER_LIBZIP=0.10.1
 VER_LIBUSB=0.1.12
 VER_LIBFTDI=0.20
+VER_LIBUSB_1_0=1.0.9
 
 SF_MIRROR=switch.dl.sourceforge.net
 
@@ -57,6 +58,12 @@ export -n PKG_CONFIG_PATH
 
 # Define some helper variables.
 C="--host=arm-linux-androideabi --prefix=$PREFIX"
+
+# Remember the directory we're in
+case "$0" in
+  /*) TOP=$(dirname "$0");;
+  *) TOP=$(dirname "$(pwd)"/"$0");;
+esac
 
 # Remove build directory contents (if any) and create a new build dir.
 rm -rf $BUILDDIR
@@ -172,11 +179,21 @@ make
 make install
 cd ..
 
+# libusb-1.0
+wget http://$SF_MIRROR/project/libusb/libusb-1.0/libusb-$VER_LIBUSB_1_0/libusb-$VER_LIBUSB_1_0.tar.bz2
+tar xfj libusb-$VER_LIBUSB_1_0.tar.bz2
+cd libusb-$VER_LIBUSB_1_0
+patch -p1 < $TOP/libusb-1.0.patch
+./configure $C
+make
+make install
+cd ..
+
 # libsigrok
 git clone git://sigrok.org/libsigrok
 cd libsigrok
 ./autogen.sh
-LDFLAGS=-L$PREFIX/lib CPPFLAGS="-I$PREFIX/include -I$PREFIX/lib/libzip/include" ./configure $C --disable-alsa --disable-link-mso19 --disable-kecheng-kc-330b
+LDFLAGS=-L$PREFIX/lib CPPFLAGS="-I$PREFIX/include -I$PREFIX/lib/libzip/include" ./configure $C --disable-alsa
 make
 make install
 cd ..
