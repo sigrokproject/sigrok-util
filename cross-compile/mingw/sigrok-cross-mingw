@@ -75,6 +75,10 @@ for opt in opt_flags:
 EOF
 chmod 755 $PREFIX/bin/python3-config
 
+# Download the Python 3.2.3 MSI installer (needed for NSIS runs).
+wget -c http://python.org/ftp/python/3.2.3/python-3.2.3.msi \
+     -O $PREFIX/python-3.2.3.msi
+
 # libsigrok
 git clone git://sigrok.org/libsigrok
 cd libsigrok
@@ -94,6 +98,7 @@ git clone git://sigrok.org/sigrok-cli
 cd sigrok-cli
 ./autogen.sh
 PKG_CONFIG_PATH_i686_pc_mingw32=$P:$P2 ./configure $C && make install
+makensis contrib/sigrok-cli_cross.nsi
 cd ..
 
 ## TODO: Doesn't fully work, yet.
@@ -118,5 +123,6 @@ cd pulseview
 # Temporary workaround: append (not prepend) "-llzma -llcms2" to the linker.
 sed -i '224a \\tlist(APPEND PULSEVIEW_LINK_LIBS "-llzma -llcms2") # Quick hack' CMakeLists.txt
 PKG_CONFIG_PATH_i686_pc_mingw32=$P:$P2 cmake $CM -DCMAKE_INSTALL_PREFIX:PATH=$PREFIX -DDISABLE_WERROR=y . && make install VERBOSE=1
+makensis contrib/pulseview_cross.nsi
 cd ..
 
