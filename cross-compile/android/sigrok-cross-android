@@ -35,12 +35,12 @@ BUILDDIR=./sr_android_build
 # -----------------------------------------------------------------------------
 
 VER_LIBICONV=1.14
-VER_GETTEXT=0.18.2
+VER_GETTEXT=0.18.3
 VER_ZLIB=1.2.8
-VER_PCRE=8.32
-VER_LIBFFI=3.0.11
+VER_PCRE=8.33
+VER_LIBFFI=3.0.13
 VER_GLIB=2.34.3
-VER_LIBZIP=0.10.1
+VER_LIBZIP=0.11.1
 VER_LIBUSB=0.1.12
 VER_LIBFTDI=0.20
 VER_LIBUSB_1_0=1.0.9
