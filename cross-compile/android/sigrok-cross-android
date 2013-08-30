@@ -193,7 +193,7 @@ cd ..
 git clone git://sigrok.org/libsigrok
 cd libsigrok
 ./autogen.sh
-./configure $C --disable-alsa
+./configure $C
 make
 make install
 cd ..
