@@ -52,14 +52,14 @@ SF_MIRROR=switch.dl.sourceforge.net
 # We need to find tools in the toolchain and in the install directory.
 export PATH=$PREFIX/bin:$TOOLCHAIN/bin:$PATH
 
-# Tell pkg-config to only look for our cross-built stuff
+# Tell pkg-config to only look for our cross-built stuff.
 export PKG_CONFIG_LIBDIR="$PREFIX/lib/pkgconfig"
 export -n PKG_CONFIG_PATH
 
 # Define some helper variables.
 C="--host=arm-linux-androideabi --prefix=$PREFIX"
 
-# Remember the directory we're in
+# Remember the directory we're in.
 case "$0" in
   /*) TOP=$(dirname "$0");;
   *) TOP=$(dirname "$(pwd)"/"$0");;
@@ -163,7 +163,7 @@ cd libusb-$VER_LIBUSB
 cp -f ../config/config.guess .
 cp -f ../config/config.sub .
 ./configure $C
-# explicitly exclude libusbpp.la from lib_LTLIBRARIES, and skip subdirs
+# Explicitly exclude libusbpp.la from lib_LTLIBRARIES, and skip subdirs.
 make lib_LTLIBRARIES=libusb.la SUBDIRS=.
 make lib_LTLIBRARIES=libusb.la SUBDIRS=. install
 cd ..
@@ -193,7 +193,8 @@ cd ..
 git clone git://sigrok.org/libsigrok
 cd libsigrok
 ./autogen.sh
-LDFLAGS=-L$PREFIX/lib CPPFLAGS="-I$PREFIX/include -I$PREFIX/lib/libzip/include" ./configure $C --disable-alsa
+./configure $C --disable-alsa
 make
 make install
 cd ..
+
