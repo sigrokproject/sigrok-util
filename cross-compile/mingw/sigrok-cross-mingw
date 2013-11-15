@@ -101,22 +101,6 @@ PKG_CONFIG_PATH_i686_pc_mingw32=$P:$P2 ./configure $C && make install
 makensis contrib/sigrok-cli_cross.nsi
 cd ..
 
-## TODO: Doesn't fully work, yet.
-## # sigrok-qt
-## git clone git://sigrok.org/sigrok-qt
-## cd sigrok-qt
-## PKG_CONFIG_PATH_i686_pc_mingw32=$P:$P2 qmake -spec win32-g++
-## make
-## # TODO: make install
-## cd ..
-
-# # sigrok-gtk
-# git clone git://sigrok.org/sigrok-gtk
-# cd sigrok-gtk
-# ./autogen.sh
-# PKG_CONFIG_PATH_i686_pc_mingw32=$P:$P2 ./configure $C && make install
-# cd ..
-
 # PulseView
 git clone git://sigrok.org/pulseview
 cd pulseview
