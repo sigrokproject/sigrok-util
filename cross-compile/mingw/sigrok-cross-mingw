@@ -79,6 +79,13 @@ chmod 755 $PREFIX/bin/python3-config
 wget -c http://python.org/ftp/python/3.2.3/python-3.2.3.msi \
      -O $PREFIX/python-3.2.3.msi
 
+# libserialport
+git clone git://sigrok.org/libserialport
+cd libserialport
+./autogen.sh
+PKG_CONFIG_PATH_i686_pc_mingw32=$P ./configure $C $L && make install
+cd ..
+
 # libsigrok
 git clone git://sigrok.org/libsigrok
 cd libsigrok
