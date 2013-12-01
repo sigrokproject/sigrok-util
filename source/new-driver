@@ -77,8 +77,9 @@ def new_driver():
     tmp = tempfile.mkdtemp()
     try:
         os.chdir(tmp)
-        out, err = Popen("git clone " + LIBSR, shell=True, stderr=PIPE).communicate()
-        if err:
+        process = Popen("git clone " + LIBSR, shell=True, stderr=PIPE)
+        out, err = process.communicate()
+        if process.returncode:
             raise Exception(err.decode())
         gitdir = tmp + '/libsigrok/'
         do_configure_ac(gitdir)
