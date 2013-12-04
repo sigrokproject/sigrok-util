@@ -135,12 +135,12 @@ make install
 cd ..
 
 # glib
-wget https://github.com/djdeath/glib/archive/android.zip
-unzip -q android.zip
-cd glib-android
+wget http://ftp.gnome.org/pub/gnome/sources/glib/2.38/glib-2.38.2.tar.xz
+tar xJf glib-2.38.2.tar.xz
+cd glib-2.38.2
 ./autogen.sh
 # Note: Manual LDFLAGS/CPPFLAGS needed for libiconv, rest uses pkg-config.
-LDFLAGS=-L$PREFIX/lib CPPFLAGS=-I$PREFIX/include glib_cv_stack_grows=no glib_cv_uscore=no ac_cv_func_posix_getpwuid_r=no ac_cv_func_posix_getgrgid_r=no ./configure $C --disable-modular-tests
+LDFLAGS=-L$PREFIX/lib CPPFLAGS=-I$PREFIX/include glib_cv_stack_grows=no glib_cv_uscore=no ac_cv_func_posix_getpwuid_r=no ac_cv_func_posix_getgrgid_r=no ./configure $C
 make
 make install
 cd ..
