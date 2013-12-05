@@ -219,3 +219,21 @@ patch -p1 < ../../Python-3.3.3.patch
 ac_cv_file__dev_ptmx=no ac_cv_file__dev_ptc=no ac_cv_func_pipe2=no ac_cv_func_fdatasync=no ac_cv_func_killpg=no ac_cv_func_waitid=no ac_cv_func_sigaltstack=no ./configure $C --build=x86_64-linux-gnu --disable-ipv6
 make HOSTPYTHON=./hostpython HOSTPGEN=./Parser/hostpgen install
 cd ..
+
+# libsigrokdecode
+git clone git://sigrok.org/libsigrokdecode
+cd libsigrokdecode
+./autogen.sh
+./configure $C
+make
+make install
+cd ..
+
+# sigrok-cli
+git clone git://sigrok.org/sigrok-cli
+cd sigrok-cli
+./autogen.sh
+./configure $C
+make
+make install
+cd ..
