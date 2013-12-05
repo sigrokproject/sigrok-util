@@ -202,6 +202,15 @@ make
 make install
 cd ..
 
+# libserialport
+git clone git://sigrok.org/libserialport
+cd libserialport
+./autogen.sh
+./configure $C --without-libudev
+make
+make install
+cd ..
+
 # libsigrok
 git clone git://sigrok.org/libsigrok
 cd libsigrok
