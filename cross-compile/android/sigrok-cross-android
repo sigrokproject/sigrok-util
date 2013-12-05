@@ -49,8 +49,26 @@ SF_MIRROR=switch.dl.sourceforge.net
 
 # -----------------------------------------------------------------------------
 
-# We need to find tools in the toolchain and in the install directory.
-export PATH=$PREFIX/bin:$TOOLCHAIN/bin:$PATH
+# Remove build directory contents (if any) and create a new build dir.
+rm -rf $BUILDDIR
+mkdir $BUILDDIR
+cd $BUILDDIR
+
+# Build host Python before we start messing with the environment.
+wget http://python.org/ftp/python/3.3.3/Python-3.3.3.tar.xz
+tar xJf Python-3.3.3.tar.xz
+cd Python-3.3.3
+./configure
+make python
+make Parser/pgen
+mv python hostpython
+mv Parser/pgen Parser/hostpgen
+cd ..
+
+# -----------------------------------------------------------------------------
+
+# We need to find tools in the toolchain.
+export PATH=$TOOLCHAIN/bin:$PATH
 
 # Tell pkg-config to only look for our cross-built stuff.
 export PKG_CONFIG_LIBDIR="$PREFIX/lib/pkgconfig"
@@ -64,11 +82,6 @@ case "$0" in
   /*) TOP=$(dirname "$0");;
   *) TOP=$(dirname "$(pwd)"/"$0");;
 esac
-
-# Remove build directory contents (if any) and create a new build dir.
-rm -rf $BUILDDIR
-mkdir $BUILDDIR
-cd $BUILDDIR
 
 # Get the latest versions of config.guess/config.sub that know about Android.
 git clone git://git.savannah.gnu.org/config.git
@@ -198,3 +211,11 @@ make
 make install
 cd ..
 
+# Python
+cd Python-3.3.3
+make distclean
+autoreconf
+patch -p1 < ../../Python-3.3.3.patch
+ac_cv_file__dev_ptmx=no ac_cv_file__dev_ptc=no ac_cv_func_pipe2=no ac_cv_func_fdatasync=no ac_cv_func_killpg=no ac_cv_func_waitid=no ac_cv_func_sigaltstack=no ./configure $C --build=x86_64-linux-gnu --disable-ipv6
+make HOSTPYTHON=./hostpython HOSTPGEN=./Parser/hostpgen install
+cd ..

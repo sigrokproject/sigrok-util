@@ -1,0 +1,183 @@
+diff --git a/Python/fileutils.c b/Python/fileutils.c
+index b7c42e8..40db4f9 100644
+--- a/Python/fileutils.c
++++ b/Python/fileutils.c
+@@ -43,7 +43,7 @@ _Py_device_encoding(int fd)
+     Py_RETURN_NONE;
+ }
+ 
+-#if !defined(__APPLE__) && !defined(MS_WINDOWS)
++#if !defined(__APPLE__) && !defined(MS_WINDOWS) && !defined(__ANDROID__)
+ extern int _Py_normalize_encoding(const char *, char *, size_t);
+ 
+ /* Workaround FreeBSD and OpenIndiana locale encoding issue with the C locale.
+@@ -260,7 +260,7 @@ _Py_char2wchar(const char* arg, size_t *size)
+     mbstate_t mbs;
+ #endif
+ 
+-#ifndef MS_WINDOWS
++#if !(defined(MS_WINDOWS) || defined(__ANDROID__))
+     if (force_ascii == -1)
+         force_ascii = check_force_ascii();
+ 
+@@ -419,7 +419,7 @@ _Py_wchar2char(const wchar_t *text, size_t *error_pos)
+     size_t i, size, converted;
+     wchar_t c, buf[2];
+ 
+-#ifndef MS_WINDOWS
++#if !(defined(MS_WINDOWS) || defined(__ANDROID__))
+     if (force_ascii == -1)
+         force_ascii = check_force_ascii();
+ 
+diff --git a/Python/formatter_unicode.c b/Python/formatter_unicode.c
+index a6516dc..f06c2a0 100644
+--- a/Python/formatter_unicode.c
++++ b/Python/formatter_unicode.c
+@@ -664,6 +664,9 @@ static int
+ get_locale_info(int type, LocaleInfo *locale_info)
+ {
+     switch (type) {
++#ifdef __ANDROID__
++    case LT_CURRENT_LOCALE:
++#else
+     case LT_CURRENT_LOCALE: {
+         struct lconv *locale_data = localeconv();
+         locale_info->decimal_point = PyUnicode_DecodeLocale(
+@@ -681,6 +684,7 @@ get_locale_info(int type, LocaleInfo *locale_info)
+         locale_info->grouping = locale_data->grouping;
+         break;
+     }
++#endif
+     case LT_DEFAULT_LOCALE:
+         locale_info->decimal_point = PyUnicode_FromOrdinal('.');
+         locale_info->thousands_sep = PyUnicode_FromOrdinal(',');
+diff --git a/Python/pystrtod.c b/Python/pystrtod.c
+index 4ab8f08..22b01a1 100644
+--- a/Python/pystrtod.c
++++ b/Python/pystrtod.c
+@@ -177,8 +177,12 @@ _PyOS_ascii_strtod(const char *nptr, char **endptr)
+ 
+     fail_pos = NULL;
+ 
++#ifdef __ANDROID__
++    decimal_point = ".";
++#else
+     locale_data = localeconv();
+     decimal_point = locale_data->decimal_point;
++#endif
+     decimal_point_len = strlen(decimal_point);
+ 
+     assert(decimal_point_len != 0);
+@@ -378,8 +382,12 @@ PyOS_string_to_double(const char *s,
+ Py_LOCAL_INLINE(void)
+ change_decimal_from_locale_to_dot(char* buffer)
+ {
++#ifdef __ANDROID__
++    const char *decimal_point = ".";
++#else
+     struct lconv *locale_data = localeconv();
+     const char *decimal_point = locale_data->decimal_point;
++#endif
+ 
+     if (decimal_point[0] != '.' || decimal_point[1] != 0) {
+         size_t decimal_point_len = strlen(decimal_point);
+diff --git a/Python/pythonrun.c b/Python/pythonrun.c
+index 832df53..c43e5e9 100644
+--- a/Python/pythonrun.c
++++ b/Python/pythonrun.c
+@@ -810,6 +810,44 @@ Py_SetPythonHome(wchar_t *home)
+     default_home = home;
+ }
+ 
++#ifdef __ANDROID__
++size_t mbstowcs(wchar_t *dest, const char * in, size_t maxlen)
++{
++    wchar_t *out = dest;
++    size_t size = 0;
++    if (in)
++    {
++        while(*in && size<maxlen) {
++            if(*in < 128)
++                *out++ = *in++;
++            else
++                *out++ = 0xdc00 + *in++;
++            size += 1;
++        }
++    }
++    *out = 0;
++    return size;
++}
++
++size_t wcstombs(char * dest, const wchar_t *source, size_t maxlen)
++{
++    wchar_t c;
++    size_t i;
++    for (i=0; i<maxlen && source[i]; i++)
++    {
++        c=source[i];
++        if (c >= 0xdc80 && c <= 0xdcff)
++        {
++            /* UTF-8b surrogate */
++            c-=0xdc00;
++        }
++        if (dest)
++            dest[i]=c;
++    }
++    return i;
++}
++#endif
++
+ wchar_t *
+ Py_GetPythonHome(void)
+ {
+--- a/configure.ac	2013-11-17 07:23:09.000000000 +0000
++++ b/configure.ac	2013-12-05 14:27:43.166191803 +0000
+@@ -2829,7 +2829,7 @@
+  getgrouplist getgroups getlogin getloadavg getpeername getpgid getpid \
+  getpriority getresuid getresgid getpwent getspnam getspent getsid getwd \
+  if_nameindex \
+- initgroups kill killpg lchmod lchown lockf linkat lstat lutimes mmap \
++ initgroups kill killpg lchmod lchown localeconv lockf linkat lstat lutimes mmap \
+  memrchr mbrtowc mkdirat mkfifo \
+  mkfifoat mknod mknodat mktime mremap nice openat pathconf pause pipe2 plock poll \
+  posix_fallocate posix_fadvise pread \
+--- a/Modules/_localemodule.c 2013-12-05 14:29:33.643662167 +0000
++++ b/Modules/_localemodule.c	2013-12-05 14:31:41.069332495 +0000
+@@ -88,6 +88,7 @@
+     return result_object;
+ }
+ 
++#if defined(HAVE_LOCALECONV)
+ PyDoc_STRVAR(localeconv__doc__,
+ "() -> dict. Returns numeric and monetary locale-specific parameters.");
+ 
+@@ -144,6 +145,7 @@
+     Py_XDECREF(x);
+     return NULL;
+ }
++#endif
+ 
+ #if defined(HAVE_WCSCOLL)
+ PyDoc_STRVAR(strcoll__doc__,
+@@ -566,8 +566,10 @@
+ static struct PyMethodDef PyLocale_Methods[] = {
+   {"setlocale", (PyCFunction) PyLocale_setlocale,
+    METH_VARARGS, setlocale__doc__},
++#ifdef HAVE_LOCALECONV
+   {"localeconv", (PyCFunction) PyLocale_localeconv,
+    METH_NOARGS, localeconv__doc__},
++#endif
+ #ifdef HAVE_WCSCOLL
+   {"strcoll", (PyCFunction) PyLocale_strcoll,
+    METH_VARARGS, strcoll__doc__},
+--- a/Modules/pwdmodule.c 2013-12-05 14:41:59.065464798 +0000
++++ b/Modules/pwdmodule.c	2013-12-05 14:42:17.045681049 +0000
+@@ -76,7 +76,7 @@
+ #endif
+     PyStructSequence_SET_ITEM(v, setIndex++, _PyLong_FromUid(p->pw_uid));
+     PyStructSequence_SET_ITEM(v, setIndex++, _PyLong_FromGid(p->pw_gid));
+-#ifdef __VMS
++#if defined(__VMS) || defined(__ANDROID__)
+     SETS(setIndex++, "");
+ #else
+     SETS(setIndex++, p->pw_gecos);
