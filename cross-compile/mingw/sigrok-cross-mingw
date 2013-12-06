@@ -105,7 +105,7 @@ git clone git://sigrok.org/sigrok-cli
 cd sigrok-cli
 ./autogen.sh
 PKG_CONFIG_PATH_i686_pc_mingw32=$P:$P2 ./configure $C && make install
-makensis contrib/sigrok-cli_cross.nsi
+makensis -DHOME=$HOME contrib/sigrok-cli_cross.nsi
 cd ..
 
 # PulseView
@@ -114,6 +114,6 @@ cd pulseview
 # Temporary workaround: append (not prepend) "-llzma -llcms2" to the linker.
 sed -i '247a \\tlist(APPEND PULSEVIEW_LINK_LIBS "-llzma -llcms2") # Quick hack' CMakeLists.txt
 PKG_CONFIG_PATH_i686_pc_mingw32=$P:$P2 cmake $CM -DCMAKE_INSTALL_PREFIX:PATH=$PREFIX -DDISABLE_WERROR=y . && make install VERBOSE=1
-makensis contrib/pulseview_cross.nsi
+makensis -DHOME=$HOME contrib/pulseview_cross.nsi
 cd ..
 
