@@ -187,7 +187,8 @@ tar xfz libftdi-$VER_LIBFTDI.tar.gz
 cd libftdi-$VER_LIBFTDI
 cp -f ../config/config.guess .
 cp -f ../config/config.sub .
-./configure $C
+# libftdi needs to find libusb-config which is installed in $PREFIX/bin.
+PATH=$PREFIX/bin:$PATH ./configure $C
 make
 make install
 cd ..
