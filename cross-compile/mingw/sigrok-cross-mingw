@@ -111,8 +111,7 @@ cd ..
 # PulseView
 git clone git://sigrok.org/pulseview
 cd pulseview
-# Temporary workaround: append (not prepend) "-llzma -llcms2" to the linker.
-sed -i '247a \\tlist(APPEND PULSEVIEW_LINK_LIBS "-llzma -llcms2") # Quick hack' CMakeLists.txt
+patch -p1 < ../../pulseview.patch
 PKG_CONFIG_PATH_i686_pc_mingw32=$P:$P2 cmake $CM -DCMAKE_INSTALL_PREFIX:PATH=$PREFIX -DDISABLE_WERROR=y . && make install VERBOSE=1
 makensis -DHOME=$HOME contrib/pulseview_cross.nsi
 cd ..
