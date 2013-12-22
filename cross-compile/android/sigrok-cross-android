@@ -44,6 +44,7 @@ VER_LIBZIP=0.11.1
 VER_LIBUSB=0.1.12
 VER_LIBFTDI=0.20
 VER_LIBUSB_1_0=1.0.9
+VER_PYTHON=3.3.3
 
 SF_MIRROR=switch.dl.sourceforge.net
 
@@ -55,9 +56,9 @@ mkdir $BUILDDIR
 cd $BUILDDIR
 
 # Build host Python before we start messing with the environment.
-wget http://python.org/ftp/python/3.3.3/Python-3.3.3.tar.xz
-tar xJf Python-3.3.3.tar.xz
-cd Python-3.3.3
+wget http://python.org/ftp/python/$VER_PYTHON/Python-3.3.3.tar.xz
+tar xJf Python-$VER_PYTHON.tar.xz
+cd Python-$VER_PYTHON
 ./configure
 make python
 make Parser/pgen
@@ -222,10 +223,10 @@ make install
 cd ..
 
 # Python
-cd Python-3.3.3
+cd Python-$VER_PYTHON
 make distclean
 autoreconf
-patch -p1 < ../../Python-3.3.3.patch
+patch -p1 < ../../Python-$VER_PYTHON.patch
 ac_cv_file__dev_ptmx=no ac_cv_file__dev_ptc=no ac_cv_func_pipe2=no ac_cv_func_fdatasync=no ac_cv_func_killpg=no ac_cv_func_waitid=no ac_cv_func_sigaltstack=no ./configure $C --build=x86_64-linux-gnu --disable-ipv6
 make HOSTPYTHON=./hostpython HOSTPGEN=./Parser/hostpgen install
 cd ..
