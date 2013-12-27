@@ -78,12 +78,6 @@ export -n PKG_CONFIG_PATH
 # Define some helper variables.
 C="--host=arm-linux-androideabi --prefix=$PREFIX"
 
-# Remember the directory we're in.
-case "$0" in
-  /*) TOP=$(dirname "$0");;
-  *) TOP=$(dirname "$(pwd)"/"$0");;
-esac
-
 # Get the latest versions of config.guess/config.sub that know about Android.
 git clone git://git.savannah.gnu.org/config.git
 
@@ -198,7 +192,7 @@ cd ..
 wget http://$SF_MIRROR/project/libusb/libusb-1.0/libusb-$VER_LIBUSB_1_0/libusb-$VER_LIBUSB_1_0.tar.bz2
 tar xfj libusb-$VER_LIBUSB_1_0.tar.bz2
 cd libusb-$VER_LIBUSB_1_0
-patch -p1 < $TOP/libusb-1.0.patch
+patch -p1 < ../../libusb-1.0.patch
 ./configure $C
 make
 make install
