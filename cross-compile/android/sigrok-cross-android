@@ -56,7 +56,7 @@ mkdir $BUILDDIR
 cd $BUILDDIR
 
 # Build host Python before we start messing with the environment.
-wget http://python.org/ftp/python/$VER_PYTHON/Python-3.3.3.tar.xz
+wget http://python.org/ftp/python/$VER_PYTHON/Python-$VER_PYTHON.tar.xz
 tar xJf Python-$VER_PYTHON.tar.xz
 cd Python-$VER_PYTHON
 ./configure
