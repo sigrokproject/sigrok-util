@@ -34,12 +34,6 @@ BUILDDIR=./sr_mingw_build
 
 # -----------------------------------------------------------------------------
 
-SF_MIRROR=switch.dl.sourceforge.net
-
-VER_LIBUSBX=1.0.17
-
-# -----------------------------------------------------------------------------
-
 # We need to find tools in the toolchain and in the install directory.
 export PATH=$PREFIX/bin:$MXE/usr/bin:$PATH
 
@@ -86,13 +80,6 @@ chmod 755 $PREFIX/bin/python3-config
 # Download the Python 3.2.3 MSI installer (needed for NSIS runs).
 wget -c http://python.org/ftp/python/3.2.3/python-3.2.3.msi \
      -O $PREFIX/python-3.2.3.msi
-
-# libusbx
-wget http://$SF_MIRROR/project/libusbx/releases/$VER_LIBUSBX/source/libusbx-$VER_LIBUSBX.tar.bz2
-tar xfj libusbx-$VER_LIBUSBX.tar.bz2
-cd libusbx-$VER_LIBUSBX
-PKG_CONFIG_PATH_i686_pc_mingw32=$P ./configure $C $L && make install
-cd ..
 
 # libserialport
 git clone git://sigrok.org/libserialport
