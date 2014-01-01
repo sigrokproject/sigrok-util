@@ -103,6 +103,25 @@ cd libsigrokdecode
 PYTHON3_CONFIG=$PREFIX/bin/python3-config PKG_CONFIG_PATH_i686_pc_mingw32=$P ./configure $C $L && make install
 cd ..
 
+# sigrok-firmware
+git clone git://sigrok.org/sigrok-firmware
+cd sigrok-firmware
+./autogen.sh
+# Nothing gets cross-compiled here, we just need 'make install' basically.
+./configure --prefix=$PREFIX
+make install
+cd ..
+
+# sigrok-firmware-fx2lafw
+git clone git://sigrok.org/sigrok-firmware-fx2lafw
+cd sigrok-firmware-fx2lafw
+./autogen.sh
+# We're building the fx2lafw firmware on the host, no need to cross-compile.
+./configure --prefix=$PREFIX
+make
+make install
+cd ..
+
 # sigrok-cli
 git clone git://sigrok.org/sigrok-cli
 cd sigrok-cli
