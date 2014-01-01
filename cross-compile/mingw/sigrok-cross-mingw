@@ -91,6 +91,7 @@ cd ..
 # libsigrok
 git clone git://sigrok.org/libsigrok
 cd libsigrok
+patch -p1 < ../../libsigrok_firmwaredir.patch
 ./autogen.sh
 PKG_CONFIG_PATH_i686_pc_mingw32=$P ./configure $C $L && make install
 cd ..
@@ -105,6 +106,7 @@ cd ..
 # sigrok-cli
 git clone git://sigrok.org/sigrok-cli
 cd sigrok-cli
+patch -p1 < ../../sigrok_cli_decodersdir.patch
 ./autogen.sh
 PKG_CONFIG_PATH_i686_pc_mingw32=$P:$P2 ./configure $C && make install
 makensis -DHOME=$HOME contrib/sigrok-cli_cross.nsi
@@ -114,6 +116,7 @@ cd ..
 git clone git://sigrok.org/pulseview
 cd pulseview
 patch -p1 < ../../pulseview_linkfix.patch
+patch -p1 < ../../pulseview_decodersdir.patch
 PKG_CONFIG_PATH_i686_pc_mingw32=$P:$P2 cmake $CM -DCMAKE_INSTALL_PREFIX:PATH=$PREFIX -DDISABLE_WERROR=y . && make install VERBOSE=1
 makensis -DHOME=$HOME contrib/pulseview_cross.nsi
 cd ..
