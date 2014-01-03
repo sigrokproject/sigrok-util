@@ -23,6 +23,14 @@ set -e
 
 # The path where your Android toolchain directory is located.
 TOOLCHAIN=$HOME/android/android-arm-toolchain
+# TOOLCHAIN=$HOME/android/android-mipsel-toolchain
+# TOOLCHAIN=$HOME/android/android-i686-toolchain
+
+# Select which Android toolchain to use.
+# Don't forget to also adapt TOOLCHAIN above if you change TOOLCHAIN_TRIPLET!
+TOOLCHAIN_TRIPLET=arm-linux-androideabi
+# TOOLCHAIN_TRIPLET=mipsel-linux-android
+# TOOLCHAIN_TRIPLET=i686-linux-android
 
 # The path where the cross-compiled packages will be installed.
 PREFIX=$HOME/sr_android
@@ -76,7 +84,7 @@ export PKG_CONFIG_LIBDIR="$PREFIX/lib/pkgconfig"
 export -n PKG_CONFIG_PATH
 
 # Define some helper variables.
-C="--host=arm-linux-androideabi --prefix=$PREFIX"
+C="--host=$TOOLCHAIN_TRIPLET --prefix=$PREFIX"
 
 # Get the latest versions of config.guess/config.sub that know about Android.
 git clone git://git.savannah.gnu.org/config.git
@@ -119,7 +127,7 @@ wget http://zlib.net/zlib-$VER_ZLIB.tar.gz
 tar xfvz zlib-$VER_ZLIB.tar.gz
 cd zlib-$VER_ZLIB
 # Note: zlib's configure doesn't understand --host, we need to pass $CC.
-CC=arm-linux-androideabi-gcc ./configure --prefix=$PREFIX
+CC=$TOOLCHAIN_TRIPLET-gcc ./configure --prefix=$PREFIX
 make
 make install
 cd ..
@@ -148,7 +156,7 @@ tar xJf glib-2.38.2.tar.xz
 cd glib-2.38.2
 ./autogen.sh
 # Note: Manual LDFLAGS/CPPFLAGS needed for libiconv, rest uses pkg-config.
-LDFLAGS=-L$PREFIX/lib CPPFLAGS=-I$PREFIX/include glib_cv_stack_grows=no glib_cv_uscore=no ac_cv_func_posix_getpwuid_r=no ac_cv_func_posix_getgrgid_r=no ./configure $C
+LDFLAGS=-L$PREFIX/lib CPPFLAGS=-I$PREFIX/include glib_cv_stack_grows=no glib_cv_uscore=no ac_cv_func_posix_getpwuid_r=no ac_cv_func_posix_getgrgid_r=no ./configure --disable-compile-warnings $C
 make
 make install
 cd ..
