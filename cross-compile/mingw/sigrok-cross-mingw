@@ -60,22 +60,19 @@ mkdir -p $PREFIX
 wget http://www.sigrok.org/tmp/Python32.tar.gz -O $PREFIX/Python32.tar.gz
 tar xzf $PREFIX/Python32.tar.gz -C $PREFIX
 
-# Create a dummy python3-config that points to Python32 above.
-mkdir -p $PREFIX/bin
-cat >$PREFIX/bin/python3-config <<EOF 
-#!/usr/bin/python3
-import sys
-import getopt
-valid_opts = ['includes', 'cflags', 'libs', 'ldflags']
-opts, args = getopt.getopt(sys.argv[1:], '', valid_opts)
-opt_flags = [flag for (flag, val) in opts]
-for opt in opt_flags: 
-    if opt in ('--includes', '--cflags'):
-        print('-I$PREFIX/Python32/include')
-    elif opt in ('--libs', '--ldflags'):
-        print('-L$PREFIX/Python32/libs -lpython32')
+# Create a dummy python3.pc file so that pkg-config finds Python 3.
+mkdir -p $PREFIX/lib/pkgconfig
+cat >$PREFIX/lib/pkgconfig/python3.pc <<EOF 
+prefix=$PREFIX
+exec_prefix=\${prefix}
+libdir=\${exec_prefix}/lib
+includedir=\${prefix}/include
+Name: Python
+Description: Python library
+Version: 3.2
+Libs: -L$PREFIX/Python32/libs -lpython32
+Cflags: -I$PREFIX/Python32/include
 EOF
-chmod 755 $PREFIX/bin/python3-config
 
 # Download the Python 3.2.3 MSI installer (needed for NSIS runs).
 wget -c http://python.org/ftp/python/3.2.3/python-3.2.3.msi \
@@ -100,7 +97,7 @@ cd ..
 git clone git://sigrok.org/libsigrokdecode
 cd libsigrokdecode
 ./autogen.sh
-PYTHON3_CONFIG=$PREFIX/bin/python3-config PKG_CONFIG_PATH_i686_pc_mingw32=$P ./configure $C $L && make install
+PKG_CONFIG_PATH_i686_pc_mingw32=$P ./configure $C $L && make install
 cd ..
 
 # sigrok-firmware
