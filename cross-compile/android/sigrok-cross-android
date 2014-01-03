@@ -43,7 +43,7 @@ VER_GLIB=2.34.3
 VER_LIBZIP=0.11.1
 VER_LIBUSB=0.1.12
 VER_LIBFTDI=0.20
-VER_LIBUSB_1_0=1.0.9
+VER_LIBUSBX=1.0.17
 VER_PYTHON=3.3.3
 
 SF_MIRROR=switch.dl.sourceforge.net
@@ -189,11 +189,11 @@ make install
 cd ..
 
 # libusb-1.0
-wget http://$SF_MIRROR/project/libusb/libusb-1.0/libusb-$VER_LIBUSB_1_0/libusb-$VER_LIBUSB_1_0.tar.bz2
-tar xfj libusb-$VER_LIBUSB_1_0.tar.bz2
-cd libusb-$VER_LIBUSB_1_0
+wget http://$SF_MIRROR/project/libusbx/releases/$VER_LIBUSBX/source/libusbx-$VER_LIBUSBX.tar.bz2
+tar xfj libusbx-$VER_LIBUSBX.tar.bz2
+cd libusbx-$VER_LIBUSBX
 patch -p1 < ../../libusb-1.0.patch
-./configure $C
+./configure $C --disable-udev
 make
 make install
 cd ..
