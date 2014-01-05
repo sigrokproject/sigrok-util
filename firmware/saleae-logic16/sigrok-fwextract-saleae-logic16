@@ -47,6 +47,15 @@ class searcher:
             raise Exception('Needle not found in haystack')
         this.skip(pos - this.offset)
 
+    def look_for_either(this, needle1, needle2):
+        pos1 = this.data.find(needle1, this.offset)
+        pos2 = this.data.find(needle2, this.offset)
+        if pos1 < 0 and pos2 < 0:
+            raise Exception('Needle not found in haystack')
+        if pos1 < 0 or pos2 < pos1:
+            pos1 = pos2
+        this.skip(pos1 - this.offset)
+
     def __init__(this, data, addr):
         this.data = data
         this.baseaddr = addr
@@ -69,7 +78,7 @@ def search_plt_64(plt, addr):
 
 def find_hex_file_lines_constructor_32(text, hex_file_lines_got, got_plt):
     while True:
-        text.look_for(b'\x8b\xbb')		# mov offs32(%ebx),%edi
+        text.look_for_either(b'\x8b\xbb', b'\x8b\xb3')	# mov offs32(%ebx),{%edi,%esi}
         offs = struct.unpack('<i', text.peek(4, 2))[0]
         if got_plt + offs == hex_file_lines_got:
             text.skip(6)
@@ -86,15 +95,18 @@ def find_hex_file_lines_constructor_64(text, hex_file_lines_got):
         text.skip(3)
 
 def parse_hex_file_lines_constructor_32(text, basic_string_plt, got_plt, lines):
+    text.skip(-5)
+    esi = (text.peek(1) == b'\xb3')
+    text.skip(5)
     cnt = len(lines)
     while cnt > 0:
         if text.peek(2) == b'\x8d\x45':		# lea offs8(%ebp),%eax
             text.skip(3)
         elif text.peek(2) == b'\x8d\x85':	# lea offs32(%ebp),%eax
             text.skip(6)
-        if text.peek(1) == b'\xbe':		# mov $imm32,%esi
+        if text.peek(1) == (b'\xbf' if esi else b'\xbe'):	# mov $imm32,%esi
             text.skip(5)
-        elif text.peek(2) == b'\x31\xf6':	# xor %esi,%esi
+        elif text.peek(2) == (b'\x31\xff' if esi else b'\x31\xf6'):	# xor %esi,%esi
             text.skip(2)
         if text.peek(4) == b'\x89\x44\x24\x08':	# mov %eax,0x8(%esp)
             text.skip(4)
@@ -107,17 +119,17 @@ def parse_hex_file_lines_constructor_32(text, basic_string_plt, got_plt, lines):
                             ('0x%x' % text.address))
         if text.peek(4) == b'\x89\x44\x24\x04':	# mov %eax,0x4(%esp)
             text.skip(4)
-        if text.peek(3) == b'\x89\x3c\x24':	# mov %edi,(%esp)
+        if text.peek(3) == (b'\x89\x34\x24' if esi else b'\x89\x3c\x24'):	# mov %edi,(%esp)
             offs = 0
             text.skip(3)
-        elif text.peek(2) == b'\x8d\x47':	# lea offs8(%edi),%eax
+        elif text.peek(2) == (b'\x8d\x46' if esi else b'\x8d\x47'):	# lea offs8(%edi),%eax
             offs = struct.unpack('<b', text.peek(1, 2))[0]
             text.skip(3)
-        elif text.peek(2) == b'\x8d\x87':	# lea offs32(%edi),%eax
+        elif text.peek(2) == (b'\x8d\x86' if esi else b'\x8d\x87'):	# lea offs32(%edi),%eax
             offs = struct.unpack('<i', text.peek(4, 2))[0]
             text.skip(6)
         else:
-            raise Exception('Expected lea offs(%edi),%eax @ ' +
+            raise Exception('Expected lea offs(%e'+('s' if esi else 'd')+'i),%eax @ ' +
                             ('0x%x' % text.address))
         if offs < 0 or offs > (len(lines) << 2) or (offs & 3) != 0:
             raise Exception('Invalid offset %d' % offs)
@@ -170,6 +182,10 @@ def parse_hex_file_lines_constructor_64(text, basic_string_plt, lines):
         else:
             raise Exception('Expected lea offs(%rbp),%rdi @ ' +
                             ('0x%x' % text.address))
+        if text.peek(1) == b'\xbb':		# mov $imm32,%ebx
+            text.skip(5)
+        elif text.peek(2) == b'\x31\xdb':	# xor %ebx,%ebx
+            text.skip(2)
         if offs < 0 or offs > (len(lines) << 3) or (offs & 7) != 0:
             raise Exception('Invalid offset %d' % offs)
         index = offs >> 3
