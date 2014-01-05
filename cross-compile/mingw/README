@@ -21,6 +21,7 @@ Requirements
  - git
  - pkg-config (>= 0.22)
  - unzip
+ - sdcc (needed for building the fx2lafw firmware)
  - MXE
 
 
@@ -32,7 +33,7 @@ First, setup the MXE cross-compile environment for MinGW/Windows:
  $ cd $HOME
  $ git clone https://github.com/mxe/mxe.git mxe-git
  $ cd mxe-git
- $ make gcc glib libzip libusb1 libftdi gtk2 qt boost nsis
+ $ make gcc glib libzip libusb1 libftdi qt boost
 
 This will take a while.
 
