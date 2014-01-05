@@ -38,6 +38,7 @@ PARALLEL="-j 2"
 # -----------------------------------------------------------------------------
 
 VER_LIBUSB_WIN32=1.2.6.0
+VER_ZADIG=v2.0.1.160
 
 SF_MIRROR=switch.dl.sourceforge.net
 
@@ -91,6 +92,13 @@ wget -c http://python.org/ftp/python/3.2.3/python-3.2.3.msi \
 wget -c http://$SF_MIRROR/project/libusb-win32/libusb-win32-releases/$VER_LIBUSB_WIN32/libusb-win32-bin-$VER_LIBUSB_WIN32.zip
 unzip libusb-win32-bin-$VER_LIBUSB_WIN32.zip
 cp -f libusb-win32-bin-$VER_LIBUSB_WIN32/bin/x86/libusb0_x86.dll $PREFIX/libusb0.dll
+
+# Zadig (we ship this with frontends for easy driver switching).
+wget -c http://$SF_MIRROR/project/libwdi/zadig/zadig_$VER_ZADIG.7z
+wget -c http://$SF_MIRROR/project/libwdi/zadig/zadig_xp_$VER_ZADIG.7z
+7zr e zadig_$VER_ZADIG.7z
+7zr e zadig_xp_$VER_ZADIG.7z
+cp -f zadig.exe zadig_xp.exe $PREFIX
 
 # libserialport
 git clone git://sigrok.org/libserialport
@@ -154,7 +162,6 @@ cd ..
 git clone git://sigrok.org/pulseview
 cd pulseview
 patch -p1 < ../../pulseview_linkfix.patch
-
 PKG_CONFIG_PATH_i686_pc_mingw32=$P:$P2 cmake $CM -DCMAKE_INSTALL_PREFIX:PATH=$PREFIX -DDISABLE_WERROR=y -DENABLE_DECODE=y -DENABLE_COTIRE=y .
 make $PARALLEL VERBOSE=1
 make install
