@@ -30,6 +30,9 @@ PREFIX=$HOME/sr_mingw
 # The path where to download files to and where to build packages.
 BUILDDIR=./sr_mingw_build
 
+# Edit this to enable/disable/modify parallel compiles.
+PARALLEL="-j 2"
+
 # You usually don't need to change anything below this line.
 
 # -----------------------------------------------------------------------------
@@ -93,7 +96,9 @@ cp -f libusb-win32-bin-$VER_LIBUSB_WIN32/bin/x86/libusb0_x86.dll $PREFIX/libusb0
 git clone git://sigrok.org/libserialport
 cd libserialport
 ./autogen.sh
-PKG_CONFIG_PATH_i686_pc_mingw32=$P ./configure $C $L && make install
+PKG_CONFIG_PATH_i686_pc_mingw32=$P ./configure $C $L
+make $PARALLEL
+make install
 cd ..
 
 # libsigrok
@@ -101,14 +106,18 @@ git clone git://sigrok.org/libsigrok
 cd libsigrok
 patch -p1 < ../../libsigrok_firmwaredir.patch
 ./autogen.sh
-PKG_CONFIG_PATH_i686_pc_mingw32=$P ./configure $C $L && make install
+PKG_CONFIG_PATH_i686_pc_mingw32=$P ./configure $C $L
+make $PARALLEL
+make install
 cd ..
 
 # libsigrokdecode
 git clone git://sigrok.org/libsigrokdecode
 cd libsigrokdecode
 ./autogen.sh
-PKG_CONFIG_PATH_i686_pc_mingw32=$P ./configure $C $L && make install
+PKG_CONFIG_PATH_i686_pc_mingw32=$P ./configure $C $L
+make $PARALLEL
+make install
 cd ..
 
 # sigrok-firmware
@@ -126,7 +135,7 @@ cd sigrok-firmware-fx2lafw
 ./autogen.sh
 # We're building the fx2lafw firmware on the host, no need to cross-compile.
 ./configure --prefix=$PREFIX
-make
+make $PARALLEL
 make install
 cd ..
 
@@ -135,7 +144,9 @@ git clone git://sigrok.org/sigrok-cli
 cd sigrok-cli
 patch -p1 < ../../sigrok_cli_decodersdir.patch
 ./autogen.sh
-PKG_CONFIG_PATH_i686_pc_mingw32=$P:$P2 ./configure $C && make install
+PKG_CONFIG_PATH_i686_pc_mingw32=$P:$P2 ./configure $C
+make $PARALLEL
+make install
 makensis -DHOME=$HOME contrib/sigrok-cli_cross.nsi
 cd ..
 
@@ -144,7 +155,9 @@ git clone git://sigrok.org/pulseview
 cd pulseview
 patch -p1 < ../../pulseview_linkfix.patch
 patch -p1 < ../../pulseview_decodersdir.patch
-PKG_CONFIG_PATH_i686_pc_mingw32=$P:$P2 cmake $CM -DCMAKE_INSTALL_PREFIX:PATH=$PREFIX -DDISABLE_WERROR=y -DENABLE_DECODE=y . && make install VERBOSE=1
+PKG_CONFIG_PATH_i686_pc_mingw32=$P:$P2 cmake $CM -DCMAKE_INSTALL_PREFIX:PATH=$PREFIX -DDISABLE_WERROR=y -DENABLE_DECODE=y .
+make $PARALLEL VERBOSE=1
+make install
 makensis -DHOME=$HOME contrib/pulseview_cross.nsi
 cd ..
 
