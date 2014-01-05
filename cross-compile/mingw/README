@@ -18,10 +18,13 @@ Requirements
  - bash
  - gcc
  - make
+ - cmake
  - git
- - pkg-config (>= 0.22)
+ - wget
  - unzip
+ - pkg-config (>= 0.22)
  - sdcc (needed for building the fx2lafw firmware)
+ - nsis
  - MXE
 
 
