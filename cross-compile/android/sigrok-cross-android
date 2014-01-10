@@ -47,7 +47,8 @@ VER_GETTEXT=0.18.3
 VER_ZLIB=1.2.8
 VER_PCRE=8.33
 VER_LIBFFI=3.0.13
-VER_GLIB=2.34.3
+VER_GLIB=2.38.2
+VER_GLIB_SHORT=2.38
 VER_LIBZIP=0.11.1
 VER_LIBUSB=0.1.12
 VER_LIBFTDI=0.20
@@ -90,6 +91,15 @@ C="--host=$TOOLCHAIN_TRIPLET --prefix=$PREFIX"
 git clone git://git.savannah.gnu.org/config.git
 
 # -----------------------------------------------------------------------------
+
+# Python (needed for libsigrokdecode)
+cd Python-$VER_PYTHON
+make distclean
+autoreconf
+patch -p1 < ../../Python-$VER_PYTHON.patch
+ac_cv_file__dev_ptmx=no ac_cv_file__dev_ptc=no ac_cv_func_pipe2=no ac_cv_func_fdatasync=no ac_cv_func_killpg=no ac_cv_func_waitid=no ac_cv_func_sigaltstack=no ./configure $C --build=x86_64-linux-gnu --disable-ipv6
+make HOSTPYTHON=./hostpython HOSTPGEN=./Parser/hostpgen install
+cd ..
 
 # libiconv (needed for glib)
 wget http://ftp.gnu.org/pub/gnu/libiconv/libiconv-$VER_LIBICONV.tar.gz
@@ -151,9 +161,9 @@ make install
 cd ..
 
 # glib
-wget http://ftp.gnome.org/pub/gnome/sources/glib/2.38/glib-2.38.2.tar.xz
-tar xJf glib-2.38.2.tar.xz
-cd glib-2.38.2
+wget http://ftp.gnome.org/pub/gnome/sources/glib/$VER_GLIB_SHORT/glib-$VER_GLIB.tar.xz
+tar xJf glib-$VER_GLIB.tar.xz
+cd glib-$VER_GLIB
 ./autogen.sh
 # Note: Manual LDFLAGS/CPPFLAGS needed for libiconv, rest uses pkg-config.
 LDFLAGS=-L$PREFIX/lib CPPFLAGS=-I$PREFIX/include glib_cv_stack_grows=no glib_cv_uscore=no ac_cv_func_posix_getpwuid_r=no ac_cv_func_posix_getgrgid_r=no ./configure --disable-compile-warnings $C
@@ -222,15 +232,6 @@ cd libsigrok
 ./configure $C
 make
 make install
-cd ..
-
-# Python
-cd Python-$VER_PYTHON
-make distclean
-autoreconf
-patch -p1 < ../../Python-$VER_PYTHON.patch
-ac_cv_file__dev_ptmx=no ac_cv_file__dev_ptc=no ac_cv_func_pipe2=no ac_cv_func_fdatasync=no ac_cv_func_killpg=no ac_cv_func_waitid=no ac_cv_func_sigaltstack=no ./configure $C --build=x86_64-linux-gnu --disable-ipv6
-make HOSTPYTHON=./hostpython HOSTPGEN=./Parser/hostpgen install
 cd ..
 
 # libsigrokdecode
