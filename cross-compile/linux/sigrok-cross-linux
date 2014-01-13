@@ -1,0 +1,115 @@
+#!/bin/bash
+##
+## This file is part of the sigrok-util project.
+##
+## Copyright (C) 2014 Uwe Hermann <uwe@hermann-uwe.de>
+##
+## This program is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation; either version 2 of the License, or
+## (at your option) any later version.
+##
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the Free Software
+## Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
+##
+
+set -e
+
+# Uncomment/set the following to match your cross-toolchain setup.
+# TOOLCHAIN=...
+# TOOLCHAIN_TRIPLET=...
+# C="--host=$TOOLCHAIN_TRIPLET"
+# export PATH=$TOOLCHAIN/bin:$PATH
+
+# The path where the compiled packages will be installed.
+PREFIX=$HOME/sr
+
+# The path where to download files to and where to build packages.
+BUILDDIR=./sr_linux_build
+
+# Edit this to enable/disable/modify parallel compiles.
+PARALLEL="-j 2"
+
+# You usually don't need to change anything below this line.
+
+# -----------------------------------------------------------------------------
+
+P="$PREFIX/lib/pkgconfig"
+C="$C --prefix=$PREFIX"
+
+# Remove build directory contents (if any) and create a new build dir.
+rm -rf $BUILDDIR
+mkdir $BUILDDIR
+cd $BUILDDIR
+
+# -----------------------------------------------------------------------------
+
+# libserialport
+git clone git://sigrok.org/libserialport
+cd libserialport
+./autogen.sh
+./configure $C
+make $PARALLEL
+make install
+cd ..
+
+# libsigrok
+git clone git://sigrok.org/libsigrok
+cd libsigrok
+./autogen.sh
+PKG_CONFIG_PATH=$P ./configure $C
+make $PARALLEL
+make install
+cd ..
+
+# libsigrokdecode
+git clone git://sigrok.org/libsigrokdecode
+cd libsigrokdecode
+./autogen.sh
+./configure $C
+make $PARALLEL
+make install
+cd ..
+
+# sigrok-firmware
+git clone git://sigrok.org/sigrok-firmware
+cd sigrok-firmware
+./autogen.sh
+# Nothing gets cross-compiled here, we just need 'make install' basically.
+./configure $C
+make install
+cd ..
+
+# sigrok-firmware-fx2lafw
+git clone git://sigrok.org/sigrok-firmware-fx2lafw
+cd sigrok-firmware-fx2lafw
+./autogen.sh
+# We're building the fx2lafw firmware on the host, no need to cross-compile.
+./configure $C
+make $PARALLEL
+make install
+cd ..
+
+# sigrok-cli
+git clone git://sigrok.org/sigrok-cli
+cd sigrok-cli
+./autogen.sh
+PKG_CONFIG_PATH=$P ./configure $C
+make $PARALLEL
+make install
+cd ..
+
+# PulseView
+git clone git://sigrok.org/pulseview
+cd pulseview
+PKG_CONFIG_PATH=$P cmake -DCMAKE_INSTALL_PREFIX:PATH=$PREFIX -DDISABLE_WERROR=y -DENABLE_DECODE=y .
+make $PARALLEL
+make install
+cd ..
+

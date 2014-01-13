@@ -1,0 +1,42 @@
+-------------------------------------------------------------------------------
+README
+-------------------------------------------------------------------------------
+
+This is a small script for cross-compiling sigrok and its dependencies
+for Linux systems (various architectures / cross-toolchains).
+
+It can also be used for native builds (this is actually the default) when
+no cross-compiler setup is specified (see the top of the script).
+
+
+Status
+------
+
+Working.
+
+
+Requirements
+------------
+
+ - bash
+ - gcc
+ - make
+ - cmake
+ - git
+ - wget
+ - unzip
+ - pkg-config (>= 0.22)
+ - sdcc (needed for building the fx2lafw firmware)
+
+
+Building
+--------
+
+ $ ./sigrok-cross-linux
+
+Per default it will install the (cross-)compiled packages in:
+
+ $HOME/sr
+
+Please edit the script if you want to change any settings.
+
