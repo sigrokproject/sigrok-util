@@ -1,8 +1,8 @@
-.TH SIGROK\-FWEXTRACT\-SYSCLK\-LWLA1034 1 "Jan 04, 2014"
+.TH SIGROK\-FWEXTRACT\-SYSCLK\-LWLA 1 "Jan 04, 2014"
 .SH "NAME"
-sigrok\-fwextract\-sysclk\-lwla1034 \- Extract SysClk LWLA1034 firmware
+sigrok\-fwextract\-sysclk\-lwla \- Extract SysClk LWLA* firmware
 .SH "SYNOPSIS"
-.B sigrok\-fwextract\-sysclk\-lwla1034 SETUP-EXE
+.B sigrok\-fwextract\-sysclk\-lwla SETUP-EXE
 .SH "DESCRIPTION"
 This tool extracts FPGA bitstreams from the vendor software for the SysClk
 LWLA1034 USB logic analyzer. Insert the CD-ROM that ships with the device,
@@ -10,7 +10,7 @@ and locate the Windows installer executable "lwla1034_EN_setup.exe".
 .PP
 In order to extract the bitstreams, run the following command:
 .PP
-.B "  $ sigrok-fwextract-sysclk-lwla1034 lwla1034_EN_setup.exe"
+.B "  $ sigrok-fwextract-sysclk-lwla lwla1034_EN_setup.exe"
 .PP
 Copy the resulting four bitstream files over to the location where libsigrok
 expects to find its firmware files. By default this is
