@@ -38,6 +38,9 @@ PREFIX=$HOME/sr_android
 # The path where to download files to and where to build packages.
 BUILDDIR=./sr_android_build
 
+# Edit this to enable/disable/modify parallel compiles.
+PARALLEL="-j 2"
+
 # You usually don't need to change anything below this line.
 
 # -----------------------------------------------------------------------------
@@ -69,8 +72,8 @@ wget http://python.org/ftp/python/$VER_PYTHON/Python-$VER_PYTHON.tar.xz
 tar xJf Python-$VER_PYTHON.tar.xz
 cd Python-$VER_PYTHON
 ./configure
-make python
-make Parser/pgen
+make python $PARALLEL
+make Parser/pgen $PARALLEL
 mv python hostpython
 mv Parser/pgen Parser/hostpgen
 cd ..
@@ -98,7 +101,7 @@ make distclean
 autoreconf
 patch -p1 < ../../Python-$VER_PYTHON.patch
 ac_cv_file__dev_ptmx=no ac_cv_file__dev_ptc=no ac_cv_func_pipe2=no ac_cv_func_fdatasync=no ac_cv_func_killpg=no ac_cv_func_waitid=no ac_cv_func_sigaltstack=no ./configure $C --build=x86_64-linux-gnu --disable-ipv6
-make HOSTPYTHON=./hostpython HOSTPGEN=./Parser/hostpgen install
+make HOSTPYTHON=./hostpython HOSTPGEN=./Parser/hostpgen install $PARALLEL
 cd ..
 
 # libiconv (needed for glib)
@@ -112,10 +115,10 @@ cp -f ../config/config.sub libcharset/build-aux
 ./configure $C --enable-shared
 make lib/localcharset.h
 cd libcharset
-make
+make $PARALLEL
 make install
 cd ../lib
-make
+make $PARALLEL
 make install
 cd ..
 test -d $PREFIX/include || mkdir $PREFIX/include
@@ -128,7 +131,7 @@ tar xfz gettext-$VER_GETTEXT.tar.gz
 cd gettext-$VER_GETTEXT
 ./configure $C --enable-shared --disable-libasprintf
 cd gettext-runtime
-make
+make $PARALLEL
 make install
 cd ../..
 
@@ -138,7 +141,7 @@ tar xfvz zlib-$VER_ZLIB.tar.gz
 cd zlib-$VER_ZLIB
 # Note: zlib's configure doesn't understand --host, we need to pass $CC.
 CC=$TOOLCHAIN_TRIPLET-gcc ./configure --prefix=$PREFIX
-make
+make $PARALLEL
 make install
 cd ..
 
@@ -147,7 +150,7 @@ wget ftp://ftp.csx.cam.ac.uk/pub/software/programming/pcre/pcre-$VER_PCRE.tar.gz
 tar xfvz pcre-$VER_PCRE.tar.gz
 cd pcre-$VER_PCRE
 ./configure $C --disable-cpp
-make
+make $PARALLEL
 make install
 cd ..
 
@@ -156,7 +159,7 @@ wget ftp://sourceware.org/pub/libffi/libffi-$VER_LIBFFI.tar.gz
 tar xfz libffi-$VER_LIBFFI.tar.gz
 cd libffi-$VER_LIBFFI
 ./configure $C
-make
+make $PARALLEL
 make install
 cd ..
 
@@ -167,7 +170,7 @@ cd glib-$VER_GLIB
 ./autogen.sh
 # Note: Manual LDFLAGS/CPPFLAGS needed for libiconv, rest uses pkg-config.
 LDFLAGS=-L$PREFIX/lib CPPFLAGS=-I$PREFIX/include glib_cv_stack_grows=no glib_cv_uscore=no ac_cv_func_posix_getpwuid_r=no ac_cv_func_posix_getgrgid_r=no ./configure --disable-compile-warnings $C
-make
+make $PARALLEL
 make install
 cd ..
 
@@ -178,7 +181,7 @@ cd libzip-$VER_LIBZIP
 cp -f ../config/config.guess .
 cp -f ../config/config.sub .
 ./configure $C
-make
+make $PARALLEL
 make install
 cd ..
 
@@ -190,7 +193,7 @@ cp -f ../config/config.guess .
 cp -f ../config/config.sub .
 ./configure $C
 # Explicitly exclude libusbpp.la from lib_LTLIBRARIES, and skip subdirs.
-make lib_LTLIBRARIES=libusb.la SUBDIRS=.
+make lib_LTLIBRARIES=libusb.la SUBDIRS=. $PARALLEL
 make lib_LTLIBRARIES=libusb.la SUBDIRS=. install
 cd ..
 
@@ -202,7 +205,7 @@ cp -f ../config/config.guess .
 cp -f ../config/config.sub .
 # libftdi needs to find libusb-config which is installed in $PREFIX/bin.
 PATH=$PREFIX/bin:$PATH ./configure $C
-make
+make $PARALLEL
 make install
 cd ..
 
@@ -212,7 +215,7 @@ tar xfj libusbx-$VER_LIBUSBX.tar.bz2
 cd libusbx-$VER_LIBUSBX
 patch -p1 < ../../libusb-1.0.patch
 ./configure $C --disable-udev
-make
+make $PARALLEL
 make install
 cd ..
 
@@ -221,7 +224,7 @@ git clone git://sigrok.org/libserialport
 cd libserialport
 ./autogen.sh
 ./configure $C --without-libudev
-make
+make $PARALLEL
 make install
 cd ..
 
@@ -230,7 +233,7 @@ git clone git://sigrok.org/libsigrok
 cd libsigrok
 ./autogen.sh
 ./configure $C
-make
+make $PARALLEL
 make install
 cd ..
 
@@ -239,7 +242,7 @@ git clone git://sigrok.org/libsigrokdecode
 cd libsigrokdecode
 ./autogen.sh
 ./configure $C
-make
+make $PARALLEL
 make install
 cd ..
 
@@ -248,6 +251,7 @@ git clone git://sigrok.org/sigrok-cli
 cd sigrok-cli
 ./autogen.sh
 ./configure $C
-make
+make $PARALLEL
 make install
 cd ..
+
