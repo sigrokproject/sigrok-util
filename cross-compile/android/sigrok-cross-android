@@ -226,7 +226,7 @@ git clone git://sigrok.org/libserialport
 cd libserialport
 ./autogen.sh
 ./configure $C --without-libudev
-make $PARALLEL
+make $PARALLEL V=1
 make install
 cd ..
 
@@ -235,7 +235,7 @@ git clone git://sigrok.org/libsigrok
 cd libsigrok
 ./autogen.sh
 ./configure $C
-make $PARALLEL
+make $PARALLEL V=1
 make install
 cd ..
 
@@ -244,7 +244,7 @@ git clone git://sigrok.org/libsigrokdecode
 cd libsigrokdecode
 ./autogen.sh
 ./configure $C
-make $PARALLEL
+make $PARALLEL V=1
 make install
 cd ..
 
@@ -253,7 +253,7 @@ git clone git://sigrok.org/sigrok-cli
 cd sigrok-cli
 ./autogen.sh
 ./configure $C
-make $PARALLEL
+make $PARALLEL V=1
 make install
 cd ..
 
