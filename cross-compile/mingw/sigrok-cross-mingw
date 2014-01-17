@@ -107,7 +107,7 @@ git clone git://sigrok.org/libserialport
 cd libserialport
 ./autogen.sh
 PKG_CONFIG_PATH_i686_pc_mingw32=$P ./configure $C $L
-make $PARALLEL
+make $PARALLEL V=1
 make install
 cd ..
 
@@ -117,7 +117,7 @@ cd libsigrok
 patch -p1 < ../../libsigrok_firmwaredir.patch
 ./autogen.sh
 PKG_CONFIG_PATH_i686_pc_mingw32=$P ./configure $C $L
-make $PARALLEL
+make $PARALLEL V=1
 make install
 cd ..
 
@@ -126,7 +126,7 @@ git clone git://sigrok.org/libsigrokdecode
 cd libsigrokdecode
 ./autogen.sh
 PKG_CONFIG_PATH_i686_pc_mingw32=$P ./configure $C $L
-make $PARALLEL
+make $PARALLEL V=1
 make install
 cd ..
 
@@ -145,7 +145,7 @@ cd sigrok-firmware-fx2lafw
 ./autogen.sh
 # We're building the fx2lafw firmware on the host, no need to cross-compile.
 ./configure --prefix=$PREFIX
-make $PARALLEL
+make $PARALLEL V=1
 make install
 cd ..
 
@@ -155,7 +155,7 @@ cd sigrok-cli
 patch -p1 < ../../sigrok_cli_decodersdir.patch
 ./autogen.sh
 PKG_CONFIG_PATH_i686_pc_mingw32=$P:$P2 ./configure $C
-make $PARALLEL
+make $PARALLEL V=1
 make install
 makensis -DHOME=$HOME contrib/sigrok-cli_cross.nsi
 cd ..
