@@ -42,6 +42,8 @@ VER_ZADIG=v2.0.1.160
 
 SF_MIRROR=switch.dl.sourceforge.net
 
+WGET="wget --quiet"
+
 # -----------------------------------------------------------------------------
 
 # We need to find tools in the toolchain and in the install directory.
@@ -67,7 +69,7 @@ cd $BUILDDIR
 # The MSI file has been installed on a Windows box and then the c:\Python32
 # files have been stored in the Python32.tar.gz tarball.
 mkdir -p $PREFIX
-wget http://www.sigrok.org/tmp/Python32.tar.gz -O $PREFIX/Python32.tar.gz
+$WGET http://www.sigrok.org/tmp/Python32.tar.gz -O $PREFIX/Python32.tar.gz
 tar xzf $PREFIX/Python32.tar.gz -C $PREFIX
 
 # Create a dummy python3.pc file so that pkg-config finds Python 3.
@@ -85,17 +87,17 @@ Cflags: -I$PREFIX/Python32/include
 EOF
 
 # Download the Python 3.2.3 MSI installer (needed for NSIS runs).
-wget -c http://python.org/ftp/python/3.2.3/python-3.2.3.msi \
-     -O $PREFIX/python-3.2.3.msi
+$WGET -c http://python.org/ftp/python/3.2.3/python-3.2.3.msi \
+      -O $PREFIX/python-3.2.3.msi
 
 # libusb0.dll (needs to be shipped with frontends)
-wget -c http://$SF_MIRROR/project/libusb-win32/libusb-win32-releases/$VER_LIBUSB_WIN32/libusb-win32-bin-$VER_LIBUSB_WIN32.zip
-unzip libusb-win32-bin-$VER_LIBUSB_WIN32.zip
+$WGET -c http://$SF_MIRROR/project/libusb-win32/libusb-win32-releases/$VER_LIBUSB_WIN32/libusb-win32-bin-$VER_LIBUSB_WIN32.zip
+unzip -q libusb-win32-bin-$VER_LIBUSB_WIN32.zip
 cp -f libusb-win32-bin-$VER_LIBUSB_WIN32/bin/x86/libusb0_x86.dll $PREFIX/libusb0.dll
 
 # Zadig (we ship this with frontends for easy driver switching).
-wget -c http://$SF_MIRROR/project/libwdi/zadig/zadig_$VER_ZADIG.7z
-wget -c http://$SF_MIRROR/project/libwdi/zadig/zadig_xp_$VER_ZADIG.7z
+$WGET -c http://$SF_MIRROR/project/libwdi/zadig/zadig_$VER_ZADIG.7z
+$WGET -c http://$SF_MIRROR/project/libwdi/zadig/zadig_xp_$VER_ZADIG.7z
 7zr e zadig_$VER_ZADIG.7z
 7zr e zadig_xp_$VER_ZADIG.7z
 cp -f zadig.exe zadig_xp.exe $PREFIX
