@@ -60,6 +60,8 @@ VER_PYTHON=3.3.3
 
 SF_MIRROR=switch.dl.sourceforge.net
 
+WGET="wget --quiet"
+
 # -----------------------------------------------------------------------------
 
 # Remove build directory contents (if any) and create a new build dir.
@@ -68,7 +70,7 @@ mkdir $BUILDDIR
 cd $BUILDDIR
 
 # Build host Python before we start messing with the environment.
-wget http://python.org/ftp/python/$VER_PYTHON/Python-$VER_PYTHON.tar.xz
+$WGET http://python.org/ftp/python/$VER_PYTHON/Python-$VER_PYTHON.tar.xz
 tar xJf Python-$VER_PYTHON.tar.xz
 cd Python-$VER_PYTHON
 ./configure
@@ -105,7 +107,7 @@ make HOSTPYTHON=./hostpython HOSTPGEN=./Parser/hostpgen install $PARALLEL
 cd ..
 
 # libiconv (needed for glib)
-wget http://ftp.gnu.org/pub/gnu/libiconv/libiconv-$VER_LIBICONV.tar.gz
+$WGET http://ftp.gnu.org/pub/gnu/libiconv/libiconv-$VER_LIBICONV.tar.gz
 tar xfz libiconv-$VER_LIBICONV.tar.gz
 cd libiconv-$VER_LIBICONV
 cp -f ../config/config.guess build-aux
@@ -126,7 +128,7 @@ cp include/iconv.h.inst $PREFIX/include/iconv.h
 cd ..
 
 # gettext (needed for glib)
-wget http://ftp.gnu.org/pub/gnu/gettext/gettext-$VER_GETTEXT.tar.gz
+$WGET http://ftp.gnu.org/pub/gnu/gettext/gettext-$VER_GETTEXT.tar.gz
 tar xfz gettext-$VER_GETTEXT.tar.gz
 cd gettext-$VER_GETTEXT
 ./configure $C --enable-shared --disable-libasprintf
@@ -136,7 +138,7 @@ make install
 cd ../..
 
 # zlib (needed for glib and libzip)
-wget http://zlib.net/zlib-$VER_ZLIB.tar.gz
+$WGET http://zlib.net/zlib-$VER_ZLIB.tar.gz
 tar xfvz zlib-$VER_ZLIB.tar.gz
 cd zlib-$VER_ZLIB
 # Note: zlib's configure doesn't understand --host, we need to pass $CC.
@@ -146,7 +148,7 @@ make install
 cd ..
 
 # pcre (needed for glib)
-wget ftp://ftp.csx.cam.ac.uk/pub/software/programming/pcre/pcre-$VER_PCRE.tar.gz
+$WGET ftp://ftp.csx.cam.ac.uk/pub/software/programming/pcre/pcre-$VER_PCRE.tar.gz
 tar xfvz pcre-$VER_PCRE.tar.gz
 cd pcre-$VER_PCRE
 ./configure $C --disable-cpp
@@ -155,7 +157,7 @@ make install
 cd ..
 
 # libffi (needed for glib)
-wget ftp://sourceware.org/pub/libffi/libffi-$VER_LIBFFI.tar.gz
+$WGET ftp://sourceware.org/pub/libffi/libffi-$VER_LIBFFI.tar.gz
 tar xfz libffi-$VER_LIBFFI.tar.gz
 cd libffi-$VER_LIBFFI
 ./configure $C
@@ -164,7 +166,7 @@ make install
 cd ..
 
 # glib
-wget http://ftp.gnome.org/pub/gnome/sources/glib/$VER_GLIB_SHORT/glib-$VER_GLIB.tar.xz
+$WGET http://ftp.gnome.org/pub/gnome/sources/glib/$VER_GLIB_SHORT/glib-$VER_GLIB.tar.xz
 tar xJf glib-$VER_GLIB.tar.xz
 cd glib-$VER_GLIB
 ./autogen.sh
@@ -175,7 +177,7 @@ make install
 cd ..
 
 # libzip
-wget http://www.nih.at/libzip/libzip-$VER_LIBZIP.tar.gz
+$WGET http://www.nih.at/libzip/libzip-$VER_LIBZIP.tar.gz
 tar xfz libzip-$VER_LIBZIP.tar.gz
 cd libzip-$VER_LIBZIP
 cp -f ../config/config.guess .
@@ -186,7 +188,7 @@ make install
 cd ..
 
 # libusb-0.1 (not used directly, but needed for libftdi)
-wget http://$SF_MIRROR/project/libusb/libusb-0.1%20%28LEGACY%29/$VER_LIBUSB/libusb-$VER_LIBUSB.tar.gz
+$WGET http://$SF_MIRROR/project/libusb/libusb-0.1%20%28LEGACY%29/$VER_LIBUSB/libusb-$VER_LIBUSB.tar.gz
 tar xfz libusb-$VER_LIBUSB.tar.gz
 cd libusb-$VER_LIBUSB
 cp -f ../config/config.guess .
@@ -198,7 +200,7 @@ make lib_LTLIBRARIES=libusb.la SUBDIRS=. install
 cd ..
 
 # libftdi
-wget http://www.intra2net.com/en/developer/libftdi/download/libftdi-$VER_LIBFTDI.tar.gz
+$WGET http://www.intra2net.com/en/developer/libftdi/download/libftdi-$VER_LIBFTDI.tar.gz
 tar xfz libftdi-$VER_LIBFTDI.tar.gz
 cd libftdi-$VER_LIBFTDI
 cp -f ../config/config.guess .
@@ -210,7 +212,7 @@ make install
 cd ..
 
 # libusb-1.0
-wget http://$SF_MIRROR/project/libusbx/releases/$VER_LIBUSBX/source/libusbx-$VER_LIBUSBX.tar.bz2
+$WGET http://$SF_MIRROR/project/libusbx/releases/$VER_LIBUSBX/source/libusbx-$VER_LIBUSBX.tar.bz2
 tar xfj libusbx-$VER_LIBUSBX.tar.bz2
 cd libusbx-$VER_LIBUSBX
 patch -p1 < ../../libusb-1.0.patch
