@@ -37,7 +37,7 @@ First, setup the MXE cross-compile environment for MinGW/Windows:
  $ cd $HOME
  $ git clone https://github.com/mxe/mxe.git mxe-git
  $ cd mxe-git
- $ make gcc glib libzip libusb1 libftdi qt boost
+ $ make gcc glib libzip libusb1 libftdi qt boost check
 
 This will take a while.
 
