@@ -86,13 +86,13 @@ static int cleanup(void)
 }
 
 static int config_get(int key, GVariant **data, const struct sr_dev_inst *sdi,
-		const struct sr_probe_group *probe_group)
+		const struct sr_channel_group *cg)
 {
 	int ret;
 
 	(void)sdi;
 	(void)data;
-	(void)probe_group;
+	(void)cg;
 
 	ret = SR_OK;
 	switch (key) {
@@ -105,12 +105,12 @@ static int config_get(int key, GVariant **data, const struct sr_dev_inst *sdi,
 }
 
 static int config_set(int key, GVariant *data, const struct sr_dev_inst *sdi,
-		const struct sr_probe_group *probe_group)
+		const struct sr_channel_group *cg)
 {
 	int ret;
 
 	(void)data;
-	(void)probe_group;
+	(void)cg;
 
 	if (sdi->status != SR_ST_ACTIVE)
 		return SR_ERR_DEV_CLOSED;
@@ -126,13 +126,13 @@ static int config_set(int key, GVariant *data, const struct sr_dev_inst *sdi,
 }
 
 static int config_list(int key, GVariant **data, const struct sr_dev_inst *sdi,
-		const struct sr_probe_group *probe_group)
+		const struct sr_channel_group *cg)
 {
 	int ret;
 
 	(void)sdi;
 	(void)data;
-	(void)probe_group;
+	(void)cg;
 
 	ret = SR_OK;
 	switch (key) {
