@@ -149,6 +149,12 @@ make $PARALLEL V=1
 make install
 cd ..
 
+# sigrok-dumps
+git clone git://sigrok.org/sigrok-dumps
+cd sigrok-dumps
+make install DESTDIR=$PREFIX/share/sigrok-dumps
+cd ..
+
 # sigrok-cli
 git clone git://sigrok.org/sigrok-cli
 cd sigrok-cli
