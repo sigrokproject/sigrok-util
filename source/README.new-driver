@@ -13,7 +13,6 @@ The output will show something like this:
 Cloning into 'libsigrok'...
 [master d5f915f] flupe-goodluck: initial driver skeleton
  6 files changed, 321 insertions(+)
- create mode 100644 hardware/flupe-goodluck/Makefile.am
  create mode 100644 hardware/flupe-goodluck/api.c
  create mode 100644 hardware/flupe-goodluck/protocol.c
  create mode 100644 hardware/flupe-goodluck/protocol.h
