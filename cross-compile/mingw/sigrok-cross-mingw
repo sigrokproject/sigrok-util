@@ -28,7 +28,7 @@ MXE=$HOME/mxe-git
 PREFIX=$HOME/sr_mingw
 
 # The path where to download files to and where to build packages.
-BUILDDIR=./sr_mingw_build
+BUILDDIR=./build
 
 # Edit this to enable/disable/modify parallel compiles.
 PARALLEL="-j 2"

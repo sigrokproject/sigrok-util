@@ -31,7 +31,7 @@ set -e
 PREFIX=$HOME/sr
 
 # The path where to download files to and where to build packages.
-BUILDDIR=./sr_linux_build
+BUILDDIR=./build
 
 # Edit this to enable/disable/modify parallel compiles.
 PARALLEL="-j 2"

@@ -36,7 +36,7 @@ TOOLCHAIN_TRIPLET=arm-linux-androideabi
 PREFIX=$HOME/sr_android
 
 # The path where to download files to and where to build packages.
-BUILDDIR=./sr_android_build
+BUILDDIR=./build
 
 # Edit this to enable/disable/modify parallel compiles.
 PARALLEL="-j 2"
