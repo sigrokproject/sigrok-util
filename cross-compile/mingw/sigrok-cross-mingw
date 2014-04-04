@@ -50,9 +50,9 @@ WGET="wget --quiet"
 export PATH=$MXE/usr/bin:$PATH
 
 P="$PREFIX/lib/pkgconfig"
-P2="$MXE/usr/i686-pc-mingw32/lib/pkgconfig"
-C="--host=i686-pc-mingw32 --prefix=$PREFIX"
-CM="-DCMAKE_TOOLCHAIN_FILE=$MXE/usr/i686-pc-mingw32/share/cmake/mxe-conf.cmake"
+P2="$MXE/usr/i686-pc-mingw32.static/lib/pkgconfig"
+C="--host=i686-pc-mingw32.static --prefix=$PREFIX"
+CM="-DCMAKE_TOOLCHAIN_FILE=$MXE/usr/i686-pc-mingw32.static/share/cmake/mxe-conf.cmake"
 L="--disable-shared --enable-static"
 
 # Remove build directory contents (if any) and create a new build dir.
@@ -112,7 +112,7 @@ cp -f zadig.exe zadig_xp.exe $PREFIX
 git clone git://sigrok.org/libserialport
 cd libserialport
 ./autogen.sh
-PKG_CONFIG_PATH_i686_pc_mingw32=$P ./configure $C $L
+PKG_CONFIG_PATH_i686_pc_mingw32_static=$P ./configure $C $L
 make $PARALLEL V=1
 make install
 cd ..
@@ -122,7 +122,7 @@ git clone git://sigrok.org/libsigrok
 cd libsigrok
 patch -p1 < ../../libsigrok_firmwaredir.patch
 ./autogen.sh
-PKG_CONFIG_PATH_i686_pc_mingw32=$P ./configure $C $L
+PKG_CONFIG_PATH_i686_pc_mingw32_static=$P ./configure $C $L
 make $PARALLEL V=1
 make install
 cd ..
@@ -132,7 +132,7 @@ git clone git://sigrok.org/libsigrokdecode
 cd libsigrokdecode
 ./autogen.sh
 patch -p1 < ../../srd_decodersdir.patch
-PKG_CONFIG_PATH_i686_pc_mingw32=$P ./configure $C $L
+PKG_CONFIG_PATH_i686_pc_mingw32_static=$P ./configure $C $L
 make $PARALLEL V=1
 make install
 cd ..
@@ -166,7 +166,7 @@ cd ..
 git clone git://sigrok.org/sigrok-cli
 cd sigrok-cli
 ./autogen.sh
-PKG_CONFIG_PATH_i686_pc_mingw32=$P:$P2 ./configure $C
+PKG_CONFIG_PATH_i686_pc_mingw32_static=$P:$P2 ./configure $C
 make $PARALLEL V=1
 make install
 makensis -DHOME=$HOME contrib/sigrok-cli_cross.nsi
@@ -175,7 +175,7 @@ cd ..
 # PulseView
 git clone git://sigrok.org/pulseview
 cd pulseview
-PKG_CONFIG_PATH_i686_pc_mingw32=$P:$P2 cmake $CM -DCMAKE_INSTALL_PREFIX:PATH=$PREFIX -DDISABLE_WERROR=y .
+PKG_CONFIG_PATH_i686_pc_mingw32_static=$P:$P2 cmake $CM -DCMAKE_INSTALL_PREFIX:PATH=$PREFIX -DDISABLE_WERROR=y .
 make $PARALLEL VERBOSE=1
 make install
 makensis -DHOME=$HOME contrib/pulseview_cross.nsi
