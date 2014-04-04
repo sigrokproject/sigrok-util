@@ -46,8 +46,8 @@ WGET="wget --quiet"
 
 # -----------------------------------------------------------------------------
 
-# We need to find tools in the toolchain and in the install directory.
-export PATH=$PREFIX/bin:$MXE/usr/bin:$PATH
+# We need to find tools in the toolchain.
+export PATH=$MXE/usr/bin:$PATH
 
 P="$PREFIX/lib/pkgconfig"
 P2="$MXE/usr/i686-pc-mingw32/lib/pkgconfig"
