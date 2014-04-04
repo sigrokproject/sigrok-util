@@ -1,0 +1,37 @@
+diff --git a/srd.c b/srd.c
+index f5b885f..1599957 100644
+--- a/srd.c
++++ b/srd.c
+@@ -140,16 +140,32 @@ SRD_API int srd_init(const char *path)
+ 	/* Add our own module to the list of built-in modules. */
+ 	PyImport_AppendInittab("sigrokdecode", PyInit_sigrokdecode);
+ 
++	/*
++	 * MinGW: Hardcode the frontend's install dir as PYTHONHOME.
++	 * The NSIS installers will place python*.dll and python*.zip (which
++	 * contains all required libs and Python modules) there.
++	 *
++	 * Also hardcode that only the Python stdlib and the libsigrokdecode
++	 * PDs in the 'decoders' subdirectory in the frontend's install
++	 * directory are ever used/found by Python. This avoids various issues
++	 * with other Python libs and modules installed on the same system.
++	 */
++
+ 	/* Initialize the Python interpreter. */
++	Py_SetPythonHome(L".");
+ 	Py_Initialize();
++	PyRun_SimpleString("import sys; sys.path = ['python32.zip']");
+ 
++#if 0
+ 	/* Installed decoders. */
+ 	if ((ret = srd_decoder_searchpath_add(DECODERS_DIR)) != SRD_OK) {
+ 		Py_Finalize();
+ 		return ret;
+ 	}
++#endif
+ 
+ 	/* Path specified by the user. */
++	path = "decoders";
+ 	if (path) {
+ 		if ((ret = srd_decoder_searchpath_add(path)) != SRD_OK) {
+ 			Py_Finalize();
