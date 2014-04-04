@@ -170,7 +170,7 @@ cd ..
 git clone git://sigrok.org/pulseview
 cd pulseview
 patch -p1 < ../../pulseview_decodersdir.patch
-PKG_CONFIG_PATH_i686_pc_mingw32=$P:$P2 cmake $CM -DCMAKE_INSTALL_PREFIX:PATH=$PREFIX -DDISABLE_WERROR=y -DENABLE_DECODE=y -DENABLE_TESTS=y .
+PKG_CONFIG_PATH_i686_pc_mingw32=$P:$P2 cmake $CM -DCMAKE_INSTALL_PREFIX:PATH=$PREFIX -DDISABLE_WERROR=y .
 make $PARALLEL VERBOSE=1
 make install
 makensis -DHOME=$HOME contrib/pulseview_cross.nsi
