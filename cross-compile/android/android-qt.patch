@@ -1,0 +1,61 @@
+diff --git a/android/androidconfigbuild.sh b/android/androidconfigbuild.sh
+index 12ad414..b78f907 100755
+--- a/android/androidconfigbuild.sh
++++ b/android/androidconfigbuild.sh
+@@ -281,7 +281,7 @@ then
+ 
+ 	$SRC_DIR_QT/configure -v -opensource -qpa -arch $ANDROID_ARCHITECTURE \
+ 		-no-phonon -freetype -fast -xplatform android-g++ \
+-		-host-arch i386 $PLATFORM -host-little-endian \
++		$PLATFORM \
+ 		-little-endian -no-qt3support -no-largefile \
+ 		-openssl -pch \
+ 		-nomake demos -no-multimedia -nomake examples -confirm-license \
+diff --git a/mkspecs/android-g++/qmake.conf b/mkspecs/android-g++/qmake.conf
+index db28cb6..bc8802f 100644
+--- a/mkspecs/android-g++/qmake.conf
++++ b/mkspecs/android-g++/qmake.conf
+@@ -74,8 +74,8 @@ ANDROID_PLATFORM_PATH  = $$ANDROID_PLATFORM_ROOT_PATH/usr
+ QMAKE_ANDROID_PLATFORM_INCDIR = $$NDK_ROOT/platforms/$$ANDROID_PLATFORM/arch-$$ANDROID_ARCHITECTURE/usr/include
+ QMAKE_ANDROID_PLATFORM_LIBDIR = $$NDK_ROOT/platforms/$$ANDROID_PLATFORM/arch-$$ANDROID_ARCHITECTURE/usr/lib
+ 
+-ANDROID_SOURCES_CXX_STL_LIBDIR = $$NDK_ROOT/sources/cxx-stl$$ANDROID_CXXSTL_SUFFIX/gnu-libstdc++/libs/$$ANDROID_TARGET_ARCH
+-ANDROID_SOURCES_CXX_STL_INCDIR = $$NDK_ROOT/sources/cxx-stl$$ANDROID_CXXSTL_SUFFIX/gnu-libstdc++/include $$ANDROID_SOURCES_CXX_STL_LIBDIR/include
++ANDROID_SOURCES_CXX_STL_LIBDIR = $$NDK_ROOT/sources/cxx-stl/gnu-libstdc++/$$NDK_TOOLCHAIN_VERSION/libs/$$ANDROID_TARGET_ARCH
++ANDROID_SOURCES_CXX_STL_INCDIR = $$NDK_ROOT/sources/cxx-stl/gnu-libstdc++/$$NDK_TOOLCHAIN_VERSION/include $$ANDROID_SOURCES_CXX_STL_LIBDIR/include
+ 
+ # modifications to g++.conf
+ QMAKE_CC                = $$NDK_TOOLCHAIN_PATH/bin/$$NDK_TOOLS_PREFIX-gcc
+@@ -159,7 +159,7 @@ QMAKE_LFLAGS_NOUNDEF    =  -Wl,--no-undefined
+ QMAKE_LFLAGS_RPATH      =  -Wl,-rpath=
+ 
+ 
+-QMAKE_LIBS              = -lstdc++ -lsupc++ -llog -lz -lm -ldl -lc -lgcc
++QMAKE_LIBS              = -lgnustl_shared -lstdc++ -lsupc++ -llog -lz -lm -ldl -lc -lgcc
+ QMAKE_LIBS_X11          =
+ QMAKE_LIBS_X11SM        =
+ QMAKE_LIBS_QT_THREAD    =
+diff --git a/src/tools/moc/moc.cpp b/src/tools/moc/moc.cpp
+index 9309db1..1df9f06 100644
+--- a/src/tools/moc/moc.cpp
++++ b/src/tools/moc/moc.cpp
+@@ -525,12 +525,18 @@ void Moc::parse()
+             case NAMESPACE: {
+                 int rewind = index;
+                 if (test(IDENTIFIER)) {
++		    QByteArray name = lexem();
++		    if (index + 1 < symbols.size() && symbols.at(index).token == IDENTIFIER &&
++			symbols.at(index).lexem() == "_GLIBCXX_VISIBILITY" &&
++			symbols.at(index+1).token == LPAREN) {
++		        until(RPAREN);
++		    }
+                     if (test(EQ)) {
+                         // namespace Foo = Bar::Baz;
+                         until(SEMIC);
+                     } else if (!test(SEMIC)) {
+                         NamespaceDef def;
+-                        def.name = lexem();
++                        def.name = name;
+                         next(LBRACE);
+                         def.begin = index - 1;
+                         until(RBRACE);

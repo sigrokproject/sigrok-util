@@ -1,0 +1,23 @@
+diff -urp boost_1_55_0.orig/tools/build/v2/tools/builtin.jam boost_1_55_0/tools/build/v2/tools/builtin.jam
+--- boost_1_55_0.orig/tools/build/v2/tools/builtin.jam	2014-04-04 20:31:24.240657506 +0200
++++ boost_1_55_0/tools/build/v2/tools/builtin.jam	2014-04-04 20:31:38.951319126 +0200
+@@ -41,7 +41,7 @@ import generate ;
+ 
+ 
+ .os-names = aix bsd cygwin darwin freebsd hpux iphone linux netbsd openbsd osf
+-    qnx qnxnto sgi solaris unix unixware windows
++    qnx qnxnto sgi solaris unix unixware windows android
+     elf  # Not actually an OS -- used for targeting bare metal where object
+          # format is ELF.  This catches both -elf and -eabi gcc targets and well
+          # as other compilers targeting ELF. It is not clear how often we need
+diff -urp boost_1_55_0.orig/tools/build/v2/tools/gcc.jam boost_1_55_0/tools/build/v2/tools/gcc.jam
+--- boost_1_55_0.orig/tools/build/v2/tools/gcc.jam	2014-04-04 20:22:10.431667807 +0200
++++ boost_1_55_0/tools/build/v2/tools/gcc.jam	2014-04-04 20:35:34.859039773 +0200
+@@ -1032,6 +1032,7 @@ rule setup-threading ( targets * : sourc
+             case *bsd    : option = -pthread ;  # There is no -lrt on BSD.
+             case sgi     : # gcc on IRIX does not support multi-threading.
+             case darwin  : # No threading options.
++            case android : # No threading options.
+             case *       : option = -pthread ; libs = rt ;
+         }
+ 

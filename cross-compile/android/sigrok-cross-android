@@ -21,6 +21,12 @@
 
 set -e
 
+# The path where Android NDK is located.
+ANDROID_NDK=/usr/local/android-ndk-r9d
+
+# The path where Android SDK is located.
+ANDROID_SDK=/usr/local/android
+
 # The path where your Android toolchain directory is located.
 TOOLCHAIN=$HOME/android/android-arm-toolchain
 # TOOLCHAIN=$HOME/android/android-mipsel-toolchain
@@ -56,6 +62,8 @@ VER_LIBZIP=0.11.1
 VER_LIBFTDI1=1.1
 VER_LIBUSBX=1.0.17
 VER_PYTHON=3.3.3
+VER_BOOST=1.55.0
+VER_QT=n0.31
 
 SF_MIRROR=switch.dl.sourceforge.net
 
@@ -254,3 +262,47 @@ make $PARALLEL V=1
 make install
 cd ..
 
+
+# Check if we have kit to build PulseView
+
+if [ -z "$ANDROID_NDK" -o ! -d "$ANDROID_NDK" ]; then
+  echo "Android NDK not available, not building PulseView"
+  exit 0
+fi
+
+if [ -z "$ANDROID_SDK" -o ! -d "$ANDROID_SDK"/platforms/android-4 -o \
+     ! -d "$ANDROID_SDK"/platforms/android-7 -o \
+     ! -d "$ANDROID_SDK"/platforms/android-8 -o \
+     ! -d "$ANDROID_SDK"/platforms/android-14 ]; then
+  echo "Android SDK with platforms 4 7 8 14 not available, not building PulseView"
+  exit 0
+fi
+
+ANDROID_TOOLS=${ANDROID_SDK}/tools
+ANDROID_BUILD_TOOLS=${ANDROID_SDK}/build-tools/19.0.1
+
+if [ ! -e "$ANDROID_TOOLS/android" -o ! -e "$ANDROID_BUILD_TOOLS/dx" ]; then
+  echo "Essential Android build tools not available, not building PulseView"
+  exit 0
+fi
+
+NDK_TOOLCHAIN_VERSION=`${TOOLCHAIN_TRIPLET}-gcc --version | head -1 | sed -e 's/.* \([0-9]\+\.[0-9.]\+\)\( \|.*\)$/\1/'`
+NDK_HOST=`"$ANDROID_NDK/ndk-build" -p 2>/dev/null | awk '$1 == "HOST_TAG" { print $3 }'`
+
+
+# boost (needed for PulseView)
+$WGET http://$SF_MIRROR/project/boost/boost/$VER_BOOST/boost_${VER_BOOST//./_}.tar.bz2
+tar xfj boost_${VER_BOOST//./_}.tar.bz2
+cd boost_${VER_BOOST//./_}
+patch -p1 < ../../boost.patch
+./bootstrap.sh --with-toolset=gcc --with-libraries=filesystem,system,thread --without-icu
+echo "using gcc : $NDK_TOOLCHAIN_VERSION : \"${TOOLCHAIN_TRIPLET}-g++\" : <cxxflags>\"-I$PREFIX/include -I${ANDROID_NDK}/sources/cxx-stl/stlport/stlport\" <linkflags>\"-L$PREFIX/lib\" ;" > user-config.jam
+./b2 -q -d+2 --user-config=user-config.jam toolset=gcc variant=release link=shared threading=multi runtime-link=shared target-os=android --prefix=$PREFIX --layout=system install
+cd ..
+
+# qt (needed for PulseView)
+$GIT_CLONE -b $VER_QT git://anongit.kde.org/android-qt.git
+cd android-qt
+patch -p1 < ../../android-qt.patch
+ANDROID_SDK_PLATFORM_TOOLS_PATH=$ANDROID_BUILD_TOOLS ANDROID_SDK_TOOLS_PATH=$ANDROID_TOOLS ./android/androidconfigbuild.sh -n $ANDROID_NDK -a $TARGET_ARCH -l 14 -q 1 -d 1 -i $PREFIX -k 1 -o $NDK_HOST -v $NDK_TOOLCHAIN_VERSION
+cd ..
