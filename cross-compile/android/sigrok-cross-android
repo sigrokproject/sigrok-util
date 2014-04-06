@@ -306,3 +306,11 @@ cd android-qt
 patch -p1 < ../../android-qt.patch
 ANDROID_SDK_PLATFORM_TOOLS_PATH=$ANDROID_BUILD_TOOLS ANDROID_SDK_TOOLS_PATH=$ANDROID_TOOLS ./android/androidconfigbuild.sh -n $ANDROID_NDK -a $TARGET_ARCH -l 14 -q 1 -d 1 -i $PREFIX -k 1 -o $NDK_HOST -v $NDK_TOOLCHAIN_VERSION
 cd ..
+
+# PulseView
+$GIT_CLONE git://sigrok.org/pulseview
+cd pulseview
+cmake $CM -DQT_QMAKE_EXECUTABLE=${PREFIX}/bin/qmake -DANDROID_STL_PATH=${ANDROID_NDK}/sources/cxx-stl .
+make $PARALLEL VERBOSE=1
+make install
+cd ..
