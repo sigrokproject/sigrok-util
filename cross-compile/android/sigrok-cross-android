@@ -310,7 +310,16 @@ cd ..
 # PulseView
 $GIT_CLONE git://sigrok.org/pulseview
 cd pulseview
-cmake $CM -DQT_QMAKE_EXECUTABLE=${PREFIX}/bin/qmake -DANDROID_STL_PATH=${ANDROID_NDK}/sources/cxx-stl .
-make $PARALLEL VERBOSE=1
-make install
-cd ..
+patch -p1 < ../../pulseview-cpp.patch
+cmake $CM -DQT_QMAKE_EXECUTABLE=${PREFIX}/bin/qmake -DANDROID_STL_PATH=${ANDROID_NDK}/sources/cxx-stl -DENABLE_DECODE=FALSE .
+make $PARALLEL
+cp -r "$PREFIX"/src/android/java .
+cp -r libs java/
+cd java
+patch -p2 < ../../../pulseview-java.patch
+mkdir -p assets
+READELF=$TOOLCHAIN_TRIPLET-readelf ../../../fix-libraries.sh "$PREFIX/lib" libs/"$TARGET_ARCH" libpulseview.so > assets/liblist.txt
+cp ${ANDROID_NDK}/sources/cxx-stl/gnu-libstdc++/${NDK_TOOLCHAIN_VERSION}/libs/${TARGET_ARCH}/libgnustl_shared.so libs/${TARGET_ARCH}/
+"$ANDROID_TOOLS/android" update project -p . -t android-14 -n PulseView
+ant debug
+cd ../..

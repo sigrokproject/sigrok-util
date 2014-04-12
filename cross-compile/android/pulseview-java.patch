@@ -1,0 +1,118 @@
+diff --git a/java/AndroidManifest.xml b/java/AndroidManifest.xml
+index 0564a8d..0356f33 100644
+--- a/java/AndroidManifest.xml
++++ b/java/AndroidManifest.xml
+@@ -1,5 +1,5 @@
+ <?xml version='1.0' encoding='utf-8'?>
+-<manifest xmlns:android="http://schemas.android.com/apk/res/android" android:versionCode="1" android:versionName="1.0" package="org.kde.necessitas.example">
++<manifest xmlns:android="http://schemas.android.com/apk/res/android" android:versionCode="1" android:versionName="1.0" package="org.sigrok.pulseview">
+     <application android:name="org.kde.necessitas.origo.QtApplication" android:icon="@drawable/icon" android:label="@string/app_name">
+         <activity android:name="org.kde.necessitas.origo.QtActivity" android:label="@string/app_name" android:configChanges="orientation|locale|fontScale|keyboard|keyboardHidden" >
+             <intent-filter>
+@@ -8,7 +8,7 @@
+             </intent-filter>
+             <meta-data android:name="android.app.qt_libs_resource_id" android:resource="@array/qt_libs"/>
+             <meta-data android:name="android.app.bundled_libs_resource_id" android:resource="@array/bundled_libs"/>
+-            <meta-data android:name="android.app.lib_name" android:value=""/>
++            <meta-data android:name="android.app.lib_name" android:value="pulseview"/>
+             <!--  Messages maps -->
+             <meta-data android:name="android.app.ministro_not_found_msg" android:value="@string/ministro_not_found_msg"/>
+             <meta-data android:name="android.app.ministro_needed_msg" android:value="@string/ministro_needed_msg"/>
+diff --git a/java/res/values/strings.xml b/java/res/values/strings.xml
+index bd6928f..68f017e 100644
+--- a/java/res/values/strings.xml
++++ b/java/res/values/strings.xml
+@@ -1,6 +1,6 @@
+ <?xml version='1.0' encoding='utf-8'?>
+ <resources>
+-    <string name="app_name"></string>
++    <string name="app_name">PulseView</string>
+     <string name="ministro_not_found_msg">Can\'t find Ministro service.\nThe application can\'t start.</string>
+     <string name="ministro_needed_msg">This application requires Ministro service. Would you like to install it?</string>
+     <string name="fatal_error_msg">Your application encountered a fatal error and cannot continue.</string>
+diff --git a/java/src/org/kde/necessitas/origo/QtActivity.java b/java/src/org/kde/necessitas/origo/QtActivity.java
+index 4ebf1f6..f4e3598 100644
+--- a/java/src/org/kde/necessitas/origo/QtActivity.java
++++ b/java/src/org/kde/necessitas/origo/QtActivity.java
+@@ -108,6 +108,12 @@ public class QtActivity extends Activity
+     {
+         try
+         {
++	    System.loadLibrary("gnustl_shared");
++            org.sigrok.androidutils.LibWrangler.setupLibs(
++                getAssets().open("liblist.txt"),
++                new File(getApplicationInfo().nativeLibraryDir),
++                new File(getFilesDir(), "lib"));
++
+             if (loaderParams.getInt(ERROR_CODE_KEY) != 0)
+             { // fatal error, show the error and quit
+                 AlertDialog errorDialog = new AlertDialog.Builder(QtActivity.this).create();
+diff --git a/java/src/org/sigrok/androidutils/LibWrangler.java b/java/src/org/sigrok/androidutils/LibWrangler.java
+new file mode 100644
+index 0000000..0c9effe
+--- /dev/null
++++ b/java/src/org/sigrok/androidutils/LibWrangler.java
+@@ -0,0 +1,63 @@
++package org.sigrok.androidutils;
++
++import java.io.InputStream;
++import java.io.InputStreamReader;
++import java.io.BufferedReader;
++import java.io.IOException;
++import java.io.File;
++
++public final class LibWrangler
++{
++    protected static String stripSoVersion(String s)
++    {
++        int p = s.lastIndexOf(".so.");
++        if (p >= 0)
++            s = s.substring(0, p+3);
++        return s;
++    }
++
++    protected static void makeLink(File from, File to)
++        throws IOException
++    {
++        if (to.equals(from.getCanonicalFile())) {
++            // Symlink already correct
++            return;
++        }
++        from.delete();
++        int rc;
++        Process proc =
++            Runtime.getRuntime().exec(new String[]{"ln", "-s",
++                                                   to.getAbsolutePath(),
++                                                   from.getAbsolutePath()});
++        for(;;) {
++            try {
++                rc = proc.waitFor();
++                break;
++            } catch(InterruptedException ie) {
++            }
++        }
++        if (rc != 0)
++            throw new IOException("Failed to create symlink "+from);
++    }
++
++    public static void setupLibs(BufferedReader reader, File libDir1, File libDir2)
++        throws IOException
++    {
++        if (!libDir2.exists())
++            libDir2.mkdir();
++
++        String libname;
++        while ((libname = reader.readLine()) != null) {
++            File shlib = new File(libDir2, libname);
++            makeLink(shlib, new File(libDir1, stripSoVersion(libname)));
++            System.load(shlib.getAbsolutePath());
++        }
++    }
++
++    public static void setupLibs(InputStream is, File libDir1, File libDir2)
++        throws IOException
++    {
++	setupLibs(new BufferedReader(new InputStreamReader(is, "US-ASCII")),
++		  libDir1, libDir2);
++    }
++}

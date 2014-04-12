@@ -1,0 +1,39 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 11767a6..b8eed96 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -317,12 +317,21 @@ if(WIN32)
+ 	list(APPEND PULSEVIEW_LINK_LIBS "-lqsvg")
+ endif()
+ 
++if(ANDROID)
++add_library(${PROJECT_NAME} SHARED
++	${pulseview_SOURCES}
++	${pulseview_HEADERS_MOC}
++	${pulseview_FORMS_HEADERS}
++	${pulseview_RESOURCES_RCC}
++)
++else()
+ add_executable(${PROJECT_NAME}
+ 	${pulseview_SOURCES}
+ 	${pulseview_HEADERS_MOC}
+ 	${pulseview_FORMS_HEADERS}
+ 	${pulseview_RESOURCES_RCC}
+ )
++endif()
+ 
+ target_link_libraries(${PROJECT_NAME} ${PULSEVIEW_LINK_LIBS})
+ 
+diff --git a/pv/view/decodetrace.cpp b/pv/view/decodetrace.cpp
+index e4f0276..861d25b 100644
+--- a/pv/view/decodetrace.cpp
++++ b/pv/view/decodetrace.cpp
+@@ -373,7 +373,7 @@ void DecodeTrace::draw_instant(const pv::data::decode::Annotation &a, QPainter &
+ {
+ 	const QString text = a.annotations().empty() ?
+ 		QString() : a.annotations().back();
+-	const double w = min(p.boundingRect(QRectF(), 0, text).width(),
++	const double w = min((double)p.boundingRect(QRectF(), 0, text).width(),
+ 		0.0) + h;
+ 	const QRectF rect(x - w / 2, y - h / 2, w, h);
+ 
