@@ -42,12 +42,11 @@ TMPL_AUTOCONF_AC_CONFIG_FILES = "\t\t hardware/${short}/Makefile\n"
 TMPL_AUTOCONF_SUMMARY = 'echo "  - ${summary}"\n'
 
 TMPL_HWMAKE_DRIVERLIB = """if HW_${upper}
-libsigrok_la_SOURCES += \
-	hardware/${short}/protocol.h \
-	hardware/${short}/protocol.c \
+libsigrok_la_SOURCES += \\
+	hardware/${short}/protocol.h \\
+	hardware/${short}/protocol.c \\
 	hardware/${short}/api.c
 endif
-
 """
 TMPL_HWDRIVER_EXTERN = """\
 #ifdef HAVE_HW_${upper}
