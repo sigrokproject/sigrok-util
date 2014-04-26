@@ -85,7 +85,7 @@ diff --git a/Python/pythonrun.c b/Python/pythonrun.c
 index 832df53..c43e5e9 100644
 --- a/Python/pythonrun.c
 +++ b/Python/pythonrun.c
-@@ -810,6 +810,44 @@ Py_SetPythonHome(wchar_t *home)
+@@ -810,6 +810,51 @@ Py_SetPythonHome(wchar_t *home)
      default_home = home;
  }
  
@@ -96,15 +96,20 @@ index 832df53..c43e5e9 100644
 +    size_t size = 0;
 +    if (in)
 +    {
-+        while(*in && size<maxlen) {
-+            if(*in < 128)
-+                *out++ = *in++;
-+            else
-+                *out++ = 0xdc00 + *in++;
++        while(*in && (!out || size<maxlen)) {
++            if (out) {
++                if(*in < 128)
++                    *out++ = *in++;
++                else
++                    *out++ = 0xdc00 + *in++;
++            } else {
++               in++;
++            }
 +            size += 1;
 +        }
 +    }
-+    *out = 0;
++    if (out && size<maxlen)
++        *out = 0;
 +    return size;
 +}
 +
@@ -112,7 +117,7 @@ index 832df53..c43e5e9 100644
 +{
 +    wchar_t c;
 +    size_t i;
-+    for (i=0; i<maxlen && source[i]; i++)
++    for (i=0; (!dest || i<maxlen) && source[i]; i++)
 +    {
 +        c=source[i];
 +        if (c >= 0xdc80 && c <= 0xdcff)
@@ -123,6 +128,8 @@ index 832df53..c43e5e9 100644
 +        if (dest)
 +            dest[i]=c;
 +    }
++    if (dest && i<maxlen)
++        dest[i] = 0;
 +    return i;
 +}
 +#endif
