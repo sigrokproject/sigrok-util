@@ -188,3 +188,24 @@ index 832df53..c43e5e9 100644
      SETS(setIndex++, "");
  #else
      SETS(setIndex++, p->pw_gecos);
+--- a/Python/bltinmodule.c 2014-04-13 10:14:13.053260705 +0200
++++ b/Python/bltinmodule.c	2014-04-26 15:18:24.094444817 +0200
+@@ -24,7 +24,7 @@
+ #ifdef HAVE_MBCS
+ const char *Py_FileSystemDefaultEncoding = "mbcs";
+ int Py_HasFileSystemDefaultEncoding = 1;
+-#elif defined(__APPLE__)
++#elif defined(__APPLE__) || defined(__ANDROID__)
+ const char *Py_FileSystemDefaultEncoding = "utf-8";
+ int Py_HasFileSystemDefaultEncoding = 1;
+ #else
+--- a/Lib/locale.py 2014-04-26 14:35:53.243526608 +0200
++++ b/Lib/locale.py	2014-04-26 14:36:53.752085946 +0200
+@@ -46,6 +46,7 @@
+ try:
+ 
+     from _locale import *
++    raise ImportError("")
+ 
+ except ImportError:
+ 
