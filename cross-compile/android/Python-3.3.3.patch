@@ -209,3 +209,12 @@ index 832df53..c43e5e9 100644
  
  except ImportError:
  
+--- a/Misc/python.pc.in 2014-04-26 23:16:09.108514880 +0200
++++ b/Misc/python.pc.in	2014-04-26 23:24:48.845467012 +0200
+@@ -9,5 +9,5 @@
+ Requires: 
+ Version: @VERSION@
+ Libs.private: @LIBS@
+-Libs: -L${libdir} -lpython@VERSION@@ABIFLAGS@
++Libs: -L${libdir} -lpython@VERSION@@ABIFLAGS@ -lz
+ Cflags: -I${includedir}/python@VERSION@@ABIFLAGS@
