@@ -34,10 +34,12 @@ diff --git a/java/src/org/kde/necessitas/origo/QtActivity.java b/java/src/org/kd
 index 4ebf1f6..f4e3598 100644
 --- a/java/src/org/kde/necessitas/origo/QtActivity.java
 +++ b/java/src/org/kde/necessitas/origo/QtActivity.java
-@@ -108,6 +108,12 @@ public class QtActivity extends Activity
+@@ -108,6 +108,14 @@ public class QtActivity extends Activity
      {
          try
          {
++	    org.sigrok.androidutils.Environment.initEnvironment(
++               getApplicationInfo().sourceDir);
 +	    System.loadLibrary("gnustl_shared");
 +            org.sigrok.androidutils.LibWrangler.setupLibs(
 +                getAssets().open("liblist.txt"),
@@ -114,5 +116,32 @@ index 0000000..0c9effe
 +    {
 +	setupLibs(new BufferedReader(new InputStreamReader(is, "US-ASCII")),
 +		  libDir1, libDir2);
++    }
++}
+diff --git a/java/src/org/sigrok/androidutils/Environment.java b/java/src/org/sigrok/androidutils/Environment.java
+new file mode 100644
+index 0000000..0c9effe
+--- /dev/null	2014-04-15 00:13:35.543030287 +0200
++++ b/java/src/org/sigrok/androidutils/Environment.java	2014-04-27 00:09:23.073513663 +0200
+@@ -0,0 +1,21 @@
++package org.sigrok.androidutils;
++
++public final class Environment
++{
++    static private String[] environment;
++
++    public static String[] getEnvironment()
++    {
++	return environment;
++    }
++
++    public static void initEnvironment(String apkFile)
++    {
++	environment = new String[]
++	{
++	    "PYTHONHOME", ".",
++	    "PYTHONPATH", apkFile+"/assets/python3.3",
++	    "SIGROKDECODE_DIR", apkFile+"/assets/libsigrokdecode/decoders",
++	};
 +    }
 +}
