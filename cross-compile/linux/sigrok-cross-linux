@@ -48,10 +48,12 @@ rm -rf $BUILDDIR
 mkdir $BUILDDIR
 cd $BUILDDIR
 
+GIT_CLONE="git clone --depth=1"
+
 # -----------------------------------------------------------------------------
 
 # libserialport
-git clone git://sigrok.org/libserialport
+$GIT_CLONE git://sigrok.org/libserialport
 cd libserialport
 ./autogen.sh
 ./configure $C
@@ -60,7 +62,7 @@ make install
 cd ..
 
 # libsigrok
-git clone git://sigrok.org/libsigrok
+$GIT_CLONE git://sigrok.org/libsigrok
 cd libsigrok
 ./autogen.sh
 PKG_CONFIG_PATH=$P ./configure $C
@@ -69,7 +71,7 @@ make install
 cd ..
 
 # libsigrokdecode
-git clone git://sigrok.org/libsigrokdecode
+$GIT_CLONE git://sigrok.org/libsigrokdecode
 cd libsigrokdecode
 ./autogen.sh
 ./configure $C
@@ -78,7 +80,7 @@ make install
 cd ..
 
 # sigrok-firmware
-git clone git://sigrok.org/sigrok-firmware
+$GIT_CLONE git://sigrok.org/sigrok-firmware
 cd sigrok-firmware
 ./autogen.sh
 # Nothing gets cross-compiled here, we just need 'make install' basically.
@@ -87,7 +89,7 @@ make install
 cd ..
 
 # sigrok-firmware-fx2lafw
-git clone git://sigrok.org/sigrok-firmware-fx2lafw
+$GIT_CLONE git://sigrok.org/sigrok-firmware-fx2lafw
 cd sigrok-firmware-fx2lafw
 ./autogen.sh
 # We're building the fx2lafw firmware on the host, no need to cross-compile.
@@ -97,7 +99,7 @@ make install
 cd ..
 
 # sigrok-cli
-git clone git://sigrok.org/sigrok-cli
+$GIT_CLONE git://sigrok.org/sigrok-cli
 cd sigrok-cli
 ./autogen.sh
 PKG_CONFIG_PATH=$P ./configure $C
@@ -106,7 +108,7 @@ make install
 cd ..
 
 # PulseView
-git clone git://sigrok.org/pulseview
+$GIT_CLONE git://sigrok.org/pulseview
 cd pulseview
 PKG_CONFIG_PATH=$P cmake -DCMAKE_INSTALL_PREFIX:PATH=$PREFIX -DDISABLE_WERROR=y -DENABLE_DECODE=y .
 make $PARALLEL

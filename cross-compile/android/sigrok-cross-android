@@ -61,6 +61,7 @@ VER_PYTHON=3.3.3
 SF_MIRROR=switch.dl.sourceforge.net
 
 WGET="wget --quiet"
+GIT_CLONE="git clone --depth=1"
 
 # -----------------------------------------------------------------------------
 
@@ -93,7 +94,7 @@ export -n PKG_CONFIG_PATH
 C="--host=$TOOLCHAIN_TRIPLET --prefix=$PREFIX"
 
 # Get the latest versions of config.guess/config.sub that know about Android.
-git clone git://git.savannah.gnu.org/config.git
+$GIT_CLONE git://git.savannah.gnu.org/config.git
 
 # -----------------------------------------------------------------------------
 
@@ -222,7 +223,7 @@ make install
 cd ..
 
 # libserialport
-git clone git://sigrok.org/libserialport
+$GIT_CLONE git://sigrok.org/libserialport
 cd libserialport
 ./autogen.sh
 ./configure $C --without-libudev
@@ -231,7 +232,7 @@ make install
 cd ..
 
 # libsigrok
-git clone git://sigrok.org/libsigrok
+$GIT_CLONE git://sigrok.org/libsigrok
 cd libsigrok
 ./autogen.sh
 ./configure $C
@@ -240,7 +241,7 @@ make install
 cd ..
 
 # libsigrokdecode
-git clone git://sigrok.org/libsigrokdecode
+$GIT_CLONE git://sigrok.org/libsigrokdecode
 cd libsigrokdecode
 ./autogen.sh
 ./configure $C
@@ -249,7 +250,7 @@ make install
 cd ..
 
 # sigrok-cli
-git clone git://sigrok.org/sigrok-cli
+$GIT_CLONE git://sigrok.org/sigrok-cli
 cd sigrok-cli
 ./autogen.sh
 ./configure $C
