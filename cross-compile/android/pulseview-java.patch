@@ -4,20 +4,39 @@ index 0564a8d..0356f33 100644
 +++ b/java/AndroidManifest.xml
 @@ -1,5 +1,5 @@
  <?xml version='1.0' encoding='utf-8'?>
--<manifest xmlns:android="http://schemas.android.com/apk/res/android" android:versionCode="1" android:versionName="1.0" package="org.kde.necessitas.example">
-+<manifest xmlns:android="http://schemas.android.com/apk/res/android" android:versionCode="1" android:versionName="1.0" package="org.sigrok.pulseview">
-     <application android:name="org.kde.necessitas.origo.QtApplication" android:icon="@drawable/icon" android:label="@string/app_name">
-         <activity android:name="org.kde.necessitas.origo.QtActivity" android:label="@string/app_name" android:configChanges="orientation|locale|fontScale|keyboard|keyboardHidden" >
-             <intent-filter>
-@@ -8,7 +8,7 @@
+-<manifest package="org.qtproject.example" xmlns:android="http://schemas.android.com/apk/res/android" android:versionName="1.0" android:versionCode="1" android:installLocation="auto">
++<manifest package="org.sigrok.pulseview" xmlns:android="http://schemas.android.com/apk/res/android" android:versionName="1.0" android:versionCode="1" android:installLocation="auto">
+     <application android:hardwareAccelerated="true" android:name="org.qtproject.qt5.android.bindings.QtApplication" android:label="@string/app_name">
+         <activity android:configChanges="orientation|uiMode|screenLayout|screenSize|smallestScreenSize|locale|fontScale|keyboard|keyboardHidden|navigation"
+                   android:name="org.qtproject.qt5.android.bindings.QtActivity"
+@@ -9,21 +9,21 @@
+                 <action android:name="android.intent.action.MAIN"/>
+                 <category android:name="android.intent.category.LAUNCHER"/>
              </intent-filter>
+-            <meta-data android:name="android.app.lib_name" android:value="-- %%INSERT_APP_LIB_NAME%% --"/>
++            <meta-data android:name="android.app.lib_name" android:value="pulseview"/>
+             <meta-data android:name="android.app.qt_sources_resource_id" android:resource="@array/qt_sources"/>
+             <meta-data android:name="android.app.repository" android:value="default"/>
              <meta-data android:name="android.app.qt_libs_resource_id" android:resource="@array/qt_libs"/>
              <meta-data android:name="android.app.bundled_libs_resource_id" android:resource="@array/bundled_libs"/>
--            <meta-data android:name="android.app.lib_name" android:value=""/>
-+            <meta-data android:name="android.app.lib_name" android:value="pulseview"/>
+             <!-- Deploy Qt libs as part of package -->
+-            <meta-data android:name="android.app.bundle_local_qt_libs" android:value="-- %%BUNDLE_LOCAL_QT_LIBS%% --"/>
++            <meta-data android:name="android.app.bundle_local_qt_libs" android:value="0"/>
+             <meta-data android:name="android.app.bundled_in_lib_resource_id" android:resource="@array/bundled_in_lib"/>
+             <meta-data android:name="android.app.bundled_in_assets_resource_id" android:resource="@array/bundled_in_assets"/>
+             <!-- Run with local libs -->
+-            <meta-data android:name="android.app.use_local_qt_libs" android:value="-- %%USE_LOCAL_QT_LIBS%% --"/>
++            <meta-data android:name="android.app.use_local_qt_libs" android:value="0"/>
+             <meta-data android:name="android.app.libs_prefix" android:value="/data/local/tmp/qt/"/>
+-            <meta-data android:name="android.app.load_local_libs" android:value="-- %%INSERT_LOCAL_LIBS%% --"/>
+-            <meta-data android:name="android.app.load_local_jars" android:value="-- %%INSERT_LOCAL_JARS%% --"/>
+-            <meta-data android:name="android.app.static_init_classes" android:value="-- %%INSERT_INIT_CLASSES%% --"/>
++            <meta-data android:name="android.app.load_local_libs" android:value="libs/libgnustl_shared.so"/>
++            <meta-data android:name="android.app.load_local_jars" android:value=":"/>
++            <meta-data android:name="android.app.static_init_classes" android:value=":"/>
              <!--  Messages maps -->
-             <meta-data android:name="android.app.ministro_not_found_msg" android:value="@string/ministro_not_found_msg"/>
-             <meta-data android:name="android.app.ministro_needed_msg" android:value="@string/ministro_needed_msg"/>
+             <meta-data android:value="@string/ministro_not_found_msg" android:name="android.app.ministro_not_found_msg"/>
+             <meta-data android:value="@string/ministro_needed_msg" android:name="android.app.ministro_needed_msg"/>
 diff --git a/java/res/values/strings.xml b/java/res/values/strings.xml
 index bd6928f..68f017e 100644
 --- a/java/res/values/strings.xml
@@ -25,19 +44,32 @@ index bd6928f..68f017e 100644
 @@ -1,6 +1,6 @@
  <?xml version='1.0' encoding='utf-8'?>
  <resources>
--    <string name="app_name"></string>
+-    <string name="app_name"><!-- %%INSERT_APP_NAME%% --></string>
 +    <string name="app_name">PulseView</string>
+ 
      <string name="ministro_not_found_msg">Can\'t find Ministro service.\nThe application can\'t start.</string>
      <string name="ministro_needed_msg">This application requires Ministro service. Would you like to install it?</string>
-     <string name="fatal_error_msg">Your application encountered a fatal error and cannot continue.</string>
-diff --git a/java/src/org/kde/necessitas/origo/QtActivity.java b/java/src/org/kde/necessitas/origo/QtActivity.java
+diff --git a/java/res/values/libs.xml b/java/res/values/libs.xml
+--- a/java/res/values/libs.xml	2014-05-17 11:09:29.855631921 +0200
++++ b/java/res/values/libs.xml	2014-05-17 11:13:04.380841784 +0200
+@@ -13,6 +13,9 @@
+ 
+      <array name="qt_libs">
+          <!-- %%INSERT_QT_LIBS%% -->
++         <item>Qt5Core</item>
++         <item>Qt5Gui</item>
++         <item>Qt5Widgets</item>
+      </array>
+ 
+     <array name="bundled_in_lib">
+diff --git a/java/src/org/qtproject/qt5/android/bindings/QtActivity.java b/java/src/org/qtproject/qt5/android/bindings/QtActivity.java
 index 4ebf1f6..f4e3598 100644
---- a/java/src/org/kde/necessitas/origo/QtActivity.java
-+++ b/java/src/org/kde/necessitas/origo/QtActivity.java
-@@ -108,6 +108,14 @@ public class QtActivity extends Activity
+--- a/java/src/org/qtproject/qt5/android/bindings/QtActivity.java
++++ b/java/src/org/qtproject/qt5/android/bindings/QtActivity.java
+@@ -187,6 +187,14 @@
+     private void loadApplication(Bundle loaderParams)
      {
-         try
-         {
+         try {
 +	    org.sigrok.androidutils.Environment.initEnvironment(
 +               getApplicationInfo().sourceDir);
 +	    System.loadLibrary("gnustl_shared");
@@ -46,9 +78,9 @@ index 4ebf1f6..f4e3598 100644
 +                new File(getApplicationInfo().nativeLibraryDir),
 +                new File(getFilesDir(), "lib"));
 +
-             if (loaderParams.getInt(ERROR_CODE_KEY) != 0)
-             { // fatal error, show the error and quit
-                 AlertDialog errorDialog = new AlertDialog.Builder(QtActivity.this).create();
+             final int errorCode = loaderParams.getInt(ERROR_CODE_KEY);
+             if (errorCode != 0) {
+                 if (errorCode == INCOMPATIBLE_MINISTRO_VERSION) {
 diff --git a/java/src/org/sigrok/androidutils/LibWrangler.java b/java/src/org/sigrok/androidutils/LibWrangler.java
 new file mode 100644
 index 0000000..0c9effe
