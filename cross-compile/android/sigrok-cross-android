@@ -63,7 +63,7 @@ VER_LIBFTDI1=1.1
 VER_LIBUSBX=1.0.17
 VER_PYTHON=3.3.3
 VER_BOOST=1.55.0
-VER_QT=n0.31
+VER_QT=5.2.1
 
 SF_MIRROR=switch.dl.sourceforge.net
 
@@ -271,11 +271,12 @@ if [ -z "$ANDROID_NDK" -o ! -d "$ANDROID_NDK" ]; then
   exit 0
 fi
 
-if [ -z "$ANDROID_SDK" -o ! -d "$ANDROID_SDK"/platforms/android-4 -o \
-     ! -d "$ANDROID_SDK"/platforms/android-7 -o \
-     ! -d "$ANDROID_SDK"/platforms/android-8 -o \
-     ! -d "$ANDROID_SDK"/platforms/android-14 ]; then
-  echo "Android SDK with platforms 4 7 8 14 not available, not building PulseView"
+if [ -z "$ANDROID_SDK" -o ! -d "$ANDROID_SDK"/platforms/android-8 -o \
+     ! -d "$ANDROID_SDK"/platforms/android-10 -o \
+     ! -d "$ANDROID_SDK"/platforms/android-11 -o \
+     ! -d "$ANDROID_SDK"/platforms/android-14 -o \
+     ! -d "$ANDROID_SDK"/platforms/android-16 ]; then
+  echo "Android SDK with platforms 8 10 11 14 16 not available, not building PulseView"
   exit 0
 fi
 
@@ -302,10 +303,13 @@ echo "using gcc : $NDK_TOOLCHAIN_VERSION : \"${TOOLCHAIN_TRIPLET}-g++\" : <cxxfl
 cd ..
 
 # qt (needed for PulseView)
-$GIT_CLONE -b $VER_QT git://anongit.kde.org/android-qt.git
-cd android-qt
+$WGET http://download.qt-project.org/official_releases/qt/${VER_QT%.*}/${VER_QT}/single/qt-everywhere-opensource-src-${VER_QT}.tar.gz
+tar xfz qt-everywhere-opensource-src-${VER_QT}.tar.gz
+cd qt-everywhere-opensource-src-${VER_QT}
 patch -p1 < ../../android-qt.patch
-ANDROID_SDK_PLATFORM_TOOLS_PATH=$ANDROID_BUILD_TOOLS ANDROID_SDK_TOOLS_PATH=$ANDROID_TOOLS ./android/androidconfigbuild.sh -n $ANDROID_NDK -a $TARGET_ARCH -l 14 -q 1 -d 1 -i $PREFIX -k 1 -o $NDK_HOST -v $NDK_TOOLCHAIN_VERSION
+./configure --prefix="$PREFIX" -developer-build -xplatform android-g++ -nomake tests -nomake examples -android-sdk "$ANDROID_SDK" -android-ndk "$ANDROID_NDK" -android-ndk-host "$NDK_HOST" -android-arch "$TARGET_ARCH" -android-toolchain-version "$NDK_TOOLCHAIN_VERSION" -skip qttranslations -skip qtwebkit -skip qtserialport -skip qtwebkit-examples -opensource -confirm-license
+make $PARALLEL
+make install
 cd ..
 
 # PulseView
