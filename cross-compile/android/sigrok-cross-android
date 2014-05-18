@@ -320,6 +320,8 @@ cmake $CM -DANDROID_STL_PATH=${ANDROID_NDK}/sources/cxx-stl .
 make $PARALLEL
 cp -r "$PREFIX"/src/android/java .
 cp -r libs java/
+mkdir -p java/res/drawable
+cp icons/sigrok-logo-notext.png java/res/drawable/logo.png
 cd java
 patch -p2 < ../../../pulseview-java.patch
 cp "$PREFIX"/jar/QtAndroid-bundled.jar libs/
