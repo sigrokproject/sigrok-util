@@ -226,7 +226,7 @@ cd ..
 $GIT_CLONE git://sigrok.org/libserialport
 cd libserialport
 ./autogen.sh
-./configure $C --without-libudev
+./configure $C
 make $PARALLEL V=1
 make install
 cd ..
