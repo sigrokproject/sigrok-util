@@ -53,8 +53,7 @@ VER_LIBFFI=3.0.13
 VER_GLIB=2.38.2
 VER_GLIB_SHORT=2.38
 VER_LIBZIP=0.11.1
-VER_LIBUSB=0.1.12
-VER_LIBFTDI=0.20
+VER_LIBFTDI1=1.1
 VER_LIBUSBX=1.0.17
 VER_PYTHON=3.3.3
 
@@ -62,6 +61,13 @@ SF_MIRROR=switch.dl.sourceforge.net
 
 WGET="wget --quiet"
 GIT_CLONE="git clone --depth=1"
+
+case "$TOOLCHAIN_TRIPLET" in
+  arm*) TARGET_ARCH=armeabi;;
+  mips*) TARGET_ARCH=mips;;
+  i686*) TARGET_ARCH=x86;;
+  *) echo >&2 "Unknown prefix for TOOLCHAIN_TRIPLET"; exit 1;;
+esac
 
 # -----------------------------------------------------------------------------
 
@@ -92,9 +98,14 @@ export -n PKG_CONFIG_PATH
 
 # Define some helper variables.
 C="--host=$TOOLCHAIN_TRIPLET --prefix=$PREFIX"
+CM="-Wno-dev -DCMAKE_TOOLCHAIN_FILE=../android.toolchain.cmake -DANDROID_ABI=${TARGET_ARCH} -DCMAKE_INSTALL_PREFIX=${PREFIX} -DANDROID_STANDALONE_TOOLCHAIN=${TOOLCHAIN}"
 
 # Get the latest versions of config.guess/config.sub that know about Android.
 $GIT_CLONE git://git.savannah.gnu.org/config.git
+
+# Get a toolchain for cmake that knows about Android
+wget https://android-cmake.googlecode.com/hg/toolchain/android.toolchain.cmake
+patch < ../android.toolchain.cmake.patch android.toolchain.cmake
 
 # -----------------------------------------------------------------------------
 
@@ -188,36 +199,21 @@ make $PARALLEL
 make install
 cd ..
 
-# libusb-0.1 (not used directly, but needed for libftdi)
-$WGET http://$SF_MIRROR/project/libusb/libusb-0.1%20%28LEGACY%29/$VER_LIBUSB/libusb-$VER_LIBUSB.tar.gz
-tar xfz libusb-$VER_LIBUSB.tar.gz
-cd libusb-$VER_LIBUSB
-cp -f ../config/config.guess .
-cp -f ../config/config.sub .
-./configure $C
-# Explicitly exclude libusbpp.la from lib_LTLIBRARIES, and skip subdirs.
-make lib_LTLIBRARIES=libusb.la SUBDIRS=. $PARALLEL
-make lib_LTLIBRARIES=libusb.la SUBDIRS=. install
-cd ..
-
-# libftdi
-$WGET http://www.intra2net.com/en/developer/libftdi/download/libftdi-$VER_LIBFTDI.tar.gz
-tar xfz libftdi-$VER_LIBFTDI.tar.gz
-cd libftdi-$VER_LIBFTDI
-cp -f ../config/config.guess .
-cp -f ../config/config.sub .
-# libftdi needs to find libusb-config which is installed in $PREFIX/bin.
-PATH=$PREFIX/bin:$PATH ./configure $C
-make $PARALLEL
-make install
-cd ..
-
 # libusb-1.0
 $WGET http://$SF_MIRROR/project/libusbx/releases/$VER_LIBUSBX/source/libusbx-$VER_LIBUSBX.tar.bz2
 tar xfj libusbx-$VER_LIBUSBX.tar.bz2
 cd libusbx-$VER_LIBUSBX
 patch -p1 < ../../libusb-1.0.patch
 ./configure $C --disable-udev
+make $PARALLEL
+make install
+cd ..
+
+# libftdi1
+$WGET http://www.intra2net.com/en/developer/libftdi/download/libftdi1-$VER_LIBFTDI1.tar.bz2
+tar xfj libftdi1-$VER_LIBFTDI1.tar.bz2
+cd libftdi1-$VER_LIBFTDI1
+cmake $CM .
 make $PARALLEL
 make install
 cd ..
