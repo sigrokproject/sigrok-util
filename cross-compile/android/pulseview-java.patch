@@ -53,13 +53,14 @@ index bd6928f..68f017e 100644
 diff --git a/java/res/values/libs.xml b/java/res/values/libs.xml
 --- a/java/res/values/libs.xml	2014-05-17 11:09:29.855631921 +0200
 +++ b/java/res/values/libs.xml	2014-05-17 11:13:04.380841784 +0200
-@@ -13,6 +13,9 @@
+@@ -13,6 +13,10 @@
  
       <array name="qt_libs">
           <!-- %%INSERT_QT_LIBS%% -->
 +         <item>Qt5Core</item>
 +         <item>Qt5Gui</item>
 +         <item>Qt5Widgets</item>
++         <item>Qt5Svg</item>
       </array>
  
      <array name="bundled_in_lib">
