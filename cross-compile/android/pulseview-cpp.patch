@@ -1,11 +1,15 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 11767a6..b8eed96 100644
+index 3d63ecd..c386a60 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -317,12 +317,21 @@ if(WIN32)
+@@ -333,12 +333,25 @@ if(WIN32)
  	list(APPEND PULSEVIEW_LINK_LIBS "-lqsvg")
  endif()
  
++if(ANDROID)
++	list(APPEND PULSEVIEW_LINK_LIBS "-llog")
++endif()
++
 +if(ANDROID)
 +add_library(${PROJECT_NAME} SHARED
 +	${pulseview_SOURCES}
@@ -25,20 +29,24 @@ index 11767a6..b8eed96 100644
  target_link_libraries(${PROJECT_NAME} ${PULSEVIEW_LINK_LIBS})
  
 diff --git a/main.cpp b/main.cpp
-index 2c6a59e..79627db 100644
---- a/main.cpp 2014-04-26 23:40:24.253187700 +0200
-+++ b/main.cpp	2014-04-27 00:38:55.378353311 +0200
-@@ -20,6 +20,9 @@
+index 23f3f62..ea5e5e1 100644
+--- a/main.cpp
++++ b/main.cpp
+@@ -20,6 +20,13 @@
  
  #ifdef ENABLE_DECODE
  #include <libsigrokdecode/libsigrokdecode.h> /* First, so we avoid a _POSIX_C_SOURCE warning. */
 +#ifdef ANDROID
 +#include <jni.h>
 +#endif
++#endif
++
++#ifdef ANDROID
++#include <android/log.h>
  #endif
  
  #include <stdint.h>
-@@ -45,6 +48,47 @@
+@@ -45,6 +52,112 @@
  Q_IMPORT_PLUGIN(qsvg)
  #endif
  
@@ -83,6 +91,85 @@ index 2c6a59e..79627db 100644
 +}
 +#endif
 +
++#ifdef ANDROID
++extern "C" {
++static int sr_log_callback_android(void *cb_data, int loglevel, const char *format, va_list args)
++{
++	static const int prio[] = {
++		[SR_LOG_NONE] = ANDROID_LOG_SILENT,
++		[SR_LOG_ERR] = ANDROID_LOG_ERROR,
++		[SR_LOG_WARN] = ANDROID_LOG_WARN,
++		[SR_LOG_INFO] = ANDROID_LOG_INFO,
++		[SR_LOG_DBG] = ANDROID_LOG_DEBUG,
++		[SR_LOG_SPEW] = ANDROID_LOG_VERBOSE,
++	};
++	int ret;
++
++	/* This specific log callback doesn't need the void pointer data. */
++	(void)cb_data;
++
++	/* Only output messages of at least the selected loglevel(s). */
++	if (loglevel > sr_log_loglevel_get())
++		return SR_OK; /* TODO? */
++
++	if (loglevel < SR_LOG_NONE)
++	  loglevel = SR_LOG_NONE;
++	else if (loglevel > SR_LOG_SPEW)
++	  loglevel = SR_LOG_SPEW;
++
++	ret = __android_log_vprint(prio[loglevel], "sr", format, args);
++
++	return ret;
++}
++
++#ifdef ENABLE_DECODE
++static int srd_log_callback_android(void *cb_data, int loglevel, const char *format,
++				    va_list args)
++{
++	static const int prio[] = {
++		[SRD_LOG_NONE] = ANDROID_LOG_SILENT,
++		[SRD_LOG_ERR] = ANDROID_LOG_ERROR,
++		[SRD_LOG_WARN] = ANDROID_LOG_WARN,
++		[SRD_LOG_INFO] = ANDROID_LOG_INFO,
++		[SRD_LOG_DBG] = ANDROID_LOG_DEBUG,
++		[SRD_LOG_SPEW] = ANDROID_LOG_VERBOSE,
++	};
++	int ret;
++
++	/* This specific log callback doesn't need the void pointer data. */
++	(void)cb_data;
++
++	/* Only output messages of at least the selected loglevel(s). */
++	if (loglevel > srd_log_loglevel_get())
++		return SRD_OK; /* TODO? */
++
++	if (loglevel < SRD_LOG_NONE)
++	  loglevel = SRD_LOG_NONE;
++	else if (loglevel > SRD_LOG_SPEW)
++	  loglevel = SRD_LOG_SPEW;
++
++	ret = __android_log_vprint(prio[loglevel], "srd", format, args);
++
++	return ret;
++}
++#endif
++}
++#endif
++
  void usage()
  {
  	fprintf(stdout,
+@@ -71,6 +184,13 @@ int main(int argc, char *argv[])
+ 	QApplication::setApplicationName("PulseView");
+ 	QApplication::setOrganizationDomain("sigrok.org");
+ 
++#ifdef ANDROID
++	sr_log_callback_set(sr_log_callback_android, NULL);
++#ifdef ENABLE_DECODE
++	srd_log_callback_set(srd_log_callback_android, NULL);
++#endif
++#endif
++
+ 	// Parse arguments
+ 	while (1) {
+ 		static const struct option long_options[] = {
