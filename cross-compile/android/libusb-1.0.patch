@@ -16,3 +16,120 @@ diff -urp libusb-1.0.9.orig/libusb/io.c libusb-1.0.9/libusb/io.c
  /**
   * \page io Synchronous and asynchronous device I/O
   *
+diff -urp libusbx-1.0.17.orig/libusb/os/linux_usbfs.c libusbx-1.0.17/libusb/os/linux_usbfs.c
+--- libusbx-1.0.17.orig/libusb/os/linux_usbfs.c	2014-07-05 23:14:45.487803220 +0200
++++ libusbx-1.0.17/libusb/os/linux_usbfs.c	2014-07-06 16:42:17.013481236 +0200
+@@ -37,11 +37,21 @@
+ #include <sys/types.h>
+ #include <sys/utsname.h>
+ #include <unistd.h>
++#ifdef __ANDROID__
++#include <jni.h>
++#endif
+ 
+ #include "libusb.h"
+ #include "libusbi.h"
+ #include "linux_usbfs.h"
+ 
++#ifdef __ANDROID__
++static JavaVM *g_jvm = NULL;
++static jclass usb_helper_class;
++static jmethodID usb_helper_open_mid;
++static int usb_helper_open(const char *pathname, int flags);
++#endif
++
+ /* sysfs vs usbfs:
+  * opening a usbfs node causes the device to be resumed, so we attempt to
+  * avoid this during enumeration.
+@@ -192,6 +202,11 @@
+ 		snprintf(path, PATH_MAX, "%s/%03d/%03d",
+ 			usbfs_path, dev->bus_number, dev->device_address);
+ 
++#ifdef __ANDROID__
++	if (g_jvm)
++		fd = usb_helper_open(path, mode);
++	else
++#endif
+ 	fd = open(path, mode);
+ 	if (fd != -1)
+ 		return fd; /* Success */
+@@ -2603,3 +2618,79 @@
+ 	.transfer_priv_size = sizeof(struct linux_transfer_priv),
+ 	.add_iso_packet_size = 0,
+ };
++
++#ifdef __ANDROID__
++jint JNI_OnLoad(JavaVM *vm, void *reserved)
++{
++	JNIEnv* env;
++	g_jvm = vm;
++	if ((*vm)->GetEnv(vm, (void **)&env, JNI_VERSION_1_6) != JNI_OK) {
++		return -1;
++	}
++
++	jclass helper = (*env)->FindClass(env, "org/sigrok/androidutils/UsbHelper");
++
++	if (helper) {
++
++		usb_helper_class = (jclass)(*env)->NewGlobalRef(env, helper);
++
++		usb_helper_open_mid = (*env)->GetStaticMethodID(env, helper, "open",
++								"(Ljava/lang/String;I)I");
++		(*env)->DeleteLocalRef(env, helper);
++
++	} else {
++		if ((*env)->ExceptionCheck(env)) {
++			(*env)->ExceptionClear(env);
++		}
++		g_jvm = NULL;
++	}
++
++	return JNI_VERSION_1_6;
++}
++
++void JNI_OnUnload(JavaVM *vm, void *reserved)
++{
++	JNIEnv* env;
++	if ((*vm)->GetEnv(vm, (void **)&env, JNI_VERSION_1_6) != JNI_OK) {
++		return;
++	}
++
++	jclass helper = usb_helper_class;
++	usb_helper_class = NULL;
++	if (helper)
++		(*env)->DeleteGlobalRef(env, helper);
++	g_jvm = NULL;
++}
++
++static int usb_helper_open(const char *pathname, int flags)
++{
++	JNIEnv* env;
++	int res;
++	jint st;
++	int do_detach = 0;
++
++	if (g_jvm == NULL) {
++		return -1;
++	}
++	st = (*g_jvm)->GetEnv(g_jvm, (void **)&env, JNI_VERSION_1_6);
++
++	if (st == JNI_EDETACHED) {
++		st = (*g_jvm)->AttachCurrentThread(g_jvm, &env, NULL);
++		do_detach = 1;
++	}
++
++	if (st != JNI_OK) {
++		return -1;
++	}
++
++	jstring string = (*env)->NewStringUTF(env, pathname);
++	res = (*env)->CallStaticIntMethod(env, usb_helper_class, usb_helper_open_mid, string, (jint)flags);
++	(*env)->DeleteLocalRef(env, string);
++
++	if (do_detach) {
++		(*g_jvm)->DetachCurrentThread(g_jvm);
++	}
++
++	return res;
++}
++#endif
