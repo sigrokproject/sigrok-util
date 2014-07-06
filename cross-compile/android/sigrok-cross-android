@@ -240,7 +240,7 @@ cd ..
 $GIT_CLONE git://sigrok.org/libsigrok
 cd libsigrok
 ./autogen.sh
-./configure $C
+./configure $C --datadir=/sdcard
 make $PARALLEL V=1
 make install
 cd ..
