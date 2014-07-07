@@ -63,7 +63,7 @@ VER_LIBFTDI1=1.1
 VER_LIBUSBX=1.0.17
 VER_PYTHON=3.3.3
 VER_BOOST=1.55.0
-VER_QT=5.2.1
+VER_QT=5.3.1
 
 SF_MIRROR=switch.dl.sourceforge.net
 
@@ -307,7 +307,7 @@ $WGET http://download.qt-project.org/official_releases/qt/${VER_QT%.*}/${VER_QT}
 tar xfz qt-everywhere-opensource-src-${VER_QT}.tar.gz
 cd qt-everywhere-opensource-src-${VER_QT}
 patch -p1 < ../../android-qt.patch
-./configure --prefix="$PREFIX" -developer-build -xplatform android-g++ -nomake tests -nomake examples -android-sdk "$ANDROID_SDK" -android-ndk "$ANDROID_NDK" -android-ndk-host "$NDK_HOST" -android-arch "$TARGET_ARCH" -android-toolchain-version "$NDK_TOOLCHAIN_VERSION" -skip qttranslations -skip qtwebkit -skip qtserialport -skip qtwebkit-examples -opensource -confirm-license
+./configure --prefix="$PREFIX" -developer-build -xplatform android-g++ -nomake tests -nomake examples -android-sdk "$ANDROID_SDK" -android-ndk "$ANDROID_NDK" -android-ndk-host "$NDK_HOST" -android-arch "$TARGET_ARCH" -android-toolchain-version "$NDK_TOOLCHAIN_VERSION" -skip qttranslations -skip qtwebkit -skip qtserialport -skip qtwebkit-examples -skip qtlocation -skip qtconnectivity -opensource -confirm-license
 make $PARALLEL
 make install
 cd ..
@@ -323,8 +323,6 @@ cp -r libs java/
 mkdir -p java/res/drawable
 cp icons/sigrok-logo-notext.png java/res/drawable/logo.png
 cd java
-cp "$PREFIX"/jar/QtAndroid-bundled.jar libs/
-cp "$PREFIX"/jar/QtAndroidAccessibility-bundled.jar libs/
 mkdir -p assets
 READELF=$TOOLCHAIN_TRIPLET-readelf ../../../fix-libraries.sh "$PREFIX/lib" libs/"$TARGET_ARCH" libpulseview.so > assets/liblist.txt
 cp -r "$PREFIX"/lib/python3.3 assets/
