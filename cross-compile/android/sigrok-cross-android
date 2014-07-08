@@ -325,7 +325,7 @@ cp icons/sigrok-logo-notext.png java/res/drawable/logo.png
 cd java
 mkdir -p assets
 READELF=$TOOLCHAIN_TRIPLET-readelf ../../../fix-libraries.sh "$PREFIX/lib" libs/"$TARGET_ARCH" libpulseview.so > assets/liblist.txt
-cp -r "$PREFIX"/lib/python3.3 assets/
+(cd "$PREFIX"/lib && find python3.3 -name '*.py' | cpio -o) | (cd assets && cpio -id)
 cp -r "$PREFIX"/share/libsigrokdecode assets/
 cp ${ANDROID_NDK}/sources/cxx-stl/gnu-libstdc++/${NDK_TOOLCHAIN_VERSION}/libs/${TARGET_ARCH}/libgnustl_shared.so libs/${TARGET_ARCH}/
 "$ANDROID_TOOLS/android" update project -p . -t android-14 -n PulseView
