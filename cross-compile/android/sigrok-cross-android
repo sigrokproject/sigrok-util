@@ -281,9 +281,8 @@ if [ -z "$ANDROID_SDK" -o ! -d "$ANDROID_SDK"/platforms/android-8 -o \
 fi
 
 ANDROID_TOOLS=${ANDROID_SDK}/tools
-ANDROID_BUILD_TOOLS=${ANDROID_SDK}/build-tools/19.0.1
 
-if [ ! -e "$ANDROID_TOOLS/android" -o ! -e "$ANDROID_BUILD_TOOLS/dx" ]; then
+if [ ! -e "$ANDROID_TOOLS/android" ]; then
   echo "Essential Android build tools not available, not building PulseView"
   exit 0
 fi
