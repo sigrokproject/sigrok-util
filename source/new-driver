@@ -27,19 +27,14 @@ import re
 import socket
 import datetime
 
-TMPL_AUTOCONF_AC_ARG_ENABLE = """\
-AC_ARG_ENABLE(${short}, AC_HELP_STRING([--enable-${short}],
-	[enable ${name} support [default=yes]]),
-	[HW_${upper}="$enableval"],
-	[HW_${upper}=$HW_ENABLED_DEFAULT])
+TMPL_AUTOCONF_DRIVER = "DRIVER([${name}], [${short}])\n"
+TMPL_AUTOCONF_AM_CONDITIONAL = """\
 AM_CONDITIONAL(HW_${upper}, test x$HW_${upper} = xyes)
 if test "x$HW_${upper}" = "xyes"; then
 	AC_DEFINE(HAVE_HW_${upper}, 1, [${name} support])
 fi
 
 """
-TMPL_AUTOCONF_AC_CONFIG_FILES = "\t\t hardware/${short}/Makefile\n"
-TMPL_AUTOCONF_SUMMARY = 'echo "  - ${summary}"\n'
 
 TMPL_HWMAKE_DRIVERLIB = """if HW_${upper}
 libsigrok_la_SOURCES += \\
@@ -48,12 +43,12 @@ libsigrok_la_SOURCES += \\
 	hardware/${short}/api.c
 endif
 """
-TMPL_HWDRIVER_EXTERN = """\
+TMPL_DRIVERS_EXTERN = """\
 #ifdef HAVE_HW_${upper}
 extern SR_PRIV struct sr_dev_driver ${lib}_driver_info;
 #endif
 """
-TMPL_HWDRIVER_DIPTR = """\
+TMPL_DRIVERS_POINTER = """\
 #ifdef HAVE_HW_${upper}
 	&${lib}_driver_info,
 #endif
@@ -83,9 +78,9 @@ def new_driver():
         if process.returncode:
             raise Exception(err.decode())
         gitdir = tmp + '/libsigrok/'
-        do_configure_ac(gitdir)
-        do_hwdriver(gitdir)
-        do_hwmake(gitdir)
+        do_autoconf(gitdir)
+        do_drivers(gitdir)
+        do_automake(gitdir)
         do_driverskel(gitdir)
         make_patch(gitdir)
     except Exception as e:
@@ -93,122 +88,106 @@ def new_driver():
     shutil.rmtree(tmp)
 
 
-def do_configure_ac(gitdir):
+# add DRIVER and AM_CONDITIONAL/AC_DEFINE entries to configure.ac
+def do_autoconf(gitdir):
     cacpath = gitdir + 'configure.ac'
     configure_ac = open(cacpath).read()
 
-    # add AC_ARG_ENABLE option
     out = ''
-    state = 'copy'
+    state = 'driver'
+    active = False
     for line in configure_ac.split('\n')[:-1]:
-        if state == 'copy':
-            if line == "# Hardware support '--enable' options.":
-                state = 'acarg'
-        elif state == 'acarg':
-            m = re.match('AC_ARG_ENABLE\(([^,]+)', line)
+        if state == 'driver':
+            m = re.match('DRIVER\(\[([^\]]+)', line)
             if m:
-                drv_short = m.group(1)
-                if drv_short.lower() > names['short']:
-                    out += tmpl(TMPL_AUTOCONF_AC_ARG_ENABLE)
-                    state = 'done'
-            if line == '# Checks for libraries.':
-                # new one at the end
-                out += tmpl(TMPL_AUTOCONF_AC_ARG_ENABLE)
-                state = 'done'
-        out += line + '\n'
-    if state != 'done':
-        raise Exception('AC_ARG_ENABLE markers not found in configure.ac')
-    configure_ac = out
-
-    # add summary line
-    out = ''
-    state = 'copy'
-    names['summary'] = "%s%s $HW_%s" % (names['short'],
-            '.' * (32 - len(names['name'])), names['upper'])
-    for line in configure_ac.split('\n')[:-1]:
-        if state == 'copy':
-            if line.find('Enabled hardware drivers') > -1:
-                state = 'echo'
-        elif state == 'echo':
-            m = re.match('echo "  - ([^\.]+)', line)
+                active = True
+            if active:
+                if (m and m.group(1).upper() > names['name'].upper()) or m is None:
+                    out += tmpl(TMPL_AUTOCONF_DRIVER)
+                    state = 'automake'
+                    active = False
+        elif state == 'automake':
+            m = re.match('AM_CONDITIONAL\(HW_([^,]+)', line)
             if m:
-                drv_short = m.group(1)
-                if drv_short.lower() > names['name'].lower():
-                    out += tmpl(TMPL_AUTOCONF_SUMMARY)
-                    state = 'done'
+                active = True
             else:
-                # new one at the end
-                out += tmpl(TMPL_AUTOCONF_SUMMARY)
-                state = 'done'
+                submatch = re.match('(if|\s*AC_DEFINE|fi|$)', line)
+                if active and submatch is None:
+                    # we're past the conditionals
+                    out += tmpl(TMPL_AUTOCONF_AM_CONDITIONAL)
+                    state = 'done'
+            if active:
+                if (m and m.group(1) > names['upper']):
+                    out += tmpl(TMPL_AUTOCONF_AM_CONDITIONAL)
+                    state = 'done'
         out += line + '\n'
     if state != 'done':
-        raise Exception('summary marker not found in configure.ac')
-    configure_ac = out
-
-    open(cacpath, 'w').write(configure_ac)
+        raise Exception('No DRIVER entries found in configure.ac')
+    open(cacpath, 'w').write(out)
 
 
-def do_hwdriver(gitdir):
-    path = gitdir + 'hwdriver.c'
-    hwdriver = open(path).read()
-    # add HAVE_HW_thing extern and pointers
+# add HAVE_HW_ extern and pointers to drivers.c
+def do_drivers(gitdir):
+    path = gitdir + 'drivers.c'
+    source = open(path).read()
     out = ''
-    state = 'copy'
-    for line in hwdriver.split('\n')[:-1]:
-        if state == 'copy':
-            if line.find('/** @cond PRIVATE */') == 0:
-                state = 'extern'
-            elif line.find('static struct sr_dev_driver *drivers_list') == 0:
-                state = 'diptr'
-        elif state in ('extern', 'diptr'):
+    state = 'extern'
+    first_entry = ''
+    for line in source.split('\n')[:-1]:
+        m = re.match('#ifdef HAVE_HW_(.*)', line)
+        if m:
+            if not first_entry:
+                first_entry = m.group(1)
+            elif m.group(1) == first_entry:
+                # second time we see this, so we're past the externs
+                if state != 'idle':
+                    # tack driver on to the end of the list
+                    out += tmpl(TMPL_DRIVERS_EXTERN)
+                state = 'pointer'
             if state == 'extern':
-                entry = tmpl(TMPL_HWDRIVER_EXTERN)
-                next_state = 'copy'
-            else:
-                entry = tmpl(TMPL_HWDRIVER_DIPTR)
-                next_state = 'done'
-            m = re.match('#ifdef HAVE_.._(.*)', line)
-            if m:
-                drv = m.group(1)
-                if drv > names['upper']:
-                    out += entry
-                    state = next_state
-            elif not re.match('(extern|\t&|#endif)', line):
-                # new one at the end
-                out += entry
-                state = next_state
+                if m.group(1) > names['upper']:
+                    out += tmpl(TMPL_DRIVERS_EXTERN)
+                    state = 'idle'
+            elif state == 'pointer':
+                if m.group(1) > names['upper']:
+                    out += tmpl(TMPL_DRIVERS_POINTER)
+                    state = 'done'
+        elif state == 'pointer' and not re.match('(\s*&|#endif|$)', line):
+            # we passed the last entry
+            out += tmpl(TMPL_DRIVERS_POINTER)
+            state = 'done'
         out += line + '\n'
     if state != 'done':
-        raise Exception('HAVE_* markers not found in hwdriver.c')
-    hwdriver = out
-
-    open(path, 'w').write(hwdriver)
+        raise Exception('No "HAVE_HW_*" markers found in drivers.c' + state)
+    open(path, 'w').write(out)
 
 
-def do_hwmake(gitdir):
+# add HW_ entry to Makefile.am
+def do_automake(gitdir):
     path = gitdir + 'Makefile.am'
     hwmake = open(path).read()
 
-    # add entry at correct place in Makefile
     out = ''
     state = 'copy'
     for line in hwmake.split('\n')[:-1]:
-        if state == 'copy':
-            if line.find('# Hardware drivers') > -1:
-                state = 'driverlib'
-        elif state == 'driverlib':
-            m = re.match('if [A-Z]{2}_(.*)$', line)
+        if state == 'copy' and re.match('if HW_(.*)$', line):
+            state = 'drivers'
+        if state == 'drivers':
+            m = re.match('if HW_(.*)$', line)
             if m:
                 drv_short = m.group(1)
                 if drv_short > names['upper']:
                     out += tmpl(TMPL_HWMAKE_DRIVERLIB)
                     state = 'done'
+            elif not re.match('(libsigrok_la_SOURCES|\s*hardware/|endif)', line):
+                print("[%s]" % line.strip())
+                # we passed the last entry
+                out += tmpl(TMPL_HWMAKE_DRIVERLIB)
+                state = 'done'
         out += line + '\n'
     if state != 'done':
-        raise Exception('markers not found in Makefile.am')
-    hwmake = out
-
-    open(path, 'w').write(hwmake)
+        raise Exception('No "if HW_" markers found in Makefile.am')
+    open(path, 'w').write(out)
 
 
 def do_driverskel(gitdir):
@@ -223,7 +202,7 @@ def make_patch(gitdir):
     os.chdir(gitdir)
     command('git add hardware/' + names['short'])
     cmd = 'git commit -m "%s: Initial driver skeleton." ' % names['short']
-    cmd += 'configure.ac Makefile.am hwdriver.c hardware/' + names['short']
+    cmd += 'configure.ac Makefile.am drivers.c hardware/' + names['short']
     command(cmd)
     cmd = "git format-patch HEAD~1"
     out, err = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE).communicate()
@@ -271,6 +250,7 @@ if scriptdir.split('/')[-2:] != ['sigrok-util', 'source']:
 	sys.exit(1)
 
 LIBSR = 'git://sigrok.org/libsigrok'
+LIBSR = 'file:///home/bert/sigrok/libsigrok'
 TMPLDIR = scriptdir
 
 if len(sys.argv) < 2:
