@@ -317,16 +317,8 @@ cd pulseview
 patch -p1 < ../../pulseview-cpp.patch
 cmake $CM -DANDROID_STL_PATH=${ANDROID_NDK}/sources/cxx-stl .
 make $PARALLEL
-git clone https://github.com/zeldin/pulseview_android_java java
-cp -r libs java/
-mkdir -p java/res/drawable
-cp icons/sigrok-logo-notext.png java/res/drawable/logo.png
-cd java
-mkdir -p assets
-READELF=$TOOLCHAIN_TRIPLET-readelf ../../../fix-libraries.sh "$PREFIX/lib" libs/"$TARGET_ARCH" libpulseview.so > assets/liblist.txt
-(cd "$PREFIX"/lib && find python3.3 -name '*.py' | cpio -o) | (cd assets && cpio -id)
-cp -r "$PREFIX"/share/libsigrokdecode assets/
-cp ${ANDROID_NDK}/sources/cxx-stl/gnu-libstdc++/${NDK_TOOLCHAIN_VERSION}/libs/${TARGET_ARCH}/libgnustl_shared.so libs/${TARGET_ARCH}/
+git clone https://github.com/zeldin/pulseview_android_java android
+cd android
 "$ANDROID_TOOLS/android" update project -p . -t android-14 -n PulseView
 ant debug
 cd ../..
