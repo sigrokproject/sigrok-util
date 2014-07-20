@@ -250,7 +250,6 @@ if scriptdir.split('/')[-2:] != ['sigrok-util', 'source']:
 	sys.exit(1)
 
 LIBSR = 'git://sigrok.org/libsigrok'
-LIBSR = 'file:///home/bert/sigrok/libsigrok'
 TMPLDIR = scriptdir
 
 if len(sys.argv) < 2:
