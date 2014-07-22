@@ -38,9 +38,9 @@ fi
 
 TMPL_HWMAKE_DRIVERLIB = """if HW_${upper}
 libsigrok_la_SOURCES += \\
-	hardware/${short}/protocol.h \\
-	hardware/${short}/protocol.c \\
-	hardware/${short}/api.c
+	src/hardware/${short}/protocol.h \\
+	src/hardware/${short}/protocol.c \\
+	src/hardware/${short}/api.c
 endif
 """
 TMPL_DRIVERS_EXTERN = """\
@@ -128,7 +128,7 @@ def do_autoconf(gitdir):
 
 # add HAVE_HW_ extern and pointers to drivers.c
 def do_drivers(gitdir):
-    path = gitdir + 'drivers.c'
+    path = gitdir + 'src/drivers.c'
     source = open(path).read()
     out = ''
     state = 'extern'
@@ -179,7 +179,7 @@ def do_automake(gitdir):
                 if drv_short > names['upper']:
                     out += tmpl(TMPL_HWMAKE_DRIVERLIB)
                     state = 'done'
-            elif not re.match('(libsigrok_la_SOURCES|\s*hardware/|endif)', line):
+            elif not re.match('(libsigrok_la_SOURCES|\s*src/hardware/|endif)', line):
                 print("[%s]" % line.strip())
                 # we passed the last entry
                 out += tmpl(TMPL_HWMAKE_DRIVERLIB)
@@ -191,7 +191,7 @@ def do_automake(gitdir):
 
 
 def do_driverskel(gitdir):
-    drvdir = gitdir + 'hardware/' + names['short']
+    drvdir = gitdir + 'src/hardware/' + names['short']
     os.mkdir(drvdir)
     open(drvdir + '/api.c', 'w').write(tmpl_file(FILE_DRV_API))
     open(drvdir + '/protocol.c', 'w').write(tmpl_file(FILE_DRV_PROTOCOL))
@@ -200,9 +200,9 @@ def do_driverskel(gitdir):
 
 def make_patch(gitdir):
     os.chdir(gitdir)
-    command('git add hardware/' + names['short'])
+    command('git add src/hardware/' + names['short'])
     cmd = 'git commit -m "%s: Initial driver skeleton." ' % names['short']
-    cmd += 'configure.ac Makefile.am drivers.c hardware/' + names['short']
+    cmd += 'configure.ac Makefile.am src/drivers.c src/hardware/' + names['short']
     command(cmd)
     cmd = "git format-patch HEAD~1"
     out, err = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE).communicate()
