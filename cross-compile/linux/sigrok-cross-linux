@@ -74,7 +74,7 @@ cd ..
 $GIT_CLONE git://sigrok.org/libsigrokdecode
 cd libsigrokdecode
 ./autogen.sh
-./configure $C
+PKG_CONFIG_PATH=$P ./configure $C
 make $PARALLEL
 make install
 cd ..
