@@ -55,6 +55,7 @@ P2="$MXE/usr/i686-pc-mingw32.static/lib/pkgconfig"
 C="--host=i686-pc-mingw32.static --prefix=$PREFIX"
 CM="-DCMAKE_TOOLCHAIN_FILE=$MXE/usr/i686-pc-mingw32.static/share/cmake/mxe-conf.cmake"
 L="--disable-shared --enable-static"
+DDK="$MXE/usr/i686-pc-mingw32.static/include/ddk"
 
 # Remove build directory contents (if any) and create a new build dir.
 rm -rf $BUILDDIR
@@ -113,7 +114,7 @@ cp -f zadig.exe zadig_xp.exe $PREFIX
 $GIT_CLONE git://sigrok.org/libserialport
 cd libserialport
 ./autogen.sh
-PKG_CONFIG_PATH_i686_pc_mingw32_static=$P ./configure $C $L
+PKG_CONFIG_PATH_i686_pc_mingw32_static=$P CFLAGS="-I$DDK" ./configure $C $L
 make $PARALLEL V=1
 make install
 cd ..
