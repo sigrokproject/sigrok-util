@@ -59,6 +59,8 @@ CM="-DCMAKE_TOOLCHAIN_FILE=$MXE/usr/$TOOLCHAIN_TRIPLET/share/cmake/mxe-conf.cmak
 L="--disable-shared --enable-static"
 DDK="$MXE/usr/$TOOLCHAIN_TRIPLET/include/ddk"
 
+export PKG_CONFIG_PATH_i686_pc_mingw32_static="$P:$P2"
+
 # Remove build directory contents (if any) and create a new build dir.
 rm -rf $BUILDDIR
 mkdir $BUILDDIR
@@ -116,7 +118,7 @@ cp -f zadig.exe zadig_xp.exe $PREFIX
 $GIT_CLONE git://sigrok.org/libserialport
 cd libserialport
 ./autogen.sh
-PKG_CONFIG_PATH_i686_pc_mingw32_static=$P CFLAGS="-I$DDK" ./configure $C $L
+CFLAGS="-I$DDK" ./configure $C $L
 make $PARALLEL V=1
 make install
 cd ..
@@ -126,7 +128,7 @@ $GIT_CLONE git://sigrok.org/libsigrok
 cd libsigrok
 patch -p1 < ../../libsigrok_firmwaredir.patch
 ./autogen.sh
-PKG_CONFIG_PATH_i686_pc_mingw32_static=$P ./configure $C $L
+./configure $C $L
 make $PARALLEL V=1
 make install
 cd ..
@@ -136,7 +138,7 @@ $GIT_CLONE git://sigrok.org/libsigrokdecode
 cd libsigrokdecode
 ./autogen.sh
 patch -p1 < ../../srd_decodersdir.patch
-PKG_CONFIG_PATH_i686_pc_mingw32_static=$P ./configure $C $L
+./configure $C $L
 make $PARALLEL V=1
 make install
 cd ..
@@ -170,7 +172,7 @@ cd ..
 $GIT_CLONE git://sigrok.org/sigrok-cli
 cd sigrok-cli
 ./autogen.sh
-PKG_CONFIG_PATH_i686_pc_mingw32_static=$P:$P2 ./configure $C
+./configure $C
 make $PARALLEL V=1
 make install
 makensis -DHOME=$HOME contrib/sigrok-cli_cross.nsi
@@ -179,7 +181,7 @@ cd ..
 # PulseView
 $GIT_CLONE git://sigrok.org/pulseview
 cd pulseview
-PKG_CONFIG_PATH_i686_pc_mingw32_static=$P:$P2 cmake $CM -DCMAKE_INSTALL_PREFIX:PATH=$PREFIX -DDISABLE_WERROR=y .
+cmake $CM -DCMAKE_INSTALL_PREFIX:PATH=$PREFIX -DDISABLE_WERROR=y .
 make $PARALLEL VERBOSE=1
 make install
 makensis -DHOME=$HOME contrib/pulseview_cross.nsi
