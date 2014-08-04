@@ -21,6 +21,9 @@
 
 set -e
 
+# Build target: "i686" (32bit) or "x86_64" (64bit).
+TARGET="i686"
+
 # The path where your MXE directory is located.
 MXE=$HOME/mxe-git
 
@@ -50,7 +53,7 @@ GIT_CLONE="git clone --depth=1"
 # We need to find tools in the toolchain.
 export PATH=$MXE/usr/bin:$PATH
 
-TOOLCHAIN_TRIPLET="i686-w64-mingw32.static"
+TOOLCHAIN_TRIPLET="$TARGET-w64-mingw32.static"
 
 P="$PREFIX/lib/pkgconfig"
 P2="$MXE/usr/$TOOLCHAIN_TRIPLET/lib/pkgconfig"
@@ -59,7 +62,11 @@ CM="-DCMAKE_TOOLCHAIN_FILE=$MXE/usr/$TOOLCHAIN_TRIPLET/share/cmake/mxe-conf.cmak
 L="--disable-shared --enable-static"
 DDK="$MXE/usr/$TOOLCHAIN_TRIPLET/include/ddk"
 
-export PKG_CONFIG_PATH_i686_w64_mingw32_static="$P:$P2"
+if [ $TARGET == "i686" ]; then
+	export PKG_CONFIG_PATH_i686_w64_mingw32_static="$P:$P2"
+else
+	export PKG_CONFIG_PATH_x86_64_w64_mingw32_static="$P:$P2"
+fi
 
 # Remove build directory contents (if any) and create a new build dir.
 rm -rf $BUILDDIR
@@ -72,10 +79,12 @@ mkdir -p $PREFIX
 
 # Cross-compiling Python is highly non-trivial, so we avoid it for now.
 # The download below is a repackaged tarball of the official Python 3.2.3 MSI
-# installer for Windows: http://python.org/ftp/python/3.2.3/python-3.2.3.msi.
+# installer for Windows:
+#   - https://www.python.org/ftp/python/3.2.3/python-3.2.3.msi
+#   - https://www.python.org/ftp/python/3.2.3/python-3.2.3.amd64.msi
 # The MSI file has been installed on a Windows box and then c:\Python32\libs
-# and c:\Python32\include have been stored in the Python32.tar.gz tarball.
-$WGET http://www.sigrok.org/tmp/Python32.tar.gz -O $PREFIX/Python32.tar.gz
+# and c:\Python32\include have been stored in the Python32_*.tar.gz tarball.
+$WGET http://www.sigrok.org/tmp/Python32_$TARGET.tar.gz -O $PREFIX/Python32.tar.gz
 tar xzf $PREFIX/Python32.tar.gz -C $PREFIX
 
 # Create a dummy python3.pc file so that pkg-config finds Python 3.
@@ -99,8 +108,8 @@ EOF
 # The file python32.zip contains all files from the 'DLLs', 'Lib', and 'libs'
 # subdirectories from an installed Python on Windows (c:\python32), i.e. some
 # libraries and all Python stdlib modules.
-$WGET http://www.sigrok.org/tmp/python32.dll -O $PREFIX/python32.dll
-$WGET http://www.sigrok.org/tmp/python32.zip -O $PREFIX/python32.zip
+$WGET http://www.sigrok.org/tmp/python32_$TARGET.dll -O $PREFIX/python32.dll
+$WGET http://www.sigrok.org/tmp/python32_$TARGET.zip -O $PREFIX/python32.zip
 
 # libusb0.dll (needs to be shipped with frontends)
 $WGET -c http://$SF_MIRROR/project/libusb-win32/libusb-win32-releases/$VER_LIBUSB_WIN32/libusb-win32-bin-$VER_LIBUSB_WIN32.zip
