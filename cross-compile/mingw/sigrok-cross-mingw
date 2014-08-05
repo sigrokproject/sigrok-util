@@ -60,7 +60,6 @@ P2="$MXE/usr/$TOOLCHAIN_TRIPLET/lib/pkgconfig"
 C="--host=$TOOLCHAIN_TRIPLET --prefix=$PREFIX"
 CM="-DCMAKE_TOOLCHAIN_FILE=$MXE/usr/$TOOLCHAIN_TRIPLET/share/cmake/mxe-conf.cmake"
 L="--disable-shared --enable-static"
-DDK="$MXE/usr/$TOOLCHAIN_TRIPLET/include/ddk"
 
 if [ $TARGET == "i686" ]; then
 	export PKG_CONFIG_PATH_i686_w64_mingw32_static="$P:$P2"
@@ -127,7 +126,7 @@ cp -f zadig.exe zadig_xp.exe $PREFIX
 $GIT_CLONE git://sigrok.org/libserialport
 cd libserialport
 ./autogen.sh
-CFLAGS="-I$DDK" ./configure $C $L
+./configure $C $L
 make $PARALLEL V=1
 make install
 cd ..
