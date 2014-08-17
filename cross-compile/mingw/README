@@ -3,7 +3,7 @@ README
 -------------------------------------------------------------------------------
 
 This is a small script for cross-compiling sigrok and its dependencies
-for Windows/MinGW systems.
+for MinGW-w64/Windows systems.
 
 
 Status
@@ -26,18 +26,32 @@ Requirements
  - pkg-config (>= 0.22)
  - sdcc (needed for building the fx2lafw firmware)
  - nsis
- - MXE
+ - MXE (*-w64-* targets, the *-pc-* targets are not supported)
 
 
 MXE setup
 ---------
 
-First, setup the MXE cross-compile environment for MinGW/Windows:
+First, get the MXE cross-compile environment for MinGW-w64/Windows:
 
  $ cd $HOME
  $ git clone https://github.com/mxe/mxe.git mxe-git
  $ cd mxe-git
- $ make gcc glib libzip libusb1 libftdi qt boost check
+
+For now we need to build gcc and winpthreads in two steps. First:
+
+ $ make MXE_TARGETS=i686-w64-mingw32.static gcc winpthreads
+
+In src/gcc.mk change "--enable-threads=win32" to "--enable-threads=posix".
+
+Then build gcc again:
+
+ $ make MXE_TARGETS=i686-w64-mingw32.static gcc
+
+We now have a system that supports C++11 std::thread. Now build the rest:
+
+ $ make MXE_TARGETS=i686-w64-mingw32.static glib libzip libusb1 libftdi \
+   qt boost check
 
 This will take a while.
 
