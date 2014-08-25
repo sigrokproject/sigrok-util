@@ -311,13 +311,21 @@ make $PARALLEL
 make install
 cd ..
 
+# sigrok-androidutils
+$GIT_CLONE git://github.com/zeldin/sigrok-androidutils
+cd sigrok-androidutils
+./autogen.sh
+./configure $C --with-android-sdk="${ANDROID_SDK}"
+make
+make install
+cd ..
+
 # PulseView
-$GIT_CLONE git://sigrok.org/pulseview
+$GIT_CLONE -b android git://github.com/zeldin/pulseview
+# $GIT_CLONE git://sigrok.org/pulseview
 cd pulseview
-patch -p1 < ../../pulseview-cpp.patch
 cmake $CM -DANDROID_STL_PATH=${ANDROID_NDK}/sources/cxx-stl .
 make $PARALLEL
-git clone https://github.com/zeldin/pulseview_android_java android
 cd android
 "$ANDROID_TOOLS/android" update project -p . -t android-14 -n PulseView
 ant debug
