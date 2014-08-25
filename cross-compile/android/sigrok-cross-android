@@ -22,10 +22,10 @@
 set -e
 
 # The path where Android NDK is located.
-ANDROID_NDK=/usr/local/android-ndk-r9d
+ANDROID_NDK=$HOME/android/android-ndk-r9d
 
 # The path where Android SDK is located.
-ANDROID_SDK=/usr/local/android
+ANDROID_SDK=$HOME/android/android-sdk-linux
 
 # The path where your Android toolchain directory is located.
 TOOLCHAIN=$HOME/android/android-arm-toolchain
