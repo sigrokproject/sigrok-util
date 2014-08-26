@@ -315,7 +315,7 @@ $GIT_CLONE git://sigrok.org/sigrok-androidutils
 cd sigrok-androidutils
 ./autogen.sh
 ./configure $C --with-android-sdk="${ANDROID_SDK}"
-make
+make $PARALLEL V=1
 make install
 cd ..
 
@@ -323,7 +323,7 @@ cd ..
 $GIT_CLONE git://sigrok.org/pulseview
 cd pulseview
 cmake $CM -DANDROID_STL_PATH=${ANDROID_NDK}/sources/cxx-stl .
-make $PARALLEL
+make $PARALLEL VERBOSE=1
 cd android
 "${ANDROID_SDK}/tools/android" update project -p . -t android-14 -n PulseView
 ant debug
