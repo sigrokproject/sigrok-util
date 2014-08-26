@@ -21,10 +21,10 @@
 
 set -e
 
-# The path where Android NDK is located.
+# The path where the Android NDK is located.
 ANDROID_NDK=$HOME/android/android-ndk-r9d
 
-# The path where Android SDK is located.
+# The path where the Android SDK is located.
 ANDROID_SDK=$HOME/android/android-sdk-linux
 
 # The path where your Android toolchain directory is located.
@@ -74,7 +74,7 @@ case "$TOOLCHAIN_TRIPLET" in
   arm*) TARGET_ARCH=armeabi;;
   mips*) TARGET_ARCH=mips;;
   i686*) TARGET_ARCH=x86;;
-  *) echo >&2 "Unknown prefix for TOOLCHAIN_TRIPLET"; exit 1;;
+  *) echo >&2 "Unknown prefix for TOOLCHAIN_TRIPLET."; exit 1;;
 esac
 
 # -----------------------------------------------------------------------------
@@ -83,6 +83,8 @@ esac
 rm -rf $BUILDDIR
 mkdir $BUILDDIR
 cd $BUILDDIR
+
+# -----------------------------------------------------------------------------
 
 # Build host Python before we start messing with the environment.
 $WGET http://python.org/ftp/python/$VER_PYTHON/Python-$VER_PYTHON.tar.xz
@@ -106,11 +108,13 @@ export -n PKG_CONFIG_PATH
 C="--host=$TOOLCHAIN_TRIPLET --prefix=$PREFIX"
 CM="-Wno-dev -DCMAKE_TOOLCHAIN_FILE=../android.toolchain.cmake -DANDROID_ABI=${TARGET_ARCH} -DCMAKE_INSTALL_PREFIX=${PREFIX} -DANDROID_STANDALONE_TOOLCHAIN=${TOOLCHAIN}"
 
+# -----------------------------------------------------------------------------
+
 # Get the latest versions of config.guess/config.sub that know about Android.
 $GIT_CLONE git://git.savannah.gnu.org/config.git
 
-# Get a toolchain for cmake that knows about Android
-wget https://android-cmake.googlecode.com/hg/toolchain/android.toolchain.cmake
+# Get a toolchain for cmake that knows about Android.
+$WGET https://android-cmake.googlecode.com/hg/toolchain/android.toolchain.cmake
 patch < ../android.toolchain.cmake.patch android.toolchain.cmake
 
 # -----------------------------------------------------------------------------
@@ -184,7 +188,7 @@ make $PARALLEL
 make install
 cd ..
 
-# glib
+# glib (needed for libsigrok)
 $WGET http://ftp.gnome.org/pub/gnome/sources/glib/$VER_GLIB_SHORT/glib-$VER_GLIB.tar.xz
 tar xJf glib-$VER_GLIB.tar.xz
 cd glib-$VER_GLIB
@@ -195,7 +199,7 @@ make $PARALLEL
 make install
 cd ..
 
-# libzip
+# libzip (needed for libsigrok)
 $WGET http://www.nih.at/libzip/libzip-$VER_LIBZIP.tar.gz
 tar xfz libzip-$VER_LIBZIP.tar.gz
 cd libzip-$VER_LIBZIP
@@ -206,7 +210,7 @@ make $PARALLEL
 make install
 cd ..
 
-# libusb-1.0
+# libusb-1.0 (needed for libsigrok)
 $WGET http://$SF_MIRROR/project/libusbx/releases/$VER_LIBUSBX/source/libusbx-$VER_LIBUSBX.tar.bz2
 tar xfj libusbx-$VER_LIBUSBX.tar.bz2
 cd libusbx-$VER_LIBUSBX
@@ -216,7 +220,7 @@ make $PARALLEL
 make install
 cd ..
 
-# libftdi1
+# libftdi1 (needed for libsigrok)
 $WGET http://www.intra2net.com/en/developer/libftdi/download/libftdi1-$VER_LIBFTDI1.tar.bz2
 tar xfj libftdi1-$VER_LIBFTDI1.tar.bz2
 cd libftdi1-$VER_LIBFTDI1
@@ -261,35 +265,32 @@ make $PARALLEL V=1
 make install
 cd ..
 
-
-# Check if we have kit to build PulseView
+# Check if we have all requirements to build PulseView:
 
 if [ -z "$ANDROID_NDK" -o ! -d "$ANDROID_NDK" ]; then
-  echo "Android NDK not available, not building PulseView"
+  echo "Android NDK not available, not building PulseView."
   exit 0
 fi
 
-if [ -z "$ANDROID_SDK" -o ! -d "$ANDROID_SDK"/platforms/android-8 -o \
+if [ -z "$ANDROID_SDK" -o \
+     ! -d "$ANDROID_SDK"/platforms/android-8 -o \
      ! -d "$ANDROID_SDK"/platforms/android-10 -o \
      ! -d "$ANDROID_SDK"/platforms/android-11 -o \
      ! -d "$ANDROID_SDK"/platforms/android-14 -o \
      ! -d "$ANDROID_SDK"/platforms/android-16 ]; then
-  echo "Android SDK with platforms 8 10 11 14 16 not available, not building PulseView"
+  echo "Android SDK with platforms 8 10 11 14 16 not available, not building PulseView."
   exit 0
 fi
 
-ANDROID_TOOLS=${ANDROID_SDK}/tools
-
-if [ ! -e "$ANDROID_TOOLS/android" ]; then
-  echo "Essential Android build tools not available, not building PulseView"
+if [ ! -e "${ANDROID_SDK}/tools/android" ]; then
+  echo "Essential Android build tools not available, not building PulseView."
   exit 0
 fi
 
 NDK_TOOLCHAIN_VERSION=`${TOOLCHAIN_TRIPLET}-gcc --version | head -1 | sed -e 's/.* \([0-9]\+\.[0-9.]\+\)\( \|.*\)$/\1/'`
 NDK_HOST=`"$ANDROID_NDK/ndk-build" -p 2>/dev/null | awk '$1 == "HOST_TAG" { print $3 }'`
 
-
-# boost (needed for PulseView)
+# Boost (needed for PulseView)
 $WGET http://$SF_MIRROR/project/boost/boost/$VER_BOOST/boost_${VER_BOOST//./_}.tar.bz2
 tar xfj boost_${VER_BOOST//./_}.tar.bz2
 cd boost_${VER_BOOST//./_}
@@ -299,7 +300,7 @@ echo "using gcc : $NDK_TOOLCHAIN_VERSION : \"${TOOLCHAIN_TRIPLET}-g++\" : <cxxfl
 ./b2 -q -d+2 --user-config=user-config.jam toolset=gcc variant=release link=shared threading=multi runtime-link=shared target-os=android --prefix=$PREFIX --layout=system install
 cd ..
 
-# qt (needed for PulseView)
+# Qt (needed for PulseView)
 $WGET http://download.qt-project.org/official_releases/qt/${VER_QT%.*}/${VER_QT}/single/qt-everywhere-opensource-src-${VER_QT}.tar.gz
 tar xfz qt-everywhere-opensource-src-${VER_QT}.tar.gz
 cd qt-everywhere-opensource-src-${VER_QT}
@@ -324,6 +325,7 @@ cd pulseview
 cmake $CM -DANDROID_STL_PATH=${ANDROID_NDK}/sources/cxx-stl .
 make $PARALLEL
 cd android
-"$ANDROID_TOOLS/android" update project -p . -t android-14 -n PulseView
+"${ANDROID_SDK}/tools/android" update project -p . -t android-14 -n PulseView
 ant debug
 cd ../..
+
