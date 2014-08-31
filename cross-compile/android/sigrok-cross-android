@@ -87,11 +87,12 @@ cd $BUILDDIR
 # -----------------------------------------------------------------------------
 
 # Build host Python before we start messing with the environment.
+# Don't do parallel builds, this doesn't seem to work well.
 $WGET http://python.org/ftp/python/$VER_PYTHON/Python-$VER_PYTHON.tar.xz
 tar xJf Python-$VER_PYTHON.tar.xz
 cd Python-$VER_PYTHON
 ./configure
-make python $PARALLEL
+make python
 mv python hostpython
 cd ..
 
@@ -120,13 +121,14 @@ patch < ../android.toolchain.cmake.patch android.toolchain.cmake
 # -----------------------------------------------------------------------------
 
 # Python (needed for libsigrokdecode)
+# Don't do parallel Python builds, this doesn't seem to work well.
 cd Python-$VER_PYTHON
 make distclean
 autoreconf
 patch -p1 < ../../Python-$VER_PYTHON.patch
 ac_cv_file__dev_ptmx=no ac_cv_file__dev_ptc=no ac_cv_func_pipe2=no ac_cv_func_fdatasync=no ac_cv_func_killpg=no ac_cv_func_waitid=no ac_cv_func_sigaltstack=no ./configure $C --build=x86_64-linux-gnu --disable-ipv6
 sed -i "s/^#zlib/zlib/g" Modules/Setup
-make PYTHON_FOR_BUILD=./hostpython install $PARALLEL
+make PYTHON_FOR_BUILD=./hostpython install
 cd ..
 
 # libiconv (needed for glib)
