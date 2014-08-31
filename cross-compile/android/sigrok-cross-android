@@ -306,7 +306,7 @@ tar xfz qt-everywhere-opensource-src-${VER_QT}.tar.gz
 cd qt-everywhere-opensource-src-${VER_QT}
 patch -p1 < ../../android-qt.patch
 ./configure --prefix="$PREFIX" -developer-build -xplatform android-g++ -nomake tests -nomake examples -android-sdk "$ANDROID_SDK" -android-ndk "$ANDROID_NDK" -android-ndk-host "$NDK_HOST" -android-arch "$TARGET_ARCH" -android-toolchain-version "$NDK_TOOLCHAIN_VERSION" -skip qttranslations -skip qtwebkit -skip qtserialport -skip qtwebkit-examples -skip qtlocation -skip qtconnectivity -opensource -confirm-license
-make $PARALLEL
+make module-qtbase module-qtandroidextras module-qtsvg module-qtimageformats $PARALLEL
 make install
 cd ..
 
