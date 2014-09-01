@@ -58,6 +58,8 @@ VER_PCRE=8.33
 VER_LIBFFI=3.0.13
 VER_GLIB=2.38.2
 VER_GLIB_SHORT=2.38
+VER_LIBSIGCXX=2.2.10
+VER_LIBSIGCXX_SHORT=2.2
 VER_LIBZIP=0.11.1
 VER_LIBFTDI1=1.1
 VER_LIBUSBX=1.0.17
@@ -108,6 +110,20 @@ export -n PKG_CONFIG_PATH
 # Define some helper variables.
 C="--host=$TOOLCHAIN_TRIPLET --prefix=$PREFIX"
 CM="-Wno-dev -DCMAKE_TOOLCHAIN_FILE=../android.toolchain.cmake -DANDROID_ABI=${TARGET_ARCH} -DCMAKE_INSTALL_PREFIX=${PREFIX} -DANDROID_STANDALONE_TOOLCHAIN=${TOOLCHAIN}"
+
+# Look for STL, needed to build bindings
+NDK_TOOLCHAIN_VERSION=`${TOOLCHAIN_TRIPLET}-gcc --version | head -1 | sed -e 's/.* \([0-9]\+\.[0-9.]\+\)\( \|.*\)$/\1/'`
+STL_BASE="${ANDROID_NDK}/sources/cxx-stl/gnu-libstdc++/${NDK_TOOLCHAIN_VERSION}"
+if [ -d ${STL_BASE}/include ]; then
+  CPPFLAGS_STL="-I${STL_BASE}/include -I${STL_BASE}/libs/${TARGET_ARCH}/include"
+  LDFLAGS_STL="-L${STL_BASE}/libs/${TARGET_ARCH} -Wl,-rpath=${STL_BASE}/libs/${TARGET_ARCH}"
+  BINDINGS_CONFIG="--enable-bindings"
+else
+  echo "Warning: STL unavailable, libsigrok bindings will not be built."
+  CPPFLAGS_STL=
+  LDFLAGS_STL=
+  BINDINGS_CONFIG="--disable-bindings"
+fi
 
 # -----------------------------------------------------------------------------
 
@@ -226,7 +242,7 @@ cd ..
 $WGET http://www.intra2net.com/en/developer/libftdi/download/libftdi1-$VER_LIBFTDI1.tar.bz2
 tar xfj libftdi1-$VER_LIBFTDI1.tar.bz2
 cd libftdi1-$VER_LIBFTDI1
-cmake $CM .
+cmake $CM -DFTDIPP=OFF .
 make $PARALLEL
 make install
 cd ..
@@ -240,13 +256,39 @@ make $PARALLEL V=1
 make install
 cd ..
 
+# Build dependencies for libsigrok bindings if needed
+
+if [ x"$CPPFLAGS_STL" != x ]; then
+
+  # libsigc++ (needed for glibmm)
+  $WGET http://ftp.gnome.org/pub/gnome/sources/libsigc++/$VER_LIBSIGCXX_SHORT/libsigc++-$VER_LIBSIGCXX.tar.xz
+  tar xJf libsigc++-$VER_LIBSIGCXX.tar.xz
+  cd libsigc++-$VER_LIBSIGCXX
+  cp -f ../config/config.guess build
+  cp -f ../config/config.sub build
+  CPPFLAGS="$CPPFLAGS_STL" LDFLAGS="$LDFLAGS_STL -lgnustl_shared" ./configure $C
+  make $PARALLEL
+  make install
+  cd ..
+
+  # glibmm (needed for libsigrok bindings)
+  $WGET http://ftp.gnome.org/pub/gnome/sources/glibmm/$VER_GLIB_SHORT/glibmm-$VER_GLIB.tar.xz
+  tar xJf glibmm-$VER_GLIB.tar.xz
+  cd glibmm-$VER_GLIB
+  CPPFLAGS="$CPPFLAGS_STL" LDFLAGS="$LDFLAGS_STL -lgnustl_shared" ./configure $C
+  make $PARALLEL
+  make install
+  cd ..
+
+fi
+
 # libsigrok
 $GIT_CLONE git://sigrok.org/libsigrok
 cd libsigrok
 ./autogen.sh
-./configure $C --datadir=/sdcard
+CPPFLAGS="$CPPFLAGS_STL" LDFLAGS="$LDFLAGS_STL" ./configure $C $BINDINGS_CONFIG --datadir=/sdcard
 make $PARALLEL V=1
-make install
+make datadir='$(datarootdir)' install
 cd ..
 
 # libsigrokdecode
@@ -289,7 +331,6 @@ if [ ! -e "${ANDROID_SDK}/tools/android" ]; then
   exit 0
 fi
 
-NDK_TOOLCHAIN_VERSION=`${TOOLCHAIN_TRIPLET}-gcc --version | head -1 | sed -e 's/.* \([0-9]\+\.[0-9.]\+\)\( \|.*\)$/\1/'`
 NDK_HOST=`"$ANDROID_NDK/ndk-build" -p 2>/dev/null | awk '$1 == "HOST_TAG" { print $3 }'`
 
 # Boost (needed for PulseView)
@@ -298,7 +339,7 @@ tar xfj boost_${VER_BOOST//./_}.tar.bz2
 cd boost_${VER_BOOST//./_}
 patch -p1 < ../../boost.patch
 ./bootstrap.sh --with-toolset=gcc --with-libraries=filesystem,system --without-icu
-echo "using gcc : $NDK_TOOLCHAIN_VERSION : \"${TOOLCHAIN_TRIPLET}-g++\" : <cxxflags>\"-I$PREFIX/include -I${ANDROID_NDK}/sources/cxx-stl/gnu-libstdc++/${NDK_TOOLCHAIN_VERSION}/include -I${ANDROID_NDK}/sources/cxx-stl/gnu-libstdc++/${NDK_TOOLCHAIN_VERSION}/libs/${TARGET_ARCH}/include\" <linkflags>\"-L$PREFIX/lib -L${ANDROID_NDK}/sources/cxx-stl/gnu-libstdc++/${NDK_TOOLCHAIN_VERSION}/libs/${TARGET_ARCH} -Wl,-rpath=${ANDROID_NDK}/sources/cxx-stl/gnu-libstdc++/${NDK_TOOLCHAIN_VERSION}/libs/${TARGET_ARCH} -lgnustl_shared\" ;" > user-config.jam
+echo "using gcc : $NDK_TOOLCHAIN_VERSION : \"${TOOLCHAIN_TRIPLET}-g++\" : <cxxflags>\"-I$PREFIX/include $CPPFLAGS_STL\" <linkflags>\"-L$PREFIX/lib $LDFLAGS_STL -lgnustl_shared\" ;" > user-config.jam
 ./b2 -q -d+2 --user-config=user-config.jam toolset=gcc variant=release link=shared threading=multi runtime-link=shared target-os=android --prefix=$PREFIX --layout=system install $PARALLEL
 cd ..
 
