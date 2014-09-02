@@ -52,17 +52,17 @@ PARALLEL="-j 2"
 # -----------------------------------------------------------------------------
 
 VER_LIBICONV=1.14
-VER_GETTEXT=0.18.3
+VER_GETTEXT=0.19.2
 VER_ZLIB=1.2.8
-VER_PCRE=8.33
-VER_LIBFFI=3.0.13
-VER_GLIB=2.38.2
-VER_GLIB_SHORT=2.38
-VER_LIBSIGCXX=2.2.10
-VER_LIBSIGCXX_SHORT=2.2
-VER_LIBZIP=0.11.1
+VER_PCRE=8.35
+VER_LIBFFI=3.1
+VER_GLIB=2.41.3
+VER_GLIB_SHORT=2.41
+VER_LIBSIGCXX=2.3.2
+VER_LIBSIGCXX_SHORT=2.3
+VER_LIBZIP=0.11.2
 VER_LIBFTDI1=1.1
-VER_LIBUSBX=1.0.17
+VER_LIBUSB=1.0.19
 VER_PYTHON=3.3.3
 VER_BOOST=1.55.0
 VER_QT=5.3.1
@@ -229,9 +229,9 @@ make install
 cd ..
 
 # libusb-1.0 (needed for libsigrok)
-$WGET http://$SF_MIRROR/project/libusbx/releases/$VER_LIBUSBX/source/libusbx-$VER_LIBUSBX.tar.bz2
-tar xfj libusbx-$VER_LIBUSBX.tar.bz2
-cd libusbx-$VER_LIBUSBX
+$WGET http://$SF_MIRROR/project/libusb/libusb-1.0/libusb-$VER_LIBUSB/libusb-$VER_LIBUSB.tar.bz2
+tar xfj libusb-$VER_LIBUSB.tar.bz2
+cd libusb-$VER_LIBUSB
 patch -p1 < ../../libusb-1.0.patch
 ./configure $C --disable-udev
 make $PARALLEL
