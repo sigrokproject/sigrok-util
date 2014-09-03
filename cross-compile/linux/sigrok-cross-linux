@@ -33,6 +33,9 @@ PREFIX=$HOME/sr
 # The path where to download files to and where to build packages.
 BUILDDIR=./build
 
+# The path where the libsigrok Python bindings will be installed.
+PYPATH=$PREFIX/lib/python2.7/site-packages
+
 # Edit this to enable/disable/modify parallel compiles.
 PARALLEL="-j 2"
 
@@ -62,12 +65,13 @@ make install
 cd ..
 
 # libsigrok
+mkdir -p $PYPATH
 $GIT_CLONE git://sigrok.org/libsigrok
 cd libsigrok
 ./autogen.sh
 PKG_CONFIG_PATH=$P ./configure $C
 make $PARALLEL
-make install
+PYTHONPATH=$PYPATH make install
 cd ..
 
 # libsigrokdecode
