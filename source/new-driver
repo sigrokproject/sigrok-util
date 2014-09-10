@@ -28,13 +28,7 @@ import socket
 import datetime
 
 TMPL_AUTOCONF_DRIVER = "DRIVER([${name}], [${short}])\n"
-TMPL_AUTOCONF_AM_CONDITIONAL = """\
-AM_CONDITIONAL(HW_${upper}, test x$HW_${upper} = xyes)
-if test "x$HW_${upper}" = "xyes"; then
-	AC_DEFINE(HAVE_HW_${upper}, 1, [${name} support])
-fi
-
-"""
+TMPL_AUTOCONF_DRIVER2 = "DRIVER2([HW_${upper}], [$HW_${upper}], [HAVE_HW_${upper}])\n"
 
 TMPL_HWMAKE_DRIVERLIB = """if HW_${upper}
 libsigrok_la_SOURCES += \\
@@ -88,7 +82,7 @@ def new_driver():
     shutil.rmtree(tmp)
 
 
-# add DRIVER and AM_CONDITIONAL/AC_DEFINE entries to configure.ac
+# add DRIVER and DRIVER2 entries to configure.ac
 def do_autoconf(gitdir):
     cacpath = gitdir + 'configure.ac'
     configure_ac = open(cacpath).read()
@@ -107,18 +101,18 @@ def do_autoconf(gitdir):
                     state = 'automake'
                     active = False
         elif state == 'automake':
-            m = re.match('AM_CONDITIONAL\(HW_([^,]+)', line)
+            m = re.match('DRIVER2\(\[([^\]]+)', line)
             if m:
                 active = True
             else:
-                submatch = re.match('(if|\s*AC_DEFINE|fi|$)', line)
+                submatch = re.match('DRIVER2\(\[([^\]]+)', line)
                 if active and submatch is None:
-                    # we're past the conditionals
-                    out += tmpl(TMPL_AUTOCONF_AM_CONDITIONAL)
+                    # we're past the DRIVER2 list
+                    out += tmpl(TMPL_AUTOCONF_DRIVER2)
                     state = 'done'
             if active:
-                if (m and m.group(1) > names['upper']):
-                    out += tmpl(TMPL_AUTOCONF_AM_CONDITIONAL)
+                if (m and m.group(1) > 'HW_' + names['upper']):
+                    out += tmpl(TMPL_AUTOCONF_DRIVER2)
                     state = 'done'
         out += line + '\n'
     if state != 'done':
