@@ -67,7 +67,7 @@ def new_driver():
     tmp = tempfile.mkdtemp()
     try:
         os.chdir(tmp)
-        process = Popen("git clone " + LIBSR, shell=True, stderr=PIPE)
+        process = Popen("git clone --depth=1 " + LIBSR, shell=True, stderr=PIPE)
         out, err = process.communicate()
         if process.returncode:
             raise Exception(err.decode())
