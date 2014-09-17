@@ -85,7 +85,7 @@ static int cleanup(void)
 	return SR_OK;
 }
 
-static int config_get(int key, GVariant **data, const struct sr_dev_inst *sdi,
+static int config_get(uint32_t key, GVariant **data, const struct sr_dev_inst *sdi,
 		const struct sr_channel_group *cg)
 {
 	int ret;
@@ -104,7 +104,7 @@ static int config_get(int key, GVariant **data, const struct sr_dev_inst *sdi,
 	return ret;
 }
 
-static int config_set(int key, GVariant *data, const struct sr_dev_inst *sdi,
+static int config_set(uint32_t key, GVariant *data, const struct sr_dev_inst *sdi,
 		const struct sr_channel_group *cg)
 {
 	int ret;
@@ -125,7 +125,7 @@ static int config_set(int key, GVariant *data, const struct sr_dev_inst *sdi,
 	return ret;
 }
 
-static int config_list(int key, GVariant **data, const struct sr_dev_inst *sdi,
+static int config_list(uint32_t key, GVariant **data, const struct sr_dev_inst *sdi,
 		const struct sr_channel_group *cg)
 {
 	int ret;
@@ -145,7 +145,7 @@ static int config_list(int key, GVariant **data, const struct sr_dev_inst *sdi,
 }
 
 static int dev_acquisition_start(const struct sr_dev_inst *sdi,
-				    void *cb_data)
+		void *cb_data)
 {
 	(void)sdi;
 	(void)cb_data;
