@@ -76,6 +76,7 @@ cd build
 PKG_CONFIG_PATH=$P ../configure $C
 make $PARALLEL
 PYTHONPATH=$PYPATH make install
+make check
 cd ../..
 
 # libsigrokdecode
@@ -87,6 +88,7 @@ cd build
 PKG_CONFIG_PATH=$P ../configure $C
 make $PARALLEL
 make install
+make check
 cd ../..
 
 # sigrok-firmware
