@@ -128,7 +128,7 @@ $GIT_CLONE git://sigrok.org/pulseview
 cd pulseview
 mkdir build
 cd build
-PKG_CONFIG_PATH=$P cmake -DCMAKE_INSTALL_PREFIX:PATH=$PREFIX -DDISABLE_WERROR=y -DENABLE_DECODE=y ..
+PKG_CONFIG_PATH=$P cmake -DCMAKE_INSTALL_PREFIX:PATH=$PREFIX -DDISABLE_WERROR=y -DENABLE_TESTS=y ..
 make $PARALLEL
 make install
 cd ../..
