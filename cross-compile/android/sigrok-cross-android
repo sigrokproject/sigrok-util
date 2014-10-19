@@ -251,10 +251,12 @@ cd ..
 $GIT_CLONE git://sigrok.org/libserialport
 cd libserialport
 ./autogen.sh
-./configure $C
+mkdir build
+cd build
+../configure $C
 make $PARALLEL V=1
 make install
-cd ..
+cd ../..
 
 # Build dependencies for libsigrok bindings if needed
 
@@ -286,28 +288,34 @@ fi
 $GIT_CLONE git://sigrok.org/libsigrok
 cd libsigrok
 ./autogen.sh
-CPPFLAGS="$CPPFLAGS_STL" LDFLAGS="$LDFLAGS_STL" ./configure $C $BINDINGS_CONFIG --datadir=/sdcard
+mkdir build
+cd build
+CPPFLAGS="$CPPFLAGS_STL" LDFLAGS="$LDFLAGS_STL" ../configure $C $BINDINGS_CONFIG --datadir=/sdcard
 make $PARALLEL V=1
 make datadir='$(datarootdir)' install
-cd ..
+cd ../..
 
 # libsigrokdecode
 $GIT_CLONE git://sigrok.org/libsigrokdecode
 cd libsigrokdecode
 ./autogen.sh
-./configure $C
+mkdir build
+cd build
+../configure $C
 make $PARALLEL V=1
 make install
-cd ..
+cd ../..
 
 # sigrok-cli
 $GIT_CLONE git://sigrok.org/sigrok-cli
 cd sigrok-cli
 ./autogen.sh
-./configure $C
+mkdir build
+cd build
+../configure $C
 make $PARALLEL V=1
 make install
-cd ..
+cd ../..
 
 # Check if we have all requirements to build PulseView:
 
