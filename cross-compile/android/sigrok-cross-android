@@ -242,7 +242,7 @@ cd ..
 $WGET http://www.intra2net.com/en/developer/libftdi/download/libftdi1-$VER_LIBFTDI1.tar.bz2
 tar xfj libftdi1-$VER_LIBFTDI1.tar.bz2
 cd libftdi1-$VER_LIBFTDI1
-cmake $CM -DFTDIPP=OFF .
+cmake $CM -DFTDIPP=no -DDOCUMENTATION=no -DEXAMPLES=no -DFTDI_EEPROM=no -DPYTHON_BINDINGS=no .
 make $PARALLEL
 make install
 cd ..
@@ -268,7 +268,7 @@ if [ x"$CPPFLAGS_STL" != x ]; then
   cd libsigc++-$VER_LIBSIGCXX
   cp -f ../config/config.guess build
   cp -f ../config/config.sub build
-  CPPFLAGS="$CPPFLAGS_STL" LDFLAGS="$LDFLAGS_STL -lgnustl_shared" ./configure $C
+  CPPFLAGS="$CPPFLAGS_STL" LDFLAGS="$LDFLAGS_STL -lgnustl_shared" ./configure --disable-documentation $C
   make $PARALLEL
   make install
   cd ..
@@ -277,7 +277,7 @@ if [ x"$CPPFLAGS_STL" != x ]; then
   $WGET http://ftp.gnome.org/pub/gnome/sources/glibmm/$VER_GLIB_SHORT/glibmm-$VER_GLIB.tar.xz
   tar xfJ glibmm-$VER_GLIB.tar.xz
   cd glibmm-$VER_GLIB
-  CPPFLAGS="$CPPFLAGS_STL" LDFLAGS="$LDFLAGS_STL -lgnustl_shared" ./configure $C
+  CPPFLAGS="$CPPFLAGS_STL" LDFLAGS="$LDFLAGS_STL -lgnustl_shared" ./configure --disable-documentation $C
   make $PARALLEL
   make install
   cd ..
