@@ -39,6 +39,11 @@ PYPATH=$PREFIX/lib/python2.7/site-packages
 # Edit this to enable/disable/modify parallel compiles.
 PARALLEL="-j 2"
 
+# Uncomment the following lines to build with clang and run scan-build.
+# export CC=clang
+# export CXX=clang++
+# SB="scan-build -k -v"
+
 # You usually don't need to change anything below this line.
 
 # -----------------------------------------------------------------------------
@@ -62,7 +67,7 @@ cd libserialport
 mkdir build
 cd build
 ../configure $C
-make $PARALLEL
+$SB make $PARALLEL
 make install
 cd ../..
 
@@ -74,9 +79,9 @@ cd libsigrok
 mkdir build
 cd build
 PKG_CONFIG_PATH=$P ../configure $C
-make $PARALLEL
-PYTHONPATH=$PYPATH make install
-make check
+$SB make $PARALLEL
+PYTHONPATH=$PYPATH $SB make install
+$SB make check
 cd ../..
 
 # libsigrokdecode
@@ -86,9 +91,9 @@ cd libsigrokdecode
 mkdir build
 cd build
 PKG_CONFIG_PATH=$P ../configure $C
-make $PARALLEL
+$SB make $PARALLEL
 make install
-make check
+$SB make check
 cd ../..
 
 # sigrok-firmware
@@ -121,7 +126,7 @@ cd sigrok-cli
 mkdir build
 cd build
 PKG_CONFIG_PATH=$P ../configure $C
-make $PARALLEL
+$SB make $PARALLEL
 make install
 cd ../..
 
@@ -130,8 +135,8 @@ $GIT_CLONE git://sigrok.org/pulseview
 cd pulseview
 mkdir build
 cd build
-PKG_CONFIG_PATH=$P cmake -DCMAKE_INSTALL_PREFIX:PATH=$PREFIX -DDISABLE_WERROR=y -DENABLE_TESTS=y ..
-make $PARALLEL
+PKG_CONFIG_PATH=$P $SB cmake -DCMAKE_INSTALL_PREFIX:PATH=$PREFIX -DDISABLE_WERROR=y -DENABLE_TESTS=y ..
+$SB make $PARALLEL
 make install
 cd ../..
 
