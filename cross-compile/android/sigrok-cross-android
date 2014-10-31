@@ -22,7 +22,7 @@
 set -e
 
 # The path where the Android NDK is located.
-ANDROID_NDK=$HOME/android/android-ndk-r9d
+ANDROID_NDK=$HOME/android/android-ndk-r10c
 
 # The path where the Android SDK is located.
 ANDROID_SDK=$HOME/android/android-sdk-linux
