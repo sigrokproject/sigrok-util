@@ -20,7 +20,14 @@ Requirements
  - make
  - git
  - pkg-config (>= 0.22)
- - Android cross-compile toolchain
+ - Android NDK (tested: r10c)
+   - Android cross-compile toolchain (tested: arm-linux-androideabi-4.9)
+     Create it via:
+     ./build/tools/make-standalone-toolchain.sh \
+	--platform=android-16 \
+	--toolchain=arm-linux-androideabi-4.9 \
+	--install-dir=$HOME/android/android-arm-toolchain
+ - Android SDK (tested: r23.0.2)
 
 
 Building
