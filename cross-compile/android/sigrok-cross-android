@@ -370,11 +370,16 @@ make $PARALLEL V=1
 make install
 cd ..
 
+# Strip all shared libs to reduce size.
+find $PREFIX -iname "*.so" -exec ${TOOLCHAIN_TRIPLET}-strip -S {} \;
+
 # PulseView
 $GIT_CLONE git://sigrok.org/pulseview
 cd pulseview
 cmake $CM -DANDROID_STL_PATH=${ANDROID_NDK}/sources/cxx-stl .
 make $PARALLEL VERBOSE=1
+make install
+${TOOLCHAIN_TRIPLET}-strip -S libs/$TARGET_ARCH/libpulseview.so
 cd android
 "${ANDROID_SDK}/tools/android" update project -p . -t android-14 -n PulseView
 ant debug
