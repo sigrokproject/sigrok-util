@@ -2,7 +2,7 @@
 ##
 ## This file is part of the sigrok-util project.
 ##
-## Copyright (C) 2013 Uwe Hermann <uwe@hermann-uwe.de>
+## Copyright (C) 2013-2014 Uwe Hermann <uwe@hermann-uwe.de>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -91,7 +91,7 @@ cd $BUILDDIR
 # Build host Python before we start messing with the environment.
 # Don't do parallel builds, this doesn't seem to work well.
 $WGET http://python.org/ftp/python/$VER_PYTHON/Python-$VER_PYTHON.tar.xz
-tar xJf Python-$VER_PYTHON.tar.xz
+tar xfJ Python-$VER_PYTHON.tar.xz
 cd Python-$VER_PYTHON
 ./configure
 make python
@@ -180,7 +180,7 @@ cd ../..
 
 # zlib (needed for glib and libzip)
 $WGET http://zlib.net/zlib-$VER_ZLIB.tar.gz
-tar xfvz zlib-$VER_ZLIB.tar.gz
+tar xfz zlib-$VER_ZLIB.tar.gz
 cd zlib-$VER_ZLIB
 # Note: zlib's configure doesn't understand --host, we need to pass $CC.
 CC=$TOOLCHAIN_TRIPLET-gcc ./configure --prefix=$PREFIX
@@ -190,7 +190,7 @@ cd ..
 
 # pcre (needed for glib)
 $WGET ftp://ftp.csx.cam.ac.uk/pub/software/programming/pcre/pcre-$VER_PCRE.tar.gz
-tar xfvz pcre-$VER_PCRE.tar.gz
+tar xfz pcre-$VER_PCRE.tar.gz
 cd pcre-$VER_PCRE
 ./configure $C --disable-cpp
 make $PARALLEL
@@ -208,7 +208,7 @@ cd ..
 
 # glib (needed for libsigrok)
 $WGET http://ftp.gnome.org/pub/gnome/sources/glib/$VER_GLIB_SHORT/glib-$VER_GLIB.tar.xz
-tar xJf glib-$VER_GLIB.tar.xz
+tar xfJ glib-$VER_GLIB.tar.xz
 cd glib-$VER_GLIB
 ./autogen.sh
 # Note: Manual LDFLAGS/CPPFLAGS needed for libiconv, rest uses pkg-config.
@@ -264,7 +264,7 @@ if [ x"$CPPFLAGS_STL" != x ]; then
 
   # libsigc++ (needed for glibmm)
   $WGET http://ftp.gnome.org/pub/gnome/sources/libsigc++/$VER_LIBSIGCXX_SHORT/libsigc++-$VER_LIBSIGCXX.tar.xz
-  tar xJf libsigc++-$VER_LIBSIGCXX.tar.xz
+  tar xfJ libsigc++-$VER_LIBSIGCXX.tar.xz
   cd libsigc++-$VER_LIBSIGCXX
   cp -f ../config/config.guess build
   cp -f ../config/config.sub build
@@ -275,7 +275,7 @@ if [ x"$CPPFLAGS_STL" != x ]; then
 
   # glibmm (needed for libsigrok bindings)
   $WGET http://ftp.gnome.org/pub/gnome/sources/glibmm/$VER_GLIB_SHORT/glibmm-$VER_GLIB.tar.xz
-  tar xJf glibmm-$VER_GLIB.tar.xz
+  tar xfJ glibmm-$VER_GLIB.tar.xz
   cd glibmm-$VER_GLIB
   CPPFLAGS="$CPPFLAGS_STL" LDFLAGS="$LDFLAGS_STL -lgnustl_shared" ./configure $C
   make $PARALLEL
