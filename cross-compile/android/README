@@ -22,12 +22,18 @@ Requirements
  - pkg-config (>= 0.22)
  - Android NDK (tested: r10c)
    - Android cross-compile toolchain (tested: arm-linux-androideabi-4.9)
-     Create it via:
-     ./build/tools/make-standalone-toolchain.sh \
-	--platform=android-16 \
-	--toolchain=arm-linux-androideabi-4.9 \
-	--install-dir=$HOME/android/android-arm-toolchain
  - Android SDK (tested: r23.0.2)
+
+
+Toolchain setup
+---------------
+
+You can use the script to install and setup the Android NDK,
+SDK, and the respective standalone toolchain:
+
+ $ ./sigrok-cross-android prepare
+
+This will install everything into $HOME/android.
 
 
 Building

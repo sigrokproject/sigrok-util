@@ -21,16 +21,19 @@
 
 set -e
 
+# The path where the NDK, SDK, and toolchains are located.
+ANDROID_PATH=$HOME/android
+
 # The path where the Android NDK is located.
-ANDROID_NDK=$HOME/android/android-ndk-r10c
+ANDROID_NDK=$ANDROID_PATH/android-ndk-r10c
 
 # The path where the Android SDK is located.
-ANDROID_SDK=$HOME/android/android-sdk-linux
+ANDROID_SDK=$ANDROID_PATH/android-sdk-linux
 
 # The path where your Android toolchain directory is located.
-TOOLCHAIN=$HOME/android/android-arm-toolchain
-# TOOLCHAIN=$HOME/android/android-mipsel-toolchain
-# TOOLCHAIN=$HOME/android/android-i686-toolchain
+TOOLCHAIN=$ANDROID_PATH/android-arm-toolchain
+# TOOLCHAIN=$ANDROID_PATH/android-mipsel-toolchain
+# TOOLCHAIN=$ANDROID_PATH/android-i686-toolchain
 
 # Select which Android toolchain to use.
 # Don't forget to also adapt TOOLCHAIN above if you change TOOLCHAIN_TRIPLET!
@@ -66,6 +69,8 @@ VER_LIBUSB=1.0.19
 VER_PYTHON=3.3.3
 VER_BOOST=1.55.0
 VER_QT=5.3.1
+VER_NDK=10c
+VER_SDK=23.0.2
 
 SF_MIRROR=switch.dl.sourceforge.net
 
@@ -78,6 +83,33 @@ case "$TOOLCHAIN_TRIPLET" in
   i686*) TARGET_ARCH=x86;;
   *) echo >&2 "Unknown prefix for TOOLCHAIN_TRIPLET."; exit 1;;
 esac
+
+# -----------------------------------------------------------------------------
+
+# Get the Android NDK and SDK, install required packages and toolchains.
+if [ "x$1" = "xprepare" ]; then
+  mkdir -p $ANDROID_PATH
+  cd $ANDROID_PATH
+
+  # NDK
+  $WGET http://dl.google.com/android/ndk/android-ndk-r$VER_NDK-linux-x86.bin
+  chmod 700 android-ndk-r$VER_NDK-linux-x86.bin
+  ./android-ndk-r$VER_NDK-linux-x86.bin
+  cd android-ndk-r$VER_NDK
+  ./build/tools/make-standalone-toolchain.sh --platform=android-16 \
+    --toolchain=arm-linux-androideabi-4.9 \
+    --install-dir=$ANDROID_PATH/android-arm-toolchain
+  cd ..
+
+  # SDK
+  $WGET http://dl.google.com/android/android-sdk_r$VER_SDK-linux.tgz
+  tar xfz android-sdk_r$VER_SDK-linux.tgz
+  cd android-sdk-linux
+  ./tools/android update sdk --no-ui --filter platform-tools,build-tools-21.1.0,android-8,android-10,android-11,android-14,android-16
+  cd ..
+
+  exit
+fi
 
 # -----------------------------------------------------------------------------
 
