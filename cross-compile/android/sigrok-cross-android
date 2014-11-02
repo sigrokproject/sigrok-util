@@ -242,7 +242,7 @@ cd ..
 $WGET http://ftp.gnome.org/pub/gnome/sources/glib/$VER_GLIB_SHORT/glib-$VER_GLIB.tar.xz
 tar xfJ glib-$VER_GLIB.tar.xz
 cd glib-$VER_GLIB
-./autogen.sh
+NOCONFIGURE=yes ./autogen.sh
 # Note: Manual LDFLAGS/CPPFLAGS needed for libiconv, rest uses pkg-config.
 LDFLAGS=-L$PREFIX/lib CPPFLAGS=-I$PREFIX/include glib_cv_stack_grows=no glib_cv_uscore=no ac_cv_func_posix_getpwuid_r=no ac_cv_func_posix_getgrgid_r=no ./configure --disable-compile-warnings $C
 make $PARALLEL
