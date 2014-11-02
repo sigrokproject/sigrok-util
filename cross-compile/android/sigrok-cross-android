@@ -139,12 +139,41 @@ export PATH=$TOOLCHAIN/bin:$PATH
 export PKG_CONFIG_LIBDIR="$PREFIX/lib/pkgconfig"
 export -n PKG_CONFIG_PATH
 
+# Check toolchain
+if test -d "$TOOLCHAIN"/sysroot; then
+  echo "Toolchain is standalone"
+  STANDALONE_TOOLCHAIN=$TOOLCHAIN
+  SYSROOT=
+else
+  STANDALONE_TOOLCHAIN=
+  NATIVE_API_LEVEL=16
+  SYSROOT_DIR=${ANDROID_NDK}/platforms/android-${NATIVE_API_LEVEL}/arch-${TARGET_ARCH%eabi*}
+  if [ ! -d "$SYSROOT_DIR" ]; then
+    echo >&2 "Can't build with NDK toolchain; sysroot $SYSROOT_DIR is missing"
+    exit 1
+  fi
+  SYSROOT="--sysroot $SYSROOT_DIR"
+  CC="$TOOLCHAIN_TRIPLET-gcc $SYSROOT"
+  CXX="$TOOLCHAIN_TRIPLET-g++ $SYSROOT"
+  export CC CXX
+fi
+NDK_TOOLCHAIN_VERSION=`${TOOLCHAIN_TRIPLET}-gcc --version | head -1 | sed -e 's/.* \([0-9]\+\.[0-9.]\+\)\( \|.*\)$/\1/'`
+
 # Define some helper variables.
 C="--host=$TOOLCHAIN_TRIPLET --prefix=$PREFIX"
-CM="-Wno-dev -DCMAKE_TOOLCHAIN_FILE=../android.toolchain.cmake -DANDROID_ABI=${TARGET_ARCH} -DCMAKE_INSTALL_PREFIX=${PREFIX} -DANDROID_STANDALONE_TOOLCHAIN=${TOOLCHAIN}"
+CM="-Wno-dev -DCMAKE_TOOLCHAIN_FILE=../android.toolchain.cmake -DANDROID_ABI=${TARGET_ARCH} -DCMAKE_INSTALL_PREFIX=${PREFIX}"
+if [ -n "$STANDALONE_TOOLCHAIN" ]; then
+  CM="$CM -DANDROID_STANDALONE_TOOLCHAIN=${STANDALONE_TOOLCHAIN}"
+  if [ -d "${ANDROID_NDK}/sources/cxx-stl" ]; then
+    CM="$CM -DANDROID_STL_PATH=${ANDROID_NDK}/sources/cxx-stl"
+  fi
+else
+  CM="$CM -DANDROID_NDK=${ANDROID_NDK}"
+  CM="$CM -DANDROID_NATIVE_API_LEVEL=${NATIVE_API_LEVEL}"
+  CM="$CM -DANDROID_TOOLCHAIN_NAME=${TOOLCHAIN_TRIPLET}-${NDK_TOOLCHAIN_VERSION}"
+fi
 
 # Look for STL, needed to build bindings
-NDK_TOOLCHAIN_VERSION=`${TOOLCHAIN_TRIPLET}-gcc --version | head -1 | sed -e 's/.* \([0-9]\+\.[0-9.]\+\)\( \|.*\)$/\1/'`
 STL_BASE="${ANDROID_NDK}/sources/cxx-stl/gnu-libstdc++/${NDK_TOOLCHAIN_VERSION}"
 if [ -d ${STL_BASE}/include ]; then
   CPPFLAGS_STL="-I${STL_BASE}/include -I${STL_BASE}/libs/${TARGET_ARCH}/include"
@@ -215,7 +244,7 @@ $WGET http://zlib.net/zlib-$VER_ZLIB.tar.gz
 tar xfz zlib-$VER_ZLIB.tar.gz
 cd zlib-$VER_ZLIB
 # Note: zlib's configure doesn't understand --host, we need to pass $CC.
-CC=$TOOLCHAIN_TRIPLET-gcc ./configure --prefix=$PREFIX
+CC="$TOOLCHAIN_TRIPLET-gcc $SYSROOT" ./configure --prefix=$PREFIX
 make $PARALLEL
 make install
 cd ..
@@ -378,8 +407,8 @@ $WGET http://$SF_MIRROR/project/boost/boost/$VER_BOOST/boost_${VER_BOOST//./_}.t
 tar xfj boost_${VER_BOOST//./_}.tar.bz2
 cd boost_${VER_BOOST//./_}
 patch -p1 < ../../boost.patch
-./bootstrap.sh --with-toolset=gcc --with-libraries=filesystem,system --without-icu
-echo "using gcc : $NDK_TOOLCHAIN_VERSION : \"${TOOLCHAIN_TRIPLET}-g++\" : <cxxflags>\"-I$PREFIX/include $CPPFLAGS_STL\" <linkflags>\"-L$PREFIX/lib $LDFLAGS_STL -lgnustl_shared\" ;" > user-config.jam
+CC= ./bootstrap.sh --with-toolset=gcc --with-libraries=filesystem,system --without-icu
+echo "using gcc : $NDK_TOOLCHAIN_VERSION : \"${TOOLCHAIN_TRIPLET}-g++\" : <cxxflags>\"$SYSROOT -I$PREFIX/include $CPPFLAGS_STL\" <linkflags>\"$SYSROOT -L$PREFIX/lib $LDFLAGS_STL -lgnustl_shared\" ;" > user-config.jam
 ./b2 -q -d+2 --user-config=user-config.jam toolset=gcc variant=release link=shared threading=multi runtime-link=shared target-os=android --prefix=$PREFIX --layout=system install $PARALLEL
 cd ..
 
@@ -388,7 +417,7 @@ $WGET http://download.qt-project.org/official_releases/qt/${VER_QT%.*}/${VER_QT}
 tar xfz qt-everywhere-opensource-src-${VER_QT}.tar.gz
 cd qt-everywhere-opensource-src-${VER_QT}
 patch -p1 < ../../android-qt.patch
-./configure --prefix="$PREFIX" -developer-build -xplatform android-g++ -nomake tests -nomake examples -android-sdk "$ANDROID_SDK" -android-ndk "$ANDROID_NDK" -android-ndk-host "$NDK_HOST" -android-arch "$TARGET_ARCH" -android-toolchain-version "$NDK_TOOLCHAIN_VERSION" -skip qttranslations -skip qtwebkit -skip qtserialport -skip qtwebkit-examples -skip qtlocation -skip qtconnectivity -opensource -confirm-license
+CC= CXX= ./configure --prefix="$PREFIX" -developer-build -xplatform android-g++ -nomake tests -nomake examples -android-sdk "$ANDROID_SDK" -android-ndk "$ANDROID_NDK" -android-ndk-host "$NDK_HOST" -android-arch "$TARGET_ARCH" -android-toolchain-version "$NDK_TOOLCHAIN_VERSION" -skip qttranslations -skip qtwebkit -skip qtserialport -skip qtwebkit-examples -skip qtlocation -skip qtconnectivity -opensource -confirm-license
 make module-qtbase module-qtandroidextras module-qtsvg module-qtimageformats $PARALLEL
 make install
 cd ..
@@ -408,7 +437,7 @@ find $PREFIX -iname "*.so" -exec ${TOOLCHAIN_TRIPLET}-strip -S {} \;
 # PulseView
 $GIT_CLONE git://sigrok.org/pulseview
 cd pulseview
-cmake $CM -DANDROID_STL_PATH=${ANDROID_NDK}/sources/cxx-stl .
+cmake $CM .
 make $PARALLEL VERBOSE=1
 make install
 ${TOOLCHAIN_TRIPLET}-strip -S libs/$TARGET_ARCH/libpulseview.so
