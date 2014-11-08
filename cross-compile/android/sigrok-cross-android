@@ -34,6 +34,9 @@ ANDROID_SDK=$ANDROID_PATH/android-sdk-linux
 TOOLCHAIN=$ANDROID_PATH/android-arm-toolchain
 # TOOLCHAIN=$ANDROID_PATH/android-mipsel-toolchain
 # TOOLCHAIN=$ANDROID_PATH/android-i686-toolchain
+# TOOLCHAIN=$ANDROID_NDK/toolchains/arm-linux-androideabi-4.9/prebuilt/linux-x86
+# TOOLCHAIN=$ANDROID_NDK/toolchains/x86-4.9/prebuilt/linux-x86
+# TOOLCHAIN=$ANDROID_NDK/toolchains/mipsel-linux-android-4.9/prebuilt/linux-x86
 
 # Select which Android toolchain to use.
 # Don't forget to also adapt TOOLCHAIN above if you change TOOLCHAIN_TRIPLET!
