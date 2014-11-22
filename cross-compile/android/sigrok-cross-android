@@ -410,7 +410,7 @@ $WGET http://$SF_MIRROR/project/boost/boost/$VER_BOOST/boost_${VER_BOOST//./_}.t
 tar xfj boost_${VER_BOOST//./_}.tar.bz2
 cd boost_${VER_BOOST//./_}
 patch -p1 < ../../boost.patch
-CC= ./bootstrap.sh --with-toolset=gcc --with-libraries=filesystem,system --without-icu
+CC= ./bootstrap.sh --with-toolset=gcc --with-libraries=filesystem,system,thread --without-icu
 echo "using gcc : $NDK_TOOLCHAIN_VERSION : \"${TOOLCHAIN_TRIPLET}-g++\" : <cxxflags>\"$SYSROOT -I$PREFIX/include $CPPFLAGS_STL\" <linkflags>\"$SYSROOT -L$PREFIX/lib $LDFLAGS_STL -lgnustl_shared\" ;" > user-config.jam
 ./b2 -q -d+2 --user-config=user-config.jam toolset=gcc variant=release link=shared threading=multi runtime-link=shared target-os=android --prefix=$PREFIX --layout=system install $PARALLEL
 cd ..
