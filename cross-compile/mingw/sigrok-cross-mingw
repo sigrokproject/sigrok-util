@@ -40,11 +40,9 @@ PARALLEL="-j 2"
 
 # -----------------------------------------------------------------------------
 
-VER_ZADIG=v2.0.1.160
-
 SF_MIRROR=switch.dl.sourceforge.net
 
-WGET="wget --quiet"
+WGET="wget -c --quiet"
 GIT_CLONE="git clone --depth=1"
 
 # -----------------------------------------------------------------------------
@@ -110,11 +108,8 @@ $WGET http://www.sigrok.org/tmp/python32_$TARGET.dll -O $PREFIX/python32.dll
 $WGET http://www.sigrok.org/tmp/python32_$TARGET.zip -O $PREFIX/python32.zip
 
 # Zadig (we ship this with frontends for easy driver switching).
-$WGET -c http://$SF_MIRROR/project/libwdi/zadig/zadig_$VER_ZADIG.7z
-$WGET -c http://$SF_MIRROR/project/libwdi/zadig/zadig_xp_$VER_ZADIG.7z
-7zr e zadig_$VER_ZADIG.7z
-7zr e zadig_xp_$VER_ZADIG.7z
-cp -f zadig.exe zadig_xp.exe $PREFIX
+$WGET http://zadig.akeo.ie/downloads/zadig.exe -O $PREFIX/zadig.exe
+$WGET http://zadig.akeo.ie/downloads/zadig_xp.exe -O $PREFIX/zadig_xp.exe
 
 # libserialport
 $GIT_CLONE git://sigrok.org/libserialport
