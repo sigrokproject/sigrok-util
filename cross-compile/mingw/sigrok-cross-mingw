@@ -40,7 +40,6 @@ PARALLEL="-j 2"
 
 # -----------------------------------------------------------------------------
 
-VER_LIBUSB_WIN32=1.2.6.0
 VER_ZADIG=v2.0.1.160
 
 SF_MIRROR=switch.dl.sourceforge.net
@@ -109,11 +108,6 @@ EOF
 # libraries and all Python stdlib modules.
 $WGET http://www.sigrok.org/tmp/python32_$TARGET.dll -O $PREFIX/python32.dll
 $WGET http://www.sigrok.org/tmp/python32_$TARGET.zip -O $PREFIX/python32.zip
-
-# libusb0.dll (needs to be shipped with frontends)
-$WGET -c http://$SF_MIRROR/project/libusb-win32/libusb-win32-releases/$VER_LIBUSB_WIN32/libusb-win32-bin-$VER_LIBUSB_WIN32.zip
-unzip -q libusb-win32-bin-$VER_LIBUSB_WIN32.zip
-cp -f libusb-win32-bin-$VER_LIBUSB_WIN32/bin/x86/libusb0_x86.dll $PREFIX/libusb0.dll
 
 # Zadig (we ship this with frontends for easy driver switching).
 $WGET -c http://$SF_MIRROR/project/libwdi/zadig/zadig_$VER_ZADIG.7z
