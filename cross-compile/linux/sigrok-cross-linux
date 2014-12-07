@@ -138,5 +138,6 @@ cd build
 PKG_CONFIG_PATH=$P $SB cmake -DCMAKE_INSTALL_PREFIX:PATH=$PREFIX -DDISABLE_WERROR=y -DENABLE_TESTS=y ..
 $SB make $PARALLEL
 make install
+$SB make test
 cd ../..
 
