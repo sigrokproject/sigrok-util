@@ -16,13 +16,20 @@ Requirements
 ------------
 
  - bash
+ - gawk
  - gcc
  - make
  - git
  - pkg-config (>= 0.22)
+ - gettext
+ - ant
  - Android NDK (tested: r10c)
    - Android cross-compile toolchain (tested: arm-linux-androideabi-4.9)
  - Android SDK (tested: r23.0.2)
+ - On 64bit hosts, you also need some i386 packages. E.g. on Debian/Ubuntu:
+     $ dpkg --add-architecture i386
+     $ apt-get update
+     $ apt-get install libstdc++6:i386 zlib1g:i386
 
 
 Toolchain setup
