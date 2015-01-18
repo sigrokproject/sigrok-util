@@ -23,7 +23,7 @@ Requirements
  - pkg-config (>= 0.22)
  - gettext
  - ant
- - Android NDK (tested: r10c)
+ - Android NDK (tested: r10d)
    - Android cross-compile toolchain (tested: arm-linux-androideabi-4.9)
  - Android SDK (tested: r23.0.2)
  - On 64bit hosts, you also need some i386 packages. E.g. on Debian/Ubuntu:
