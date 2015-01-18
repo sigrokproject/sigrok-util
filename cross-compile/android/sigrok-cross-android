@@ -108,7 +108,7 @@ if [ "x$1" = "xprepare" ]; then
   $WGET http://dl.google.com/android/android-sdk_r$VER_SDK-linux.tgz
   tar xfz android-sdk_r$VER_SDK-linux.tgz
   cd android-sdk-linux
-  ./tools/android update sdk --no-ui --filter platform-tools,build-tools-21.1.0,android-8,android-10,android-11,android-14,android-16
+  ./tools/android update sdk --no-ui --filter platform-tools,build-tools-21.1.2,android-8,android-10,android-11,android-14,android-16
   cd ..
 
   exit
