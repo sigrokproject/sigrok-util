@@ -70,7 +70,7 @@ VER_LIBZIP=0.11.2
 VER_LIBFTDI1=1.1
 VER_LIBUSB=1.0.19
 VER_PYTHON=3.3.3
-VER_BOOST=1.55.0
+VER_BOOST=1.57.0
 VER_QT=5.3.1
 VER_NDK=10d
 VER_SDK=23.0.2
@@ -409,10 +409,9 @@ NDK_HOST=`"$ANDROID_NDK/ndk-build" -p 2>/dev/null | awk '$1 == "HOST_TAG" { prin
 $WGET http://$SF_MIRROR/project/boost/boost/$VER_BOOST/boost_${VER_BOOST//./_}.tar.bz2
 tar xfj boost_${VER_BOOST//./_}.tar.bz2
 cd boost_${VER_BOOST//./_}
-patch -p1 < ../../boost.patch
 CC= ./bootstrap.sh --with-toolset=gcc --with-libraries=filesystem,system,thread --without-icu
 echo "using gcc : $NDK_TOOLCHAIN_VERSION : \"${TOOLCHAIN_TRIPLET}-g++\" : <cxxflags>\"$SYSROOT -I$PREFIX/include $CPPFLAGS_STL\" <linkflags>\"$SYSROOT -L$PREFIX/lib $LDFLAGS_STL -lgnustl_shared\" ;" > user-config.jam
-./b2 -q -d+2 --user-config=user-config.jam toolset=gcc variant=release link=shared threading=multi runtime-link=shared target-os=android --prefix=$PREFIX --layout=system install $PARALLEL
+./b2 -q -d+2 --ignore-site-config --user-config=user-config.jam toolset=gcc variant=release link=shared threading=multi runtime-link=shared target-os=android --prefix=$PREFIX --layout=system install $PARALLEL
 cd ..
 
 # Qt (needed for PulseView)
