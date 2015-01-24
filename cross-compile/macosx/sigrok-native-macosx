@@ -1,0 +1,151 @@
+#!/bin/sh
+##
+## This file is part of the sigrok-util project.
+##
+## Copyright (C) 2015 Uwe Hermann <uwe@hermann-uwe.de>
+##
+## This program is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation; either version 2 of the License, or
+## (at your option) any later version.
+##
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the Free Software
+## Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
+##
+
+set -e
+
+# The path where the compiled packages will be installed.
+PREFIX=$HOME/sr_macosx
+
+# The path where to download files to and where to build packages.
+BUILDDIR=./build
+
+# The path where the libsigrok Python bindings will be installed.
+PYPATH=$PREFIX/lib/python2.7/site-packages
+
+# Edit this to enable/disable/modify parallel compiles.
+PARALLEL="-j 2"
+
+# Uncomment the following lines to build with clang and run scan-build.
+# export CC=llvm-gcc
+# export CXX=llvm-g++
+# SB="scan-build -k -v"
+
+# Uncomment the following lines to build with gcc/g++.
+export CC=gcc-4.9
+export CXX=g++-4.9
+
+# Path to Qt binaries (needed for cmake to find the Qt libs).
+# export PATH="/usr/local/opt/qt/bin:$PATH" # Qt4
+export PATH="/usr/local/opt/qt52/bin:$PATH" # Qt5
+
+# Path to Python 2/3 pkg-config files.
+# In Homebrew, pkg-config files of "keg-only" formulas (Python is one of them)
+# aren't installed into /usr/local/lib/pkgconfig (we manually reference them).
+PY2="/usr/local/Cellar/python/2.7.8_2/Frameworks/Python.framework/Versions/2.7/lib/pkgconfig"
+PY3="/usr/local/Cellar/python3/3.4.2_1/Frameworks/Python.framework/Versions/3.4/lib/pkgconfig"
+
+# You usually don't need to change anything below this line.
+
+# -----------------------------------------------------------------------------
+
+P="$PREFIX/lib/pkgconfig:$PY2:$PY3"
+C="$C --prefix=$PREFIX"
+
+# Remove build directory contents (if any) and create a new build dir.
+rm -rf $BUILDDIR
+mkdir $BUILDDIR
+cd $BUILDDIR
+
+GIT_CLONE="git clone --depth=1"
+
+# -----------------------------------------------------------------------------
+
+# libserialport
+$GIT_CLONE git://sigrok.org/libserialport
+cd libserialport
+./autogen.sh
+mkdir build
+cd build
+../configure $C
+$SB make $PARALLEL
+make install
+cd ../..
+
+# libsigrok
+mkdir -p $PYPATH
+$GIT_CLONE git://sigrok.org/libsigrok
+cd libsigrok
+./autogen.sh
+mkdir build
+cd build
+PKG_CONFIG_PATH=$P ../configure $C --disable-python --disable-java
+$SB make $PARALLEL
+PYTHONPATH=$PYPATH $SB make install
+$SB make check
+cd ../..
+
+# libsigrokdecode
+$GIT_CLONE git://sigrok.org/libsigrokdecode
+cd libsigrokdecode
+./autogen.sh
+mkdir build
+cd build
+PKG_CONFIG_PATH=$P ../configure $C
+$SB make $PARALLEL
+make install
+$SB make check
+cd ../..
+
+# sigrok-firmware
+$GIT_CLONE git://sigrok.org/sigrok-firmware
+cd sigrok-firmware
+./autogen.sh
+mkdir build
+cd build
+# Nothing gets cross-compiled here, we just need 'make install' basically.
+../configure $C
+make install
+cd ../..
+
+# sigrok-firmware-fx2lafw
+$GIT_CLONE git://sigrok.org/sigrok-firmware-fx2lafw
+cd sigrok-firmware-fx2lafw
+./autogen.sh
+mkdir build
+cd build
+# We're building the fx2lafw firmware on the host, no need to cross-compile.
+../configure $C
+make $PARALLEL
+make install
+cd ../..
+
+# sigrok-cli
+$GIT_CLONE git://sigrok.org/sigrok-cli
+cd sigrok-cli
+./autogen.sh
+mkdir build
+cd build
+PKG_CONFIG_PATH=$P ../configure $C
+$SB make $PARALLEL
+make install
+cd ../..
+
+# PulseView
+$GIT_CLONE git://sigrok.org/pulseview
+cd pulseview
+mkdir build
+cd build
+PKG_CONFIG_PATH=$P $SB cmake -DCMAKE_INSTALL_PREFIX:PATH=$PREFIX -DDISABLE_WERROR=y -DENABLE_TESTS=y ..
+$SB make $PARALLEL
+make install
+$SB make test
+cd ../..
+

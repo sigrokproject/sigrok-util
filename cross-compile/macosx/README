@@ -1,0 +1,34 @@
+-------------------------------------------------------------------------------
+README
+-------------------------------------------------------------------------------
+
+This is a small script for compiling sigrok and its dependencies
+on Mac OS X.
+
+
+Status
+------
+
+Working.
+
+
+Requirements
+------------
+
+ - All requirements of the individual sigrok subprojects.
+ - Homebrew (http://brew.sh)
+   Currently the script assumes that Homebrew is used and hardcodes certain
+   package versions and paths.
+
+
+Building
+--------
+
+ $ ./sigrok-native-macosx
+
+Per default it will install the compiled packages in:
+
+ $HOME/sr_macosx
+
+Please edit the script if you want to change any settings.
+
