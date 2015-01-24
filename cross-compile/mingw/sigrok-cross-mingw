@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 ##
 ## This file is part of the sigrok-util project.
 ##
@@ -58,7 +58,7 @@ C="--host=$TOOLCHAIN_TRIPLET --prefix=$PREFIX"
 CM="-DCMAKE_TOOLCHAIN_FILE=$MXE/usr/$TOOLCHAIN_TRIPLET/share/cmake/mxe-conf.cmake"
 L="--disable-shared --enable-static"
 
-if [ $TARGET == "i686" ]; then
+if [ $TARGET = "i686" ]; then
 	export PKG_CONFIG_PATH_i686_w64_mingw32_static="$P:$P2"
 else
 	export PKG_CONFIG_PATH_x86_64_w64_mingw32_static="$P:$P2"
