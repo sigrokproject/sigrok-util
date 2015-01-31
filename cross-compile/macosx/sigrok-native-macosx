@@ -49,8 +49,8 @@ export PATH="/usr/local/opt/qt52/bin:$PATH" # Qt5
 # Path to Python 2/3 pkg-config files.
 # In Homebrew, pkg-config files of "keg-only" formulas (Python is one of them)
 # aren't installed into /usr/local/lib/pkgconfig (we manually reference them).
-PY2="/usr/local/Cellar/python/2.7.8_2/Frameworks/Python.framework/Versions/2.7/lib/pkgconfig"
-PY3="/usr/local/Cellar/python3/3.4.2_1/Frameworks/Python.framework/Versions/3.4/lib/pkgconfig"
+PY2="/usr/local/opt/python/Frameworks/Python.framework/Versions/2.7/lib/pkgconfig"
+PY3="/usr/local/opt/python3/Frameworks/Python.framework/Versions/3.4/lib/pkgconfig"
 
 # You usually don't need to change anything below this line.
 
