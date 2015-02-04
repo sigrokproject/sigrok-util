@@ -86,7 +86,7 @@ cd libsigrok
 ./autogen.sh
 mkdir build
 cd build
-PKG_CONFIG_PATH=$P ../configure $C --disable-python --disable-java
+PKG_CONFIG_PATH=$P ../configure $C --disable-java
 $SB make $PARALLEL
 PYTHONPATH=$PYPATH $SB make install
 $SB make check
