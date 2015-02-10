@@ -51,7 +51,7 @@ Then build gcc again:
 We now have a system that supports C++11 std::thread. Now build the rest:
 
  $ make MXE_TARGETS=i686-w64-mingw32.static glib libzip libusb1 libftdi1 \
-   glibmm qtbase qtsvg boost check
+   glibmm qt boost check
 
 This will take a while.
 
