@@ -37,7 +37,7 @@ BUILDDIR=./build
 PYPATH=$PREFIX/lib/python2.7/site-packages
 
 # Edit this to control verbose build output.
-V="V=1 VERBOSE=1"
+# V="V=1 VERBOSE=1"
 
 # Edit this to enable/disable/modify parallel compiles.
 PARALLEL="-j 2"
