@@ -50,6 +50,9 @@ PREFIX=$HOME/sr_android
 # The path where to download files to and where to build packages.
 BUILDDIR=./build
 
+# Edit this to control verbose build output.
+# V="V=1 VERBOSE=1"
+
 # Edit this to enable/disable/modify parallel compiles.
 PARALLEL="-j 2"
 
@@ -129,7 +132,7 @@ $WGET http://python.org/ftp/python/$VER_PYTHON/Python-$VER_PYTHON.tar.xz
 tar xfJ Python-$VER_PYTHON.tar.xz
 cd Python-$VER_PYTHON
 ./configure
-make python
+make python $V
 mv python hostpython
 cd ..
 
@@ -203,12 +206,12 @@ patch < ../android.toolchain.cmake.patch android.toolchain.cmake
 # Python (needed for libsigrokdecode)
 # Don't do parallel Python builds, this doesn't seem to work well.
 cd Python-$VER_PYTHON
-make distclean
+make distclean $V
 autoreconf
 patch -p1 < ../../Python-$VER_PYTHON.patch
 ac_cv_file__dev_ptmx=no ac_cv_file__dev_ptc=no ac_cv_func_pipe2=no ac_cv_func_fdatasync=no ac_cv_func_killpg=no ac_cv_func_waitid=no ac_cv_func_sigaltstack=no ./configure $C --build=x86_64-linux-gnu --disable-ipv6
 sed -i "s/^#zlib/zlib/g" Modules/Setup
-make PYTHON_FOR_BUILD='_PYTHON_HOST_PLATFORM=$(_PYTHON_HOST_PLATFORM) ./hostpython' install
+make PYTHON_FOR_BUILD='_PYTHON_HOST_PLATFORM=$(_PYTHON_HOST_PLATFORM) ./hostpython' install $V
 cd ..
 
 # libiconv (needed for glib)
@@ -220,13 +223,13 @@ cp -f ../config/config.sub build-aux
 cp -f ../config/config.guess libcharset/build-aux
 cp -f ../config/config.sub libcharset/build-aux
 ./configure $C --enable-shared
-make lib/localcharset.h
+make lib/localcharset.h $V
 cd libcharset
-make $PARALLEL
-make install
+make $PARALLEL $V
+make install $V
 cd ../lib
-make $PARALLEL
-make install
+make $PARALLEL $V
+make install $V
 cd ..
 test -d $PREFIX/include || mkdir $PREFIX/include
 cp include/iconv.h.inst $PREFIX/include/iconv.h
@@ -238,8 +241,8 @@ tar xfz gettext-$VER_GETTEXT.tar.gz
 cd gettext-$VER_GETTEXT
 ./configure $C --enable-shared --disable-libasprintf
 cd gettext-runtime
-make $PARALLEL
-make install
+make $PARALLEL $V
+make install $V
 cd ../..
 
 # zlib (needed for glib and libzip)
@@ -248,8 +251,8 @@ tar xfz zlib-$VER_ZLIB.tar.gz
 cd zlib-$VER_ZLIB
 # Note: zlib's configure doesn't understand --host, we need to pass $CC.
 CC="$TOOLCHAIN_TRIPLET-gcc $SYSROOT" ./configure --prefix=$PREFIX
-make $PARALLEL
-make install
+make $PARALLEL $V
+make install $V
 cd ..
 
 # pcre (needed for glib)
@@ -257,8 +260,8 @@ $WGET ftp://ftp.csx.cam.ac.uk/pub/software/programming/pcre/pcre-$VER_PCRE.tar.g
 tar xfz pcre-$VER_PCRE.tar.gz
 cd pcre-$VER_PCRE
 ./configure $C --disable-cpp
-make $PARALLEL
-make install
+make $PARALLEL $V
+make install $V
 cd ..
 
 # libffi (needed for glib)
@@ -266,8 +269,8 @@ $WGET ftp://sourceware.org/pub/libffi/libffi-$VER_LIBFFI.tar.gz
 tar xfz libffi-$VER_LIBFFI.tar.gz
 cd libffi-$VER_LIBFFI
 ./configure $C
-make $PARALLEL
-make install
+make $PARALLEL $V
+make install $V
 cd ..
 
 # glib (needed for libsigrok)
@@ -277,8 +280,8 @@ cd glib-$VER_GLIB
 NOCONFIGURE=yes ./autogen.sh
 # Note: Manual LDFLAGS/CPPFLAGS needed for libiconv, rest uses pkg-config.
 LDFLAGS=-L$PREFIX/lib CPPFLAGS=-I$PREFIX/include glib_cv_stack_grows=no glib_cv_uscore=no ac_cv_func_posix_getpwuid_r=no ac_cv_func_posix_getgrgid_r=no ./configure --disable-compile-warnings $C
-make $PARALLEL
-make install
+make $PARALLEL $V
+make install $V
 cd ..
 
 # libzip (needed for libsigrok)
@@ -288,8 +291,8 @@ cd libzip-$VER_LIBZIP
 cp -f ../config/config.guess .
 cp -f ../config/config.sub .
 ./configure $C
-make $PARALLEL
-make install
+make $PARALLEL $V
+make install $V
 cd ..
 
 # libusb-1.0 (needed for libsigrok)
@@ -298,8 +301,8 @@ tar xfj libusb-$VER_LIBUSB.tar.bz2
 cd libusb-$VER_LIBUSB
 patch -p1 < ../../libusb-1.0.patch
 ./configure $C --disable-udev
-make $PARALLEL
-make install
+make $PARALLEL $V
+make install $V
 cd ..
 
 # libftdi1 (needed for libsigrok)
@@ -307,8 +310,8 @@ $WGET http://www.intra2net.com/en/developer/libftdi/download/libftdi1-$VER_LIBFT
 tar xfj libftdi1-$VER_LIBFTDI1.tar.bz2
 cd libftdi1-$VER_LIBFTDI1
 cmake $CM -DFTDIPP=no -DDOCUMENTATION=no -DEXAMPLES=no -DFTDI_EEPROM=no -DPYTHON_BINDINGS=no .
-make $PARALLEL
-make install
+make $PARALLEL $V
+make install $V
 cd ..
 
 # libserialport
@@ -318,8 +321,8 @@ cd libserialport
 mkdir build
 cd build
 ../configure $C
-make $PARALLEL V=1
-make install
+make $PARALLEL $V
+make install $V
 cd ../..
 
 # Build dependencies for libsigrok bindings if needed
@@ -333,8 +336,8 @@ if [ x"$CPPFLAGS_STL" != x ]; then
   cp -f ../config/config.guess build
   cp -f ../config/config.sub build
   CPPFLAGS="$CPPFLAGS_STL" LDFLAGS="$LDFLAGS_STL -lgnustl_shared" ./configure --disable-documentation $C
-  make $PARALLEL
-  make install
+  make $PARALLEL $V
+  make install $V
   cd ..
 
   # glibmm (needed for libsigrok bindings)
@@ -342,8 +345,8 @@ if [ x"$CPPFLAGS_STL" != x ]; then
   tar xfJ glibmm-$VER_GLIB.tar.xz
   cd glibmm-$VER_GLIB
   CPPFLAGS="$CPPFLAGS_STL" LDFLAGS="$LDFLAGS_STL -lgnustl_shared" ./configure --disable-documentation $C
-  make $PARALLEL
-  make install
+  make $PARALLEL $V
+  make install $V
   cd ..
 
 fi
@@ -355,8 +358,8 @@ cd libsigrok
 mkdir build
 cd build
 CPPFLAGS="$CPPFLAGS_STL" LDFLAGS="$LDFLAGS_STL" ../configure $C $BINDINGS_CONFIG --datadir=/sdcard
-make $PARALLEL V=1
-make datadir='$(datarootdir)' install
+make $PARALLEL $V
+make datadir='$(datarootdir)' install $V
 cd ../..
 
 # libsigrokdecode
@@ -366,8 +369,8 @@ cd libsigrokdecode
 mkdir build
 cd build
 ../configure $C
-make $PARALLEL V=1
-make install
+make $PARALLEL $V
+make install $V
 cd ../..
 
 # sigrok-cli
@@ -377,8 +380,8 @@ cd sigrok-cli
 mkdir build
 cd build
 ../configure $C
-make $PARALLEL V=1
-make install
+make $PARALLEL $V
+make install $V
 cd ../..
 
 # Check if we have all requirements to build PulseView:
@@ -420,8 +423,8 @@ tar xfz qt-everywhere-opensource-src-${VER_QT}.tar.gz
 cd qt-everywhere-opensource-src-${VER_QT}
 patch -p1 < ../../android-qt.patch
 CC= CXX= ./configure --prefix="$PREFIX" -developer-build -xplatform android-g++ -nomake tests -nomake examples -android-sdk "$ANDROID_SDK" -android-ndk "$ANDROID_NDK" -android-ndk-host "$NDK_HOST" -android-arch "$TARGET_ARCH" -android-toolchain-version "$NDK_TOOLCHAIN_VERSION" -skip qttranslations -skip qtwebkit -skip qtserialport -skip qtwebkit-examples -skip qtlocation -skip qtconnectivity -opensource -confirm-license
-make module-qtbase module-qtandroidextras module-qtsvg module-qtimageformats $PARALLEL
-make install
+make module-qtbase module-qtandroidextras module-qtsvg module-qtimageformats $PARALLEL $V
+make install $V
 cd ..
 
 # sigrok-androidutils
@@ -429,8 +432,8 @@ $GIT_CLONE git://sigrok.org/sigrok-androidutils
 cd sigrok-androidutils
 ./autogen.sh
 ./configure $C --with-android-sdk="${ANDROID_SDK}"
-make $PARALLEL V=1
-make install
+make $PARALLEL $V
+make install $V
 cd ..
 
 # Strip all shared libs to reduce size.
@@ -440,8 +443,8 @@ find $PREFIX -iname "*.so" -exec ${TOOLCHAIN_TRIPLET}-strip -S {} \;
 $GIT_CLONE git://sigrok.org/pulseview
 cd pulseview
 cmake $CM .
-make $PARALLEL VERBOSE=1
-make install
+make $PARALLEL $V
+make install $V
 ${TOOLCHAIN_TRIPLET}-strip -S libs/$TARGET_ARCH/libpulseview.so
 cd android
 "${ANDROID_SDK}/tools/android" update project -p . -t android-14 -n PulseView
