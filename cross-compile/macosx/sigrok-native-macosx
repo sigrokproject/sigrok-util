@@ -30,6 +30,9 @@ BUILDDIR=./build
 # The path where the libsigrok Python bindings will be installed.
 PYPATH=$PREFIX/lib/python2.7/site-packages
 
+# Edit this to control verbose build output.
+# V="V=1 VERBOSE=1"
+
 # Edit this to enable/disable/modify parallel compiles.
 PARALLEL="-j 2"
 
@@ -75,8 +78,8 @@ cd libserialport
 mkdir build
 cd build
 ../configure $C
-$SB make $PARALLEL
-make install
+$SB make $PARALLEL $V
+make install $V
 cd ../..
 
 # libsigrok
@@ -87,9 +90,9 @@ cd libsigrok
 mkdir build
 cd build
 PKG_CONFIG_PATH=$P ../configure $C --disable-java
-$SB make $PARALLEL
-PYTHONPATH=$PYPATH $SB make install
-$SB make check
+$SB make $PARALLEL $V
+PYTHONPATH=$PYPATH $SB make install $V
+$SB make check $V
 cd ../..
 
 # libsigrokdecode
@@ -99,9 +102,9 @@ cd libsigrokdecode
 mkdir build
 cd build
 PKG_CONFIG_PATH=$P ../configure $C
-$SB make $PARALLEL
-make install
-$SB make check
+$SB make $PARALLEL $V
+make install $V
+$SB make check $V
 cd ../..
 
 # sigrok-firmware
@@ -112,7 +115,7 @@ mkdir build
 cd build
 # Nothing gets cross-compiled here, we just need 'make install' basically.
 ../configure $C
-make install
+make install $V
 cd ../..
 
 # sigrok-firmware-fx2lafw
@@ -123,8 +126,8 @@ mkdir build
 cd build
 # We're building the fx2lafw firmware on the host, no need to cross-compile.
 ../configure $C
-make $PARALLEL
-make install
+make $PARALLEL $V
+make install $V
 cd ../..
 
 # sigrok-cli
@@ -134,8 +137,8 @@ cd sigrok-cli
 mkdir build
 cd build
 PKG_CONFIG_PATH=$P ../configure $C
-$SB make $PARALLEL
-make install
+$SB make $PARALLEL $V
+make install $V
 cd ../..
 
 # PulseView
@@ -144,8 +147,8 @@ cd pulseview
 mkdir build
 cd build
 PKG_CONFIG_PATH=$P $SB cmake -DCMAKE_INSTALL_PREFIX:PATH=$PREFIX -DDISABLE_WERROR=y -DENABLE_TESTS=y ..
-$SB make $PARALLEL
-make install
-$SB make test
+$SB make $PARALLEL $V
+make install $V
+$SB make test $V
 cd ../..
 
