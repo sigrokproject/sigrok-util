@@ -33,6 +33,9 @@ PREFIX=$HOME/sr_mingw
 # The path where to download files to and where to build packages.
 BUILDDIR=./build
 
+# Edit this to control verbose build output.
+# V="V=1 VERBOSE=1"
+
 # Edit this to enable/disable/modify parallel compiles.
 PARALLEL="-j 2"
 
@@ -116,8 +119,8 @@ $GIT_CLONE git://sigrok.org/libserialport
 cd libserialport
 ./autogen.sh
 ./configure $C $L
-make $PARALLEL V=1
-make install
+make $PARALLEL $V
+make install $V
 cd ..
 
 # libsigrok
@@ -126,8 +129,8 @@ cd libsigrok
 patch -p1 < ../../libsigrok_firmwaredir.patch
 ./autogen.sh
 ./configure $C $L
-make $PARALLEL V=1
-make install
+make $PARALLEL $V
+make install $V
 cd ..
 
 # libsigrokdecode
@@ -136,8 +139,8 @@ cd libsigrokdecode
 ./autogen.sh
 patch -p1 < ../../srd_decodersdir.patch
 ./configure $C $L
-make $PARALLEL V=1
-make install
+make $PARALLEL $V
+make install $V
 cd ..
 
 # sigrok-firmware
@@ -146,7 +149,7 @@ cd sigrok-firmware
 ./autogen.sh
 # Nothing gets cross-compiled here, we just need 'make install' basically.
 ./configure --prefix=$PREFIX
-make install
+make install $V
 cd ..
 
 # sigrok-firmware-fx2lafw
@@ -155,14 +158,14 @@ cd sigrok-firmware-fx2lafw
 ./autogen.sh
 # We're building the fx2lafw firmware on the host, no need to cross-compile.
 ./configure --prefix=$PREFIX
-make $PARALLEL V=1
-make install
+make $PARALLEL $V
+make install $V
 cd ..
 
 # sigrok-dumps
 $GIT_CLONE git://sigrok.org/sigrok-dumps
 cd sigrok-dumps
-make install DESTDIR=$PREFIX/share/sigrok-dumps
+make install DESTDIR=$PREFIX/share/sigrok-dumps $V
 cd ..
 
 # sigrok-cli
@@ -170,8 +173,8 @@ $GIT_CLONE git://sigrok.org/sigrok-cli
 cd sigrok-cli
 ./autogen.sh
 ./configure $C
-make $PARALLEL V=1
-make install
+make $PARALLEL $V
+make install $V
 makensis -DHOME=$HOME contrib/sigrok-cli_cross.nsi
 cd ..
 
@@ -179,8 +182,8 @@ cd ..
 $GIT_CLONE git://sigrok.org/pulseview
 cd pulseview
 cmake $CM -DCMAKE_INSTALL_PREFIX:PATH=$PREFIX -DDISABLE_WERROR=y .
-make $PARALLEL VERBOSE=1
-make install/strip
+make $PARALLEL $V
+make install/strip $V
 makensis -DHOME=$HOME contrib/pulseview_cross.nsi
 cd ..
 
