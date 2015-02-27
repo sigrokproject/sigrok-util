@@ -181,7 +181,7 @@ cd ..
 # PulseView
 $GIT_CLONE git://sigrok.org/pulseview
 cd pulseview
-cmake $CM -DCMAKE_INSTALL_PREFIX:PATH=$PREFIX -DDISABLE_WERROR=y .
+cmake $CM -DCMAKE_INSTALL_PREFIX:PATH=$PREFIX -DDISABLE_WERROR=y -DENABLE_TESTS=y .
 make $PARALLEL $V
 make install/strip $V
 makensis -DHOME=$HOME contrib/pulseview_cross.nsi
