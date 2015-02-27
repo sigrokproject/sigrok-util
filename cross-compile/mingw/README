@@ -21,7 +21,6 @@ Requirements
  - cmake
  - git
  - wget
- - unzip
  - p7zip
  - pkg-config (>= 0.22)
  - sdcc (needed for building the fx2lafw firmware)
