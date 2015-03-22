@@ -44,7 +44,7 @@ extern SR_PRIV struct sr_dev_driver ${lib}_driver_info;
 """
 TMPL_DRIVERS_POINTER = """\
 #ifdef HAVE_HW_${upper}
-	&${lib}_driver_info,
+	(DRVS) {&${lib}_driver_info, NULL},
 #endif
 """
 FILE_DRV_API = 'drv-api.c'
