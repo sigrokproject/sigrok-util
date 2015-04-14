@@ -294,6 +294,19 @@ def extract_fx2_firmware(elf, symname, filename):
     f.close()
     print("saved %d bytes to %s" % (len(blob), filename))
 
+def extract_fx2_firmware_single(elf, symname, filename):
+    if not symname in elf.dynsym:
+        return False
+    hex = bytes.decode(elf.load_symbol(elf.dynsym[symname]))
+    if hex[-1] == '\0':
+        hex = hex[:-1]
+    blob = ihex_to_binary(hex.split(';'))
+    f = open(filename, 'wb')
+    f.write(blob)
+    f.close()
+    print("saved %d bytes to %s" % (len(blob), filename))
+    return True
+
 def extract_symbol(elf, symname, filename):
     blob = elf.load_symbol(elf.dynsym[symname])
     f = open(filename, 'wb')
@@ -322,7 +335,8 @@ try:
     elf = parseelf.elf(filename)
     if elf.ehdr['e_machine'] != 3 and elf.ehdr['e_machine'] != 62:
         raise Exception('Unsupported e_machine')
-    extract_fx2_firmware(elf, 'gLogic16HexFileLines', 'saleae-logic16-fx2.fw')
+    if not extract_fx2_firmware_single(elf, 'Logic16FirmwareStrings', 'saleae-logic16-fx2.fw'):
+        extract_fx2_firmware(elf, 'gLogic16HexFileLines', 'saleae-logic16-fx2.fw')
     extract_bitstream(elf, '18')
     extract_bitstream(elf, '33')
 except Exception as e:
