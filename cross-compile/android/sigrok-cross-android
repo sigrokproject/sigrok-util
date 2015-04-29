@@ -79,7 +79,7 @@ VER_QT=5.3.1
 VER_NDK=10d
 VER_SDK=23.0.2
 
-SF_MIRROR=switch.dl.sourceforge.net
+SF_MIRROR=download.sourceforge.net
 
 WGET="wget --quiet"
 GIT_CLONE="git clone --depth=1"
