@@ -105,13 +105,13 @@ if [ "x$1" = "xprepare" ]; then
   chmod 700 android-ndk-r$VER_NDK-linux-x86.bin
   ./android-ndk-r$VER_NDK-linux-x86.bin
   cd android-ndk-r$VER_NDK
-  ./build/tools/make-standalone-toolchain.sh --platform=android-VER_AND_API \
+  ./build/tools/make-standalone-toolchain.sh --platform=android-$VER_AND_API \
     --toolchain=arm-linux-androideabi-4.9 \
     --install-dir=$ANDROID_PATH/android-arm-toolchain
-  ./build/tools/make-standalone-toolchain.sh --platform=android-VER_AND_API \
+  ./build/tools/make-standalone-toolchain.sh --platform=android-$VER_AND_API \
     --toolchain=x86-4.9 \
     --install-dir=$ANDROID_PATH/android-i686-toolchain
-  ./build/tools/make-standalone-toolchain.sh --platform=android-VER_AND_API \
+  ./build/tools/make-standalone-toolchain.sh --platform=android-$VER_AND_API \
     --toolchain=mipsel-linux-android-4.9 \
     --install-dir=$ANDROID_PATH/android-mipsel-toolchain
   cd ..
