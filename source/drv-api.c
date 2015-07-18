@@ -34,7 +34,7 @@ static GSList *scan(struct sr_dev_driver *di, GSList *options)
 	(void)options;
 
 	devices = NULL;
-	drvc = di->priv;
+	drvc = di->context;
 	drvc->instances = NULL;
 
 	/* TODO: scan for devices, either based on a SR_CONF_CONN option
@@ -45,7 +45,7 @@ static GSList *scan(struct sr_dev_driver *di, GSList *options)
 
 static GSList *dev_list(const struct sr_dev_driver *di)
 {
-	return ((struct drv_context *)(di->priv))->instances;
+	return ((struct drv_context *)(di->context))->instances;
 }
 
 static int dev_clear(const struct sr_dev_driver *di)
@@ -186,5 +186,5 @@ SR_PRIV struct sr_dev_driver ${lib}_driver_info = {
 	.dev_close = dev_close,
 	.dev_acquisition_start = dev_acquisition_start,
 	.dev_acquisition_stop = dev_acquisition_stop,
-	.priv = NULL,
+	.context = NULL,
 };
