@@ -26,7 +26,7 @@ set -e
 ANDROID_PATH=$HOME/android
 
 # The path where the Android NDK is located.
-ANDROID_NDK=$ANDROID_PATH/android-ndk-r10d
+ANDROID_NDK=$ANDROID_PATH/android-ndk-r10e
 
 # The path where the Android SDK is located.
 ANDROID_SDK=$ANDROID_PATH/android-sdk-linux
@@ -76,8 +76,8 @@ VER_LIBUSB=1.0.19
 VER_PYTHON=3.3.3
 VER_BOOST=1.57.0
 VER_QT=5.4.1
-VER_NDK=10d
-VER_SDK=23.0.2
+VER_NDK=10e
+VER_SDK=24.3.3
 VER_AND_BT=22.0.1 # Android build tools version
 VER_AND_API=16    # Target Android API version
 
