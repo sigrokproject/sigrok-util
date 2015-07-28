@@ -37,6 +37,10 @@ First, get the MXE cross-compile environment for MinGW-w64/Windows:
  $ git clone https://github.com/mxe/mxe.git mxe-git
  $ cd mxe-git
 
+Apply some fixes that are currently required for a proper build:
+
+ $ patch -p1 < mxe_fixes.patch
+
 For now we need to build gcc and winpthreads in two steps. First:
 
  $ make MXE_TARGETS=i686-w64-mingw32.static gcc winpthreads
