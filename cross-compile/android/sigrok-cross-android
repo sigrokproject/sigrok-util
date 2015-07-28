@@ -103,7 +103,7 @@ if [ "x$1" = "xprepare" ]; then
   # NDK
   $WGET http://dl.google.com/android/ndk/android-ndk-r$VER_NDK-linux-x86.bin
   chmod 700 android-ndk-r$VER_NDK-linux-x86.bin
-  ./android-ndk-r$VER_NDK-linux-x86.bin
+  ./android-ndk-r$VER_NDK-linux-x86.bin -y
   cd android-ndk-r$VER_NDK
   ./build/tools/make-standalone-toolchain.sh --platform=android-$VER_AND_API \
     --toolchain=arm-linux-androideabi-4.9 \
@@ -120,7 +120,7 @@ if [ "x$1" = "xprepare" ]; then
   $WGET http://dl.google.com/android/android-sdk_r$VER_SDK-linux.tgz
   tar xfz android-sdk_r$VER_SDK-linux.tgz
   cd android-sdk-linux
-  ./tools/android update sdk --no-ui --filter platform-tools,build-tools-$VER_AND_BT,android-$VER_AND_API
+  echo y | ./tools/android update sdk --no-ui --filter platform-tools,build-tools-$VER_AND_BT,android-$VER_AND_API
   cd ..
 
   exit
