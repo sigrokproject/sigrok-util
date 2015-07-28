@@ -83,7 +83,7 @@ VER_AND_API=16    # Target Android API version
 
 SF_MIRROR=download.sourceforge.net
 
-WGET="wget --quiet"
+WGET="wget -c --quiet"
 GIT_CLONE="git clone --depth=1"
 
 case "$TOOLCHAIN_TRIPLET" in
