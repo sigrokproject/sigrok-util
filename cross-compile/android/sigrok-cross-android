@@ -62,19 +62,21 @@ PARALLEL="-j 2"
 # -----------------------------------------------------------------------------
 
 VER_LIBICONV=1.14
-VER_GETTEXT=0.19.4
+VER_GETTEXT=0.19.5.1
 VER_ZLIB=1.2.8
-VER_PCRE=8.36
+VER_PCRE=8.37
 VER_LIBFFI=3.2.1
-VER_GLIB=2.43.3
-VER_GLIB_SHORT=2.43
-VER_LIBSIGCXX=2.4.0
-VER_LIBSIGCXX_SHORT=2.4
+VER_GLIB=2.45.4
+VER_GLIB_SHORT=2.45
+VER_GLIBMM=2.45.41
+VER_GLIBMM_SHORT=2.45
+VER_LIBSIGCXX=2.5.1
+VER_LIBSIGCXX_SHORT=2.5
 VER_LIBZIP=0.11.2
 VER_LIBFTDI1=1.2
 VER_LIBUSB=1.0.19
 VER_PYTHON=3.3.3
-VER_BOOST=1.57.0
+VER_BOOST=1.58.0
 VER_QT=5.4.1
 VER_NDK=10e
 VER_SDK=24.3.3
@@ -318,7 +320,7 @@ cd ..
 $WGET http://www.intra2net.com/en/developer/libftdi/download/libftdi1-$VER_LIBFTDI1.tar.bz2
 tar xfj libftdi1-$VER_LIBFTDI1.tar.bz2
 cd libftdi1-$VER_LIBFTDI1
-cmake $CM -DFTDIPP=no -DDOCUMENTATION=no -DEXAMPLES=no -DFTDI_EEPROM=no -DPYTHON_BINDINGS=no .
+cmake $CM -DFTDIPP=no -DDOCUMENTATION=no -DEXAMPLES=no -DFTDI_EEPROM=no -DPYTHON_BINDINGS=no -DBUILD_TESTS=n .
 make $PARALLEL $V
 make install $V
 cd ..
@@ -350,9 +352,9 @@ if [ x"$CPPFLAGS_STL" != x ]; then
   cd ..
 
   # glibmm (needed for libsigrok bindings)
-  $WGET http://ftp.gnome.org/pub/gnome/sources/glibmm/$VER_GLIB_SHORT/glibmm-$VER_GLIB.tar.xz
-  tar xfJ glibmm-$VER_GLIB.tar.xz
-  cd glibmm-$VER_GLIB
+  $WGET http://ftp.gnome.org/pub/gnome/sources/glibmm/$VER_GLIBMM_SHORT/glibmm-$VER_GLIBMM.tar.xz
+  tar xfJ glibmm-$VER_GLIBMM.tar.xz
+  cd glibmm-$VER_GLIBMM
   CPPFLAGS="$CPPFLAGS_STL" LDFLAGS="$LDFLAGS_STL -lgnustl_shared" ./configure --disable-documentation $C
   make $PARALLEL $V
   make install $V
