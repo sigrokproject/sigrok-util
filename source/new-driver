@@ -21,14 +21,13 @@
 import os
 import sys
 import tempfile
-from subprocess import Popen, PIPE
+from subprocess import Popen, PIPE, check_output
 import shutil
 import re
 import socket
 import datetime
 
-TMPL_AUTOCONF_DRIVER = "DRIVER([${name}], [${short}])\n"
-TMPL_AUTOCONF_DRIVER2 = "DRIVER2([HW_${upper}], [$HW_${upper}], [HAVE_HW_${upper}])\n"
+TMPL_AUTOCONF_DRIVER = "SR_DRIVER([${name}], [${short}])\n"
 
 TMPL_HWMAKE_DRIVERLIB = """if HW_${upper}
 libsigrok_la_SOURCES += \\
@@ -92,31 +91,17 @@ def do_autoconf(gitdir):
     active = False
     for line in configure_ac.split('\n')[:-1]:
         if state == 'driver':
-            m = re.match('DRIVER\(\[([^\]]+)', line)
+            m = re.match(r'SR_DRIVER\(\[([^\]]+)', line)
             if m:
                 active = True
             if active:
                 if (m and m.group(1).upper() > names['name'].upper()) or m is None:
                     out += tmpl(TMPL_AUTOCONF_DRIVER)
-                    state = 'automake'
+                    state = 'done'
                     active = False
-        elif state == 'automake':
-            m = re.match('DRIVER2\(\[([^\]]+)', line)
-            if m:
-                active = True
-            else:
-                submatch = re.match('DRIVER2\(\[([^\]]+)', line)
-                if active and submatch is None:
-                    # we're past the DRIVER2 list
-                    out += tmpl(TMPL_AUTOCONF_DRIVER2)
-                    state = 'done'
-            if active:
-                if (m and m.group(1) > 'HW_' + names['upper']):
-                    out += tmpl(TMPL_AUTOCONF_DRIVER2)
-                    state = 'done'
         out += line + '\n'
     if state != 'done':
-        raise Exception('No DRIVER entries found in configure.ac')
+        raise Exception('No SR_DRIVER entries found in configure.ac')
     open(cacpath, 'w').write(out)
 
 
@@ -125,28 +110,33 @@ def do_drivers(gitdir):
     path = gitdir + 'src/drivers.c'
     source = open(path).read()
     out = ''
+    iflevel = 0
     state = 'extern'
     first_entry = ''
     for line in source.split('\n')[:-1]:
-        m = re.match('#ifdef HAVE_HW_(.*)', line)
+        m = re.match(r'\s*#\s*if(?:def)?\s+HAVE_HW_(\w+)', line)
         if m:
-            if not first_entry:
-                first_entry = m.group(1)
-            elif m.group(1) == first_entry:
-                # second time we see this, so we're past the externs
-                if state != 'idle':
-                    # tack driver on to the end of the list
-                    out += tmpl(TMPL_DRIVERS_EXTERN)
-                state = 'pointer'
-            if state == 'extern':
-                if m.group(1) > names['upper']:
-                    out += tmpl(TMPL_DRIVERS_EXTERN)
-                    state = 'idle'
-            elif state == 'pointer':
-                if m.group(1) > names['upper']:
-                    out += tmpl(TMPL_DRIVERS_POINTER)
-                    state = 'done'
-        elif state == 'pointer' and not re.match('(\s*&|#endif|$)', line):
+            if iflevel == 0:
+                if not first_entry:
+                    first_entry = m.group(1)
+                elif m.group(1) == first_entry:
+                    # second time we see this, so we're past the externs
+                    if state != 'idle':
+                        # tack driver on to the end of the list
+                        out += tmpl(TMPL_DRIVERS_EXTERN)
+                    state = 'pointer'
+                if state == 'extern':
+                    if m.group(1) > names['upper']:
+                        out += tmpl(TMPL_DRIVERS_EXTERN)
+                        state = 'idle'
+                elif state == 'pointer':
+                    if m.group(1) > names['upper']:
+                        out += tmpl(TMPL_DRIVERS_POINTER)
+                        state = 'done'
+            iflevel += 1
+        elif re.match(r'\s*#\s*endif\b', line):
+            iflevel -= 1
+        elif iflevel == 0 and state == 'pointer':
             # we passed the last entry
             out += tmpl(TMPL_DRIVERS_POINTER)
             state = 'done'
@@ -164,16 +154,16 @@ def do_automake(gitdir):
     out = ''
     state = 'copy'
     for line in hwmake.split('\n')[:-1]:
-        if state == 'copy' and re.match('if HW_(.*)$', line):
+        if state == 'copy' and re.match(r'if\s+HW_\w+$', line):
             state = 'drivers'
         if state == 'drivers':
-            m = re.match('if HW_(.*)$', line)
+            m = re.match(r'if\s+HW_(\w+)$', line)
             if m:
                 drv_short = m.group(1)
                 if drv_short > names['upper']:
                     out += tmpl(TMPL_HWMAKE_DRIVERLIB)
                     state = 'done'
-            elif not re.match('(libsigrok_la_SOURCES|\s*src/hardware/|endif)', line):
+            elif not re.match(r'\s*libsigrok_la_SOURCES\b|\s*src/hardware/|endif\b', line):
                 print("[%s]" % line.strip())
                 # we passed the last entry
                 out += tmpl(TMPL_HWMAKE_DRIVERLIB)
@@ -214,24 +204,13 @@ def command(cmd):
 
 
 def parse_gitconfig():
+    author = email = None
     try:
-        author = email = None
-        for line in open(os.environ['HOME'] + '/.gitconfig').readlines():
-            m = re.match('\s*(\w+)\s*=\s*(.*)\s*$', line)
-            if m:
-                key, value = m.groups()
-                if key == 'name':
-                    author = value
-                elif key == 'email':
-                    email = value
-                if author and email:
-                    break
+        author = check_output(["git", "config", "user.name"]).decode().strip();
+        email = check_output(["git", "config", "user.email"]).decode().strip();
     except:
-        pass
-    if not author or not email:
-        print("Please put your name and email in ~/.gitconfig")
+        print("Please set your name and email in your git config")
         sys.exit()
-
     return author, email
 
 #
@@ -257,7 +236,6 @@ names = {
     'short': re.sub('[^a-z0-9]', '-', name.lower()),
     'lib': re.sub('[^a-z0-9]', '_', name.lower()),
     'upper': re.sub('[^A-Z0-9]', '_', name.upper()),
-    'libupper': re.sub('[^A-Z0-9]', '', name.upper()),
     'year': datetime.datetime.now().year,
     'author': author,
     'email': email,
