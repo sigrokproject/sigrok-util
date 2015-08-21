@@ -1,13 +1,13 @@
 diff --git a/configure.ac b/configure.ac
-index cbe91cf..447c7e2 100644
+index dc4771e..a1274a2 100644
 --- a/configure.ac
 +++ b/configure.ac
-@@ -543,7 +543,7 @@ AC_TYPE_SIZE_T
- # Checks for library functions.
- AC_CHECK_FUNCS([gettimeofday memset strchr strcspn strdup strerror strncasecmp strstr strtol strtoul strtoull])
+@@ -484,7 +484,7 @@ AC_SEARCH_LIBS([pow], [m])
+ # We need to link against the Winsock2 library for SCPI over TCP.
+ AS_CASE([$host], [*mingw*], [LIBS="$LIBS -lws2_32"])
  
--AC_SUBST(FIRMWARE_DIR, "$datadir/sigrok-firmware")
-+AC_SUBST(FIRMWARE_DIR, "firmware")
- AC_SUBST(MAKEFLAGS, '--no-print-directory')
- AC_SUBST(AM_LIBTOOLFLAGS, '--silent')
+-AC_SUBST([FIRMWARE_DIR], ['$(datadir)/sigrok-firmware'])
++AC_SUBST([FIRMWARE_DIR], ['firmware'])
+ AC_SUBST([MAKEFLAGS], ['--no-print-directory'])
+ AC_SUBST([AM_LIBTOOLFLAGS], ['--silent'])
  
