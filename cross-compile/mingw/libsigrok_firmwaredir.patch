@@ -1,13 +1,13 @@
-diff --git a/configure.ac b/configure.ac
-index dc4771e..a1274a2 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -484,7 +484,7 @@ AC_SEARCH_LIBS([pow], [m])
- # We need to link against the Winsock2 library for SCPI over TCP.
- AS_CASE([$host], [*mingw*], [LIBS="$LIBS -lws2_32"])
+diff --git a/Makefile.am b/Makefile.am
+index 9519056..334f4df 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -22,7 +22,7 @@ ACLOCAL_AMFLAGS = -I m4
+ AM_LIBTOOLFLAGS = --silent
+ MAKEFLAGS = --no-print-directory
  
--AC_SUBST([FIRMWARE_DIR], ['$(datadir)/sigrok-firmware'])
-+AC_SUBST([FIRMWARE_DIR], ['firmware'])
- AC_SUBST([MAKEFLAGS], ['--no-print-directory'])
- AC_SUBST([AM_LIBTOOLFLAGS], ['--silent'])
+-FIRMWARE_DIR = $(datadir)/sigrok-firmware
++FIRMWARE_DIR = firmware
  
+ local_includes = -Iinclude -I$(srcdir)/include -I$(srcdir)/src -I.
+ if BINDINGS_CXX
