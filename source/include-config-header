@@ -1,0 +1,75 @@
+#!/usr/bin/env python3
+##
+## This file is part of the sigrok-util project.
+##
+## Copyright (C) 2015 Daniel Elstner <daniel.kitta@gmail.com>
+##
+## This program is free software: you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+##
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with this program.  If not, see <http://www.gnu.org/licenses/>.
+##
+
+import os
+import sys
+import subprocess
+import tempfile
+import re
+
+"""
+Make sure that every source file has <config.h> as first include, and that
+no header file includes <config.h>. Pass the source directories to process
+as command-line arguments.
+"""
+
+file_patterns = ["*.[ch]", "*.cc", "*.hh", "*.[ch]pp", "*.[ch]xx", "*.h.in"]
+source_regex  = re.compile(r'\.c[^.]*$')
+
+config_include = "#include <config.h>\n"
+config_h_regex = re.compile(r'\s*#\s*include\s+[<"]config\.h[>"]')
+
+def create_tmpfile(tmpdir):
+    return tempfile.NamedTemporaryFile('w', dir=tmpdir, delete=False)
+
+def process_file(filename, tmpdir, is_source):
+    changed = False
+    with open(filename, 'r') as srcfile, create_tmpfile(tmpdir) as tmpfile:
+        tmpfilename = tmpfile.name
+        for line in srcfile:
+            if is_source and not changed and line.startswith("#"):
+                if line == config_include:
+                    break
+                tmpfile.write(config_include)
+                changed = True
+            if config_h_regex.match(line) is None:
+                tmpfile.write(line)
+            else:
+                changed = True
+    if changed:
+        os.replace(tmpfilename, filename)
+    else:
+        os.remove(tmpfilename)
+    return changed
+
+def process_directory(srcdir):
+    filelist = subprocess.check_output(["git",
+            "-C", srcdir, "ls-files"] + file_patterns).decode()
+    with tempfile.TemporaryDirectory(dir=srcdir) as tmpdir:
+        for filename in filelist.splitlines():
+            if process_file(os.path.join(srcdir, filename), tmpdir,
+                            source_regex.search(filename) is not None):
+                print("Rewrote file", filename)
+
+if len(sys.argv) < 2:
+    sys.exit("Usage: include-config-header DIRECTORY...")
+
+for arg in sys.argv[1:]:
+    process_directory(arg)
