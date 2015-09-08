@@ -118,7 +118,7 @@ $WGET http://zadig.akeo.ie/downloads/zadig_xp.exe -O $PREFIX/zadig_xp.exe
 $GIT_CLONE git://github.com/dickens/libusb -b event-abstraction-v4
 cd libusb
 ./autogen.sh
-./configure $C $L
+./configure $C $L --disable-udev
 make -j1 $V
 make install $V
 cd ..
