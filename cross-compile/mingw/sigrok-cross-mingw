@@ -114,6 +114,15 @@ $WGET http://www.sigrok.org/tmp/python32_$TARGET.zip -O $PREFIX/python32.zip
 $WGET http://zadig.akeo.ie/downloads/zadig.exe -O $PREFIX/zadig.exe
 $WGET http://zadig.akeo.ie/downloads/zadig_xp.exe -O $PREFIX/zadig_xp.exe
 
+# libusb
+$GIT_CLONE git://github.com/dickens/libusb -b event-abstraction-v4
+cd libusb
+./autogen.sh
+./configure $C $L
+make -j1 $V
+make install $V
+cd ..
+
 # libserialport
 $GIT_CLONE git://sigrok.org/libserialport
 cd libserialport
