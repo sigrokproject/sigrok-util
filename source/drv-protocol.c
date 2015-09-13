@@ -17,6 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <config.h>
 #include "protocol.h"
 
 SR_PRIV int ${lib}_receive_data(int fd, int revents, void *cb_data)
