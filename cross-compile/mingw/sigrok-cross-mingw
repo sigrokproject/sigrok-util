@@ -57,7 +57,7 @@ TOOLCHAIN_TRIPLET="$TARGET-w64-mingw32.static"
 
 P="$PREFIX/lib/pkgconfig"
 P2="$MXE/usr/$TOOLCHAIN_TRIPLET/lib/pkgconfig"
-C="--host=$TOOLCHAIN_TRIPLET --prefix=$PREFIX"
+C="--host=$TOOLCHAIN_TRIPLET --prefix=$PREFIX CPPFLAGS=-D__printf__=__gnu_printf__"
 CM="-DCMAKE_TOOLCHAIN_FILE=$MXE/usr/$TOOLCHAIN_TRIPLET/share/cmake/mxe-conf.cmake"
 L="--disable-shared --enable-static"
 
