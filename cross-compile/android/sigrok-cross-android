@@ -78,6 +78,7 @@ VER_LIBUSB=1.0.19
 VER_PYTHON=3.3.3
 VER_BOOST=1.58.0
 VER_QT=5.4.1
+VER_SIGROK_FIRMWARE_FX2LAFW=0.1.2
 VER_NDK=10e
 VER_SDK=24.3.3
 VER_AND_BT=22.0.1 # Android build tools version
@@ -383,6 +384,24 @@ cd build
 make $PARALLEL $V
 make install $V
 cd ../..
+
+# sigrok-firmware
+$GIT_CLONE git://sigrok.org/sigrok-firmware
+cd sigrok-firmware
+./autogen.sh
+mkdir build
+cd build
+../configure $C
+make $PARALLEL $V
+make install $V
+cd ../..
+
+# sigrok-firmware-fx2lafw
+$WGET http://sigrok.org/download/binary/sigrok-firmware-fx2lafw/sigrok-firmware-fx2lafw-bin-$VER_SIGROK_FIRMWARE_FX2LAFW.tar.gz
+tar xfz sigrok-firmware-fx2lafw-bin-$VER_SIGROK_FIRMWARE_FX2LAFW.tar.gz
+cd sigrok-firmware-fx2lafw-bin-$VER_SIGROK_FIRMWARE_FX2LAFW
+cp *.fw $PREFIX/share/sigrok-firmware/
+cd ..
 
 # sigrok-cli
 $GIT_CLONE git://sigrok.org/sigrok-cli
