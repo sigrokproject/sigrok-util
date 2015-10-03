@@ -135,7 +135,6 @@ cd ..
 # libsigrok
 $GIT_CLONE git://sigrok.org/libsigrok
 cd libsigrok
-patch -p1 < ../../libsigrok_firmwaredir.patch
 ./autogen.sh
 ./configure $C $L
 make $PARALLEL $V
@@ -146,7 +145,6 @@ cd ..
 $GIT_CLONE git://sigrok.org/libsigrokdecode
 cd libsigrokdecode
 ./autogen.sh
-patch -p1 < ../../srd_decodersdir.patch
 ./configure $C $L
 make $PARALLEL $V
 make install $V
