@@ -223,6 +223,8 @@ autoreconf
 patch -p1 < ../../Python-$VER_PYTHON.patch
 ac_cv_file__dev_ptmx=no ac_cv_file__dev_ptc=no ac_cv_func_pipe2=no ac_cv_func_fdatasync=no ac_cv_func_killpg=no ac_cv_func_waitid=no ac_cv_func_sigaltstack=no ./configure $C --build=x86_64-linux-gnu --disable-ipv6
 sed -i "s/^#zlib/zlib/g" Modules/Setup
+sed -i "s/^#math/math/g" Modules/Setup
+sed -i "s/^#time/time/g" Modules/Setup
 make PYTHON_FOR_BUILD='_PYTHON_HOST_PLATFORM=$(_PYTHON_HOST_PLATFORM) ./hostpython' install $V
 cd ..
 
