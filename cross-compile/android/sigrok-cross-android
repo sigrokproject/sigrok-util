@@ -498,7 +498,6 @@ $GIT_CLONE git://sigrok.org/pulseview
 cd pulseview
 cmake $CM -DENABLE_TESTS=y .
 make $PARALLEL $V
-make install $V
 ${TOOLCHAIN_TRIPLET}-strip -S libs/$TARGET_ARCH/libpulseview.so
 cd android
 "${ANDROID_SDK}/tools/android" update project -p . -t android-$VER_AND_API -n PulseView
