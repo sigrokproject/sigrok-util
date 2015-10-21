@@ -1,6 +1,6 @@
 -- SysClk LWLA protocol dissector for Wireshark
 --
--- Copyright (C) 2014 Daniel Elstner <daniel.kitta@gmail.com>
+-- Copyright (c) 2014,2015 Daniel Elstner <daniel.kitta@gmail.com>
 --
 -- This program is free software; you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -36,6 +36,7 @@ local message_types = {
 local control_commands = {
     [1] = "Read register",
     [2] = "Write register",
+    [3] = "Read memory",
     [5] = "Write ???",
     [6] = "Read memory",
     [7] = "Capture setup",
@@ -52,7 +53,7 @@ p_lwla.fields.regdata  = ProtoField.uint32("lwla.regdata", "Register Value", bas
 p_lwla.fields.stataddr = ProtoField.uint16("lwla.stataddr", "Status Memory Address", base.HEX)
 p_lwla.fields.statlen  = ProtoField.uint16("lwla.statlen", "Status Memory Read/Write Length", base.HEX_DEC)
 p_lwla.fields.statdata = ProtoField.bytes("lwla.statdata", "Status Word")
-p_lwla.fields.stopdata = ProtoField.uint32("lwla.stopdata", "Stop Data", base.HEX_DEC)
+p_lwla.fields.secdata  = ProtoField.uint32("lwla.secdata", "Security Hash", base.HEX_DEC)
 p_lwla.fields.unknown  = ProtoField.bytes("lwla.unknown", "Unidentified message data")
 
 -- Referenced USB URB dissector fields.
@@ -66,16 +67,18 @@ local function warn_undecoded(tree, range)
     item:add_expert_info(PI_UNDECODED, PI_WARN, "Leftover data")
 end
 
+-- Extract a 32-bit mixed endian word.
 local function read_mixed_endian(range)
     return range(0,2):le_uint() * 65536 + range(2,2):le_uint()
 end
 
+-- Un-shuffle the bytes of a 64-bit stat field.
 local function read_stat_field(range)
     return string.char(range(5,1):uint(), range(4,1):uint(), range(7,1):uint(), range(6,1):uint(),
                        range(1,1):uint(), range(0,1):uint(), range(3,1):uint(), range(2,1):uint())
 end
 
--- Dissect LWLA capture state.
+-- Dissect LWLA1034 capture state.
 local function dissect_capture_state(range, tree)
     for i = 0, range:len() - 8, 8 do
         tree:add(p_lwla.fields.statdata, range(i,8), read_stat_field(range(i,8)))
@@ -107,18 +110,18 @@ local function dissect_command(range, pinfo, tree)
                                             command, range(2,2):le_uint(), regval)
             return 8
         end
-    elseif command == 5 then -- write ???
+    elseif command == 5 then -- write security hash?
         if range:len() == 66 then
-            local infotext = string.format("Cmd %d: write ??? data", command)
+            local infotext = string.format("Cmd %d: write security hash?", command)
             for i = 2, 62, 4 do
                 local value = read_mixed_endian(range(i,4))
-                tree:add(p_lwla.fields.stopdata, range(i,4), value)
+                tree:add(p_lwla.fields.secdata, range(i,4), value)
                 infotext = string.format("%s %02X", infotext, value)
             end
             pinfo.cols.info = infotext
             return 66
         end
-    elseif command == 6 then -- read memory at address
+    elseif command == 3 or command == 6 then -- read memory at address
         if range:len() == 10 then
             local memaddr = read_mixed_endian(range(2,4))
             local memlen  = read_mixed_endian(range(6,4))
@@ -128,7 +131,7 @@ local function dissect_command(range, pinfo, tree)
                                             command, memaddr, memlen)
             return 10
         end
-    elseif command == 7 then -- capture setup
+    elseif command == 7 then -- capture setup (LWLA1034)
         if range:len() >= 6 then
             tree:add_le(p_lwla.fields.stataddr, range(2,2))
             tree:add_le(p_lwla.fields.statlen, range(4,2))
@@ -142,7 +145,7 @@ local function dissect_command(range, pinfo, tree)
                                             command, range(2,2):le_uint(), range(4,2):le_uint())
             return 6 + len
         end
-    elseif command == 8 then -- capture status
+    elseif command == 8 then -- capture status (LWLA1034)
         if range:len() == 6 then
             tree:add_le(p_lwla.fields.stataddr, range(2,2))
             tree:add_le(p_lwla.fields.statlen, range(4,2))
@@ -168,6 +171,9 @@ local function dissect_response(range, pinfo, tree)
         tree:add(p_lwla.fields.regdata, range(0,4), value)
         pinfo.cols.info = string.format("Ret 1: reg value 0x%08X", value)
         return 4
+    elseif range:len() == 1000 or range:len() == 552 then -- heuristic: response to command 3
+        pinfo.cols.info = string.format("Ret 3: mem data length %d", range:len() / 4)
+        return 0
     elseif range:len() >= 18 and range:len() % 18 == 0 then -- heuristic: response to command 6
         pinfo.cols.info = string.format("Ret 6: mem data length %d", range:len() * 2 / 9)
         return 0
@@ -217,7 +223,8 @@ function p_lwla.init()
     -- will make it inaccessible from Linux, so Wireshark cannot fetch the
     -- descriptor by itself.  However, it is sufficient if the VirtualBox
     -- guest requests the descriptor once while Wireshark is capturing.
---    usb_product_dissectors:add(0x29616689, p_lwla)
+--    usb_product_dissectors:add(0x29616688, p_lwla) -- SysClk LWLA1016
+--    usb_product_dissectors:add(0x29616689, p_lwla) -- SysClk LWLA1034
 
     -- Addendum: Protocol registration based on product ID does not always
     -- work as desired.  Register the protocol on the interface class instead.
