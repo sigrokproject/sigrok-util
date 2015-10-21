@@ -1,0 +1,43 @@
+#! /bin/sh -e
+##
+## This file is part of the sigrok-util project.
+##
+## Copyright (C) 2015 Daniel Elstner <daniel.kitta@gmail.com>
+##
+## This program is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation; either version 3 of the License, or
+## (at your option) any later version.
+##
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, see <http://www.gnu.org/licenses/>.
+##
+
+instdir=$1
+if [ -z "$instdir" ]; then
+    echo "Usage: $0 LWLA1016-INST-DIR" >&2
+    exit 1
+fi
+dlldir=$instdir/bin
+
+# Verify the checksums to make sure these are the right files
+sha256sum -c <<_EOF
+cb9db3a81606865db2fd3a5075e3c66e071c4b0b6150cc1a22ee03889b236d7f *$dlldir/lwla1016.dll
+19b6229d0d0372c7e2e98c6f0a514370678cc055c47150a0c3c05b74c1361524 *$dlldir/lwla1016_2008.dll
+0191b2257279e44b476e30240f3ff57b84725d971f39c09fb9109546c79278b3 *$dlldir/lwla1016_2508.dll
+_EOF
+
+# Extract the firmware binaries from the executable
+dd bs=1 skip=112300 count=69334 if="$dlldir/lwla1016.dll" of=sysclk-lwla1016-100.rbf
+dd bs=1 skip=41708  count=70588 if="$dlldir/lwla1016.dll" of=sysclk-lwla1016-100-ts.rbf
+
+dd bs=1 skip=115424 count=69451 if="$dlldir/lwla1016_2008.dll" of=sysclk-lwla1016-200.rbf
+dd bs=1 skip=41708  count=73711 if="$dlldir/lwla1016_2008.dll" of=sysclk-lwla1016-200-ts.rbf
+
+dd bs=1 skip=116664 count=69337 if="$dlldir/lwla1016_2508.dll" of=sysclk-lwla1016-250.rbf
+dd bs=1 skip=41708  count=74951 if="$dlldir/lwla1016_2508.dll" of=sysclk-lwla1016-250-ts.rbf

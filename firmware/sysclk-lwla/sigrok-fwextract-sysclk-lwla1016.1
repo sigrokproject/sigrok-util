@@ -1,0 +1,33 @@
+.TH SIGROK\-FWEXTRACT\-SYSCLK\-LWLA1016 1 "Oct 21, 2015"
+.SH "NAME"
+sigrok\-fwextract\-sysclk\-lwla1016 \- Extract SysClk LWLA1016 firmware
+.SH "SYNOPSIS"
+.B sigrok\-fwextract\-sysclk\-lwla1016 LWLA1016-INST-DIR
+.SH "DESCRIPTION"
+This tool extracts FPGA bitstreams from the vendor software for the SysClk
+LWLA1016 USB logic analyzer. Install the original software (possibly within
+a virtual machine) and locate the installation directory.
+.PP
+In order to extract the bitstreams, run the following command:
+.PP
+.B "  $ sigrok-fwextract-sysclk-lwla1016 INSTALL-DIR"
+.PP
+Copy the resulting four bitstream files over to the location where libsigrok
+expects to find its firmware files. By default this is
+.BR /usr/local/share/sigrok-firmware .
+.SH OPTIONS
+None.
+.SH "EXIT STATUS"
+Exits with 0 on success, 1 on most failures.
+.SH "SEE ALSO"
+\fBsigrok\-fwextract\-hantek\-dso\fP(1)
+.SH "BUGS"
+Please report any bugs via Bugzilla
+.RB "(" http://sigrok.org/bugzilla ")"
+or on the sigrok\-devel mailing list
+.RB "(" sigrok\-devel@lists.souceforge.net ")."
+.SH "LICENSE"
+This program is covered by the GNU General Public License (GPL),
+version 3 or later.
+.SH "AUTHORS"
+Please see the individual source code files.
