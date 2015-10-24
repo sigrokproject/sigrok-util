@@ -143,6 +143,11 @@ local strobe_numbers = {
    [23] = "LA_CHANNEL",
 }
 
+-- Magic values
+local magic = {
+    [0x4C4E] = "LabNation",
+}
+
 
 -- Create the fields exhibited by the protocol.
 p_smartscope.fields.header   = ProtoField.uint8("smartscope.header", "Header", base.HEX_DEC, headers)
@@ -174,9 +179,56 @@ p_smartscope.fields.fpga_packets = ProtoField.uint16("smartscope.fpga_packets", 
 p_smartscope.fields.fpga_data = ProtoField.bytes("smartscope.fpga_data", "FPGA bitstream data")
 p_smartscope.fields.rawdata   = ProtoField.bytes("smartscope.rawdata", "Raw Message Data")
 
+p_smartscope.fields.magic = ProtoField.uint16("smartscope.magic", "Magic", base.HEX_DEC, magic)
+p_smartscope.fields.header_offset = ProtoField.uint8("smartscope.header_offset", "Header offset", base.HEX_DEC)
+p_smartscope.fields.bytes_per_burst = ProtoField.uint8("smartscope.bytes_per_burst", "Bytes per burst", base.HEX_DEC)
+p_smartscope.fields.number_of_payload_bursts = ProtoField.uint16("smartscope.number_of_payload_bursts", "Number of payload bursts", base.HEX_DEC)
+p_smartscope.fields.package_offset = ProtoField.uint16("smartscope.package_offset", "Package offset", base.HEX_DEC)
+p_smartscope.fields.acquiring = ProtoField.bool("smartscope.acquiring", "Acquiring", 8, nil, 0x01)
+p_smartscope.fields.overview_buffer = ProtoField.bool("smartscope.overview_buffer", "Overview Buffer", 8, nil, 0x02)
+p_smartscope.fields.last_acquisition = ProtoField.bool("smartscope.last_acquisition", "Last Acquisition", 8, nil, 0x04)
+p_smartscope.fields.rolling = ProtoField.bool("smartscope.rolling", "Rolling", 8, nil, 0x08)
+p_smartscope.fields.timed_out = ProtoField.bool("smartscope.timed_out", "Timed Out", 8, nil, 0x10)
+p_smartscope.fields.awaiting_trigger = ProtoField.bool("smartscope.awaiting_trigger", "Awaiting Trigger", 8, nil, 0x20)
+p_smartscope.fields.armed = ProtoField.bool("smartscope.armed", "Armed", 8, nil, 0x40)
+p_smartscope.fields.full_acquisition_dump = ProtoField.bool("smartscope.full_acquisition_dump", "Full Acquisition Dump", 8, nil, 0x80)
+p_smartscope.fields.acquisition_id = ProtoField.uint8("smartscope.acquisition_id", "Acquisition ID", base.HEX_DEC)
+p_smartscope.fields.header_trigger_level = ProtoField.uint8("smartscope.header.trigger_level", "Trigger Level", base.HEX_DEC)
+p_smartscope.fields.header_trigger_mode = ProtoField.uint8("smartscope.header.trigger_mode", "Trigger Mode", base.HEX_DEC)
+p_smartscope.fields.header_trigger_width = ProtoField.uint8("smartscope.header.trigger_width", "Trigger Width", base.HEX_DEC)
+p_smartscope.fields.header_trigger_holdoff = ProtoField.uint32("smartscope.header.trigger_holdoff", "Trigger Holdoff", base.HEX_DEC)
+p_smartscope.fields.header_cha_yoffset_voltage = ProtoField.uint8("smartscope.header.cha_yoffset_voltage", "Channel A Y-Offset Voltage", base.HEX_DEC)
+p_smartscope.fields.header_chb_yoffset_voltage = ProtoField.uint8("smartscope.header.chb_yoffset_voltage", "Channel B Y-Offset Voltage", base.HEX_DEC)
+p_smartscope.fields.header_divider_multiplier = ProtoField.uint8("smartscope.header.divider_multiplier", "Divider Multiplier", base.HEX_DEC)
+p_smartscope.fields.header_input_decimation = ProtoField.uint8("smartscope.header.input_decimation", "Input Decimation", base.HEX_DEC)
+p_smartscope.fields.header_trigger_threshold = ProtoField.uint8("smartscope.header.trigger_threshold", "Trigger Threshold", base.HEX_DEC)
+p_smartscope.fields.header_trigger_pwm = ProtoField.uint8("smartscope.header.trigger_pwm", "Trigger PWM", base.HEX_DEC)
+p_smartscope.fields.header_trigger_rising = ProtoField.uint8("smartscope.header.trigger_rising", "Trigger Rising", base.HEX_DEC)
+p_smartscope.fields.header_trigger_falling = ProtoField.uint8("smartscope.header.trigger_falling", "Trigger Falling", base.HEX_DEC)
+p_smartscope.fields.header_trigger_high = ProtoField.uint8("smartscope.header.trigger_high", "Trigger High", base.HEX_DEC)
+p_smartscope.fields.header_trigger_low = ProtoField.uint8("smartscope.header.trigger_low", "Trigger Low", base.HEX_DEC)
+p_smartscope.fields.header_acquisition_depth = ProtoField.uint8("smartscope.header.acquisition_depth", "Acquisition Depth", base.HEX_DEC)
+p_smartscope.fields.header_view_decimation = ProtoField.uint8("smartscope.header.view_decimation", "View Decimation", base.HEX_DEC)
+p_smartscope.fields.header_view_offset = ProtoField.uint24("smartscope.header.view_offset", "View Offset", base.HEX_DEC)
+p_smartscope.fields.header_view_acquisitions = ProtoField.uint8("smartscope.header.view_acquisitions", "View Acquisitions", base.HEX_DEC)
+p_smartscope.fields.header_view_bursts = ProtoField.uint8("smartscope.header.view_bursts", "View Bursts", base.HEX_DEC)
+p_smartscope.fields.header_view_excess = ProtoField.uint16("smartscope.header.view_excess", "View Excess", base.HEX_DEC)
+p_smartscope.fields.header_awg_enable = ProtoField.bool("smartscope.header.awg_enable", "AWG Enable", 8, nil, 0x01)
+p_smartscope.fields.header_la_enable = ProtoField.bool("smartscope.header.la_enable", "LA Enable", 8, nil, 0x02)
+p_smartscope.fields.header_cha_coupling = ProtoField.bool("smartscope.header.cha_coupling", "Channel A Coupling", 8, {"DC", "AC"}, 0x04)
+p_smartscope.fields.header_chb_coupling = ProtoField.bool("smartscope.header.chb_coupling", "Channel B Coupling", 8, {"DC", "AC"}, 0x08)
+p_smartscope.fields.header_digi_debug = ProtoField.bool("smartscope.header.digi_debug", "Digi Debug", 8, nil, 0x10)
+p_smartscope.fields.header_roll = ProtoField.bool("smartscope.header.rolling", "Rolling", 8, nil, 0x20)
+p_smartscope.fields.header_la_channel = ProtoField.bool("smartscope.header.la_channel", "LA Channel", 8, {"Channel B", "Channel A"}, 0x40)
+
+p_smartscope.fields.acq_data = ProtoField.bytes("smartscope.acquisition_data", "Acquisition data")
+
+
 -- State variables
 local pktFpgaData
 local fpgaDataCount
+local pktAcqData
+local acqDataCount
 
 -- Dissect control command messages.
 local function dissect_command(range, pinfo, tree, command)
@@ -316,6 +368,69 @@ local function dissect_answer(range, pinfo, tree, command)
     end
 end
 
+-- Dissect buld data header.
+local function dissect_dataheader(range, pinfo, tree)
+   local subtree = tree:add(range, "Header")
+   subtree:add(p_smartscope.fields.header_trigger_level, range(0,1))
+   subtree:add(p_smartscope.fields.header_trigger_mode, range(1,1))
+   subtree:add(p_smartscope.fields.header_trigger_width, range(2,1))
+   subtree:add_le(p_smartscope.fields.header_trigger_holdoff, range(3,4))
+   subtree:add(p_smartscope.fields.header_cha_yoffset_voltage, range(7,1))
+   subtree:add(p_smartscope.fields.header_chb_yoffset_voltage, range(8,1))
+   subtree:add(p_smartscope.fields.header_divider_multiplier, range(9,1))
+   subtree:add(p_smartscope.fields.header_input_decimation, range(10,1))
+   subtree:add(p_smartscope.fields.header_trigger_threshold, range(11,1))
+   subtree:add(p_smartscope.fields.header_trigger_pwm, range(12,1))
+   subtree:add(p_smartscope.fields.header_trigger_rising, range(13,1))
+   subtree:add(p_smartscope.fields.header_trigger_falling, range(14,1))
+   subtree:add(p_smartscope.fields.header_trigger_high, range(15,1))
+   subtree:add(p_smartscope.fields.header_trigger_low, range(16,1))
+   subtree:add(p_smartscope.fields.header_acquisition_depth, range(17,1))
+   subtree:add(p_smartscope.fields.header_view_decimation, range(18,1))
+   subtree:add_le(p_smartscope.fields.header_view_offset, range(19,3))
+   subtree:add(p_smartscope.fields.header_view_acquisitions, range(22,1))
+   subtree:add(p_smartscope.fields.header_view_bursts, range(23,1))
+   subtree:add_le(p_smartscope.fields.header_view_excess, range(24,2))
+   subtree:add(p_smartscope.fields.header_awg_enable, range(26,1))
+   subtree:add(p_smartscope.fields.header_la_enable, range(26,1))
+   subtree:add(p_smartscope.fields.header_cha_coupling, range(26,1))
+   subtree:add(p_smartscope.fields.header_chb_coupling, range(26,1))
+   subtree:add(p_smartscope.fields.header_digi_debug, range(26,1))
+   subtree:add(p_smartscope.fields.header_roll, range(26,1))
+   subtree:add(p_smartscope.fields.header_la_channel, range(26,1))
+end
+
+-- Dissect bulk data.
+local function dissect_data(range, pinfo, tree)
+   tree:add(p_smartscope.fields.magic, range(0,2))
+   if (range(0,2):uint() ~= 0x4C4E) then
+      return
+   end
+   pinfo.cols.info = string.format("<- Acquisition header")
+   tree:add(p_smartscope.fields.header_offset, range(2,1))
+   tree:add(p_smartscope.fields.bytes_per_burst, range(3,1))
+   tree:add_le(p_smartscope.fields.number_of_payload_bursts, range(4,2))
+   tree:add_le(p_smartscope.fields.package_offset, range(6,2))
+   tree:add(p_smartscope.fields.acquiring, range(10,1))
+   tree:add(p_smartscope.fields.overview_buffer, range(10,1))
+   tree:add(p_smartscope.fields.last_acquisition, range(10,1))
+   tree:add(p_smartscope.fields.rolling, range(10,1))
+   tree:add(p_smartscope.fields.timed_out, range(10,1))
+   tree:add(p_smartscope.fields.awaiting_trigger, range(10,1))
+   tree:add(p_smartscope.fields.armed, range(10,1))
+   tree:add(p_smartscope.fields.full_acquisition_dump, range(10,1))
+   tree:add(p_smartscope.fields.acquisition_id, range(11,1))
+   dissect_dataheader(range(range(2,1):uint(), 27), pinfo, tree)
+   pinfo.cols.info:append(string.format(" id=0x%02x", range(11,1):uint()))
+   acqDataCount = range(3,1):uint() * range(4,2):le_uint()
+   if (bit.band(range(10,1):uint(), 0x02) ~= 0) then
+      pinfo.cols.info:append(" (overview buffer)")
+      acqDataCount = 4096
+   elseif (bit.band(range(10,1):uint(), 0x80) ~= 0) then
+      pinfo.cols.info:append(string.format(" (full acquisition dump offset=%d)", range(6,2):le_uint()))
+   end
+end
+
 -- Main dissector function.
 function p_smartscope.dissector(tvb, pinfo, tree)
     local transfer_type = tonumber(tostring(f_transfer_type()))
@@ -327,13 +442,31 @@ function p_smartscope.dissector(tvb, pinfo, tree)
         local direction = tonumber(tostring(f_direction()))
 
         -- Payload-carrying packets only.
-        if (urb_type == 83 and endpoint == 2 and direction == 0)   -- 'S' - Submit
+        if (urb_type == 67 and endpoint == 1 and direction == 1)     -- 'C' - Complete
+            or (urb_type == 83 and endpoint == 2 and direction == 0) -- 'S' - Submit
             or (urb_type == 67 and endpoint == 3 and direction == 1) -- 'C' - Complete
         then
             pinfo.cols.protocol = p_smartscope.name
 
             local subtree = tree:add(p_smartscope, tvb(), "SmartScope")
             subtree:add(p_smartscope.fields.rawdata, tvb())
+
+	    if endpoint == 1 and direction == 1 then
+	        if pktAcqData[pinfo.number] == nil then
+		    pktAcqData[pinfo.number] = (acqDataCount > 0)
+		    if acqDataCount > tvb:len() then
+		       acqDataCount = acqDataCount - tvb:len()
+		    else
+		       acqDataCount = 0
+		    end
+		end
+
+		if pktAcqData[pinfo.number] == true then
+		    subtree:add(p_smartscope.fields.acq_data, tvb())
+		    pinfo.cols.info = string.format("<- Acquisition data (%d bytes)", tvb:len())
+		    return
+		end
+	    end
 
 	    if endpoint == 2 and direction == 0 then
 	        if pktFpgaData[pinfo.number] == nil then
@@ -351,6 +484,11 @@ function p_smartscope.dissector(tvb, pinfo, tree)
 		    return
 		end
 
+	    end
+
+	    if endpoint == 1 then
+	       dissect_data(tvb, pinfo, subtree)
+	       return
 	    end
 
 	    local header = tvb(0,1):uint()
@@ -371,6 +509,8 @@ function p_smartscope.init()
 
     pktFpgaData = {}
     fpgaDataCount = 0
+    pktAcqData = {}
+    acqDataCount = 0
 
     local usb_product_dissectors = DissectorTable.get("usb.product")
 
