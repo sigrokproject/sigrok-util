@@ -1,0 +1,61 @@
+#!/usr/bin/python3
+##
+## This file is part of the sigrok-util project.
+##
+## Copyright (C) 2015 Tilman Sauerbeck <tilman@code-monkey.de>
+##
+## This program is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation; either version 3 of the License, or
+## (at your option) any later version.
+##
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, see <http://www.gnu.org/licenses/>.
+##
+
+import sys
+
+def reverse_bits8(x):
+    '''
+    Reverses the bits in the given byte.
+    '''
+    x = (x & 0x55) << 1 | (x & 0xaa) >> 1
+    x = (x & 0x33) << 2 | (x & 0xcc) >> 2
+    x = (x & 0x0f) << 4 | (x & 0xf0) >> 4
+
+    return x
+
+def main():
+    with open(sys.argv[1], 'rb') as f:
+        data = f.read()
+
+    ident = 'FPGA_BINS'
+
+    firmware_offset = data.index(ident.encode(encoding = 'UTF-16-LE'))
+    firmware_offset += len(ident) * 2
+
+    bitstream_size = 464196
+
+    blobs = [
+        ('lecroy-logicstudio16-16.bitstream', 0),
+        ('lecroy-logicstudio16-8.bitstream', bitstream_size)
+    ]
+
+    for (blob_name, blob_offset) in blobs:
+        out_bytes = bytearray()
+
+        for u in range(blob_offset, blob_offset + bitstream_size):
+            inb = data[firmware_offset + u]
+            outb = reverse_bits8(inb)
+            out_bytes.append(outb)
+
+        with open(blob_name, 'wb') as f:
+            f.write(out_bytes)
+
+        print('Wrote {}'.format(blob_name))
+main()

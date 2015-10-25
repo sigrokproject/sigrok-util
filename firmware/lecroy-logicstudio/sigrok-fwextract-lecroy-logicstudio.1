@@ -1,0 +1,32 @@
+.TH SIGROK\-FWEXTRACT\-LECROY\-LOGICSTUDIO 1 "Oct 25, 2015"
+.SH "NAME"
+sigrok\-fwextract\-lecroy\-logicstudio \- Extract LeCroy LogicStudio firmware
+.SH "SYNOPSIS"
+.B sigrok\-fwextract\-lecroy\-logicstudio [FILE]
+.SH "DESCRIPTION"
+This tool extracts firmware from the Windows software that ships with the LeCroy LogicStudio logic analyzer. It is called with the path to
+.B LS16Lib.dll
+as its only argument, e.g.:
+.PP
+.B "  $ sigrok-fwextract-lecroy-logicstudio /path/to/LogicStudio/LS16Lib.dll"
+.PP
+The program will then write two FPGA bitstream files to the current directory.
+Copy these over to the location where libsigrok expects to find its firmware
+files. By default this is
+.BR /usr/local/share/sigrok-firmware .
+.SH OPTIONS
+None.
+.SH "EXIT STATUS"
+Exits with 0 on success, 1 on most failures.
+.SH "SEE ALSO"
+\fBsigrok\-fwextract\-saleae\-logic16\fP(1)
+.SH "BUGS"
+Please report any bugs via Bugzilla
+.RB "(" http://sigrok.org/bugzilla ")"
+or on the sigrok\-devel mailing list
+.RB "(" sigrok\-devel@lists.souceforge.net ")."
+.SH "LICENSE"
+This program is covered by the GNU General Public License (GPL),
+version 3 or later.
+.SH "AUTHORS"
+Please see the individual source code files.
