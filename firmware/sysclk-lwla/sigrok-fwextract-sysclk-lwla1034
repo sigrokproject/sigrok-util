@@ -35,7 +35,7 @@ if [ "$2" != "$expectsum" ]; then
 fi
 
 # Extract the firmware binaries from the executable
-dd bs=1 skip=34110338 count=78398 if="$infile" of=sysclk-lwla1034-int.bitstream
-dd bs=1 skip=34266237 count=78247 if="$infile" of=sysclk-lwla1034-extpos.bitstream
-dd bs=1 skip=34344484 count=79145 if="$infile" of=sysclk-lwla1034-extneg.bitstream
-dd bs=1 skip=34578631 count=48525 if="$infile" of=sysclk-lwla1034-off.bitstream
+dd bs=1 skip=34110342 count=78394 if="$infile" of=sysclk-lwla1034-int.rbf
+dd bs=1 skip=34266241 count=78243 if="$infile" of=sysclk-lwla1034-extpos.rbf
+dd bs=1 skip=34344488 count=79141 if="$infile" of=sysclk-lwla1034-extneg.rbf
+dd bs=1 skip=34578635 count=48521 if="$infile" of=sysclk-lwla1034-off.rbf
