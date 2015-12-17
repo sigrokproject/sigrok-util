@@ -4,14 +4,11 @@ MXE setup for sigrok usage.
  - Force libzip to use its own mkstemp() implementation.
    http://sigrok.org/bugzilla/show_bug.cgi?id=570#c2
 
- - Disable currently broken freetds (optional Qt dependency).
-   https://github.com/mxe/mxe/issues/770
-
  - Disable currently broken qtassistant (we don't need it anyway).
    https://github.com/mxe/mxe/issues/565
-   
+
 diff --git a/src/libzip.mk b/src/libzip.mk
-index 99606d3..fd18276 100644
+index 9d1e189..d4d5bf9 100644
 --- a/src/libzip.mk
 +++ b/src/libzip.mk
 @@ -18,7 +18,8 @@ endef
@@ -20,34 +17,17 @@ index 99606d3..fd18276 100644
      cd '$(1)' && ./configure \
 -        $(MXE_CONFIGURE_OPTS)
 +        $(MXE_CONFIGURE_OPTS) \
-+	ac_cv_func_mkstemp=no
++        ac_cv_func_mkstemp=no
      $(MAKE) -C '$(1)' -j '$(JOBS)' install $(MXE_DISABLE_CRUFT) SUBDIRS=lib
  
      '$(TARGET)-gcc' \
 diff --git a/src/qt.mk b/src/qt.mk
-index f71f5c9..d7fdff1 100644
+index 5bf3b08..bd8ef7a 100644
 --- a/src/qt.mk
 +++ b/src/qt.mk
-@@ -8,7 +8,7 @@ $(PKG)_CHECKSUM := 76aef40335c0701e5be7bb3a9101df5d22fe3666
- $(PKG)_SUBDIR   := $(PKG)-everywhere-opensource-src-$($(PKG)_VERSION)
- $(PKG)_FILE     := $(PKG)-everywhere-opensource-src-$($(PKG)_VERSION).tar.gz
- $(PKG)_URL      := http://download.qt.io/official_releases/qt/4.8/$($(PKG)_VERSION)/$($(PKG)_FILE)
--$(PKG)_DEPS     := gcc postgresql freetds openssl zlib libpng jpeg libmng tiff sqlite dbus
-+$(PKG)_DEPS     := gcc postgresql openssl zlib libpng jpeg libmng tiff sqlite dbus
- 
- define $(PKG)_UPDATE
-     $(WGET) -q -O- http://download.qt-project.org/official_releases/qt/4.8/ | \
-@@ -56,7 +56,6 @@ define $(PKG)_BUILD
-         -qt-sql-odbc \
-         -qt-sql-psql \
-         -no-sql-mysql \
--        -qt-sql-tds -D Q_USE_SYBASE \
-         -system-zlib \
-         -system-libpng \
-         -system-libjpeg \
-@@ -76,12 +75,12 @@ define $(PKG)_BUILD
+@@ -75,12 +75,12 @@ define $(PKG)_BUILD
+     # lrelease (from linguist) needed to prepare translation files
      $(MAKE) -C '$(1)/tools/linguist/lrelease' -j '$(JOBS)' install
-     ln -fs '$(PREFIX)/$(TARGET)/bin/lrelease' '$(PREFIX)/bin/$(TARGET)-lrelease'
  
 -    cd '$(1)/tools/assistant' && '$(1)/bin/qmake' assistant.pro
 -    # can't figure out where -lQtCLucene comes from so use
