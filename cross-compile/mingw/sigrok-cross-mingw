@@ -53,7 +53,7 @@ GIT_CLONE="git clone --depth=1"
 # We need to find tools in the toolchain.
 export PATH=$MXE/usr/bin:$PATH
 
-TOOLCHAIN_TRIPLET="$TARGET-w64-mingw32.static"
+TOOLCHAIN_TRIPLET="$TARGET-w64-mingw32.static.posix"
 
 P="$PREFIX/lib/pkgconfig"
 P2="$MXE/usr/$TOOLCHAIN_TRIPLET/lib/pkgconfig"
@@ -62,9 +62,9 @@ CM="-DCMAKE_TOOLCHAIN_FILE=$MXE/usr/$TOOLCHAIN_TRIPLET/share/cmake/mxe-conf.cmak
 L="--disable-shared --enable-static"
 
 if [ $TARGET = "i686" ]; then
-	export PKG_CONFIG_PATH_i686_w64_mingw32_static="$P:$P2"
+	export PKG_CONFIG_PATH_i686_w64_mingw32_static_posix="$P:$P2"
 else
-	export PKG_CONFIG_PATH_x86_64_w64_mingw32_static="$P:$P2"
+	export PKG_CONFIG_PATH_x86_64_w64_mingw32_static_posix="$P:$P2"
 fi
 
 # Remove build directory contents (if any) and create a new build dir.
