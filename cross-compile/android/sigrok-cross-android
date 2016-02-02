@@ -496,6 +496,7 @@ find $PREFIX -iname "*.so" -exec ${TOOLCHAIN_TRIPLET}-strip -S {} \;
 # PulseView
 $GIT_CLONE git://sigrok.org/pulseview
 cd pulseview
+patch -p1 < ../../pv_cmake_pkgconfig_fix.patch
 cmake $CM -DENABLE_TESTS=y .
 make $PARALLEL $V
 ${TOOLCHAIN_TRIPLET}-strip -S libs/$TARGET_ARCH/libpulseview.so
