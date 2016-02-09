@@ -77,7 +77,8 @@ VER_LIBFTDI1=1.2
 VER_LIBUSB=1.0.19
 VER_PYTHON=3.3.3
 VER_BOOST=1.58.0
-VER_QT=5.5.1
+VER_QT=5.6.0
+VER_QT_SHORT=5.6
 VER_SIGROK_FIRMWARE_FX2LAFW=0.1.3
 VER_NDK=10e
 VER_SDK=24.4.1
@@ -445,9 +446,9 @@ echo "using gcc : $NDK_TOOLCHAIN_VERSION : \"${TOOLCHAIN_TRIPLET}-g++\" : <cxxfl
 cd ..
 
 # Qt (needed for PulseView)
-$WGET http://download.qt-project.org/official_releases/qt/${VER_QT%.*}/${VER_QT}/single/qt-everywhere-opensource-src-${VER_QT}.tar.gz
-tar xfz qt-everywhere-opensource-src-${VER_QT}.tar.gz
-cd qt-everywhere-opensource-src-${VER_QT}
+$WGET http://download.qt.io/snapshots/qt/${VER_QT_SHORT}/${VER_QT}-beta/latest_src/qt-everywhere-opensource-src-${VER_QT}-beta.tar.gz
+tar xfz qt-everywhere-opensource-src-${VER_QT}-beta.tar.gz
+cd qt-everywhere-opensource-src-${VER_QT}-beta
 patch -p1 < ../../android-qt.patch
 CC= CXX= ./configure \
 	--prefix="$PREFIX" \
@@ -470,8 +471,6 @@ CC= CXX= ./configure \
 	-skip qttools \
 	-skip qttranslations \
 	-skip qtwebchannel \
-	-skip qtwebkit \
-	-skip qtwebkit-examples \
 	-skip qtwebsockets \
 	-skip qtxmlpatterns \
 	-opensource -confirm-license -silent
