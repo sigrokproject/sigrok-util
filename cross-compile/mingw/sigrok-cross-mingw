@@ -117,6 +117,7 @@ $WGET http://zadig.akeo.ie/downloads/zadig_xp.exe -O $PREFIX/zadig_xp.exe
 # libusb
 $GIT_CLONE git://github.com/dickens/libusb -b event-abstraction-v4
 cd libusb
+patch -p1 < ../../libusb_raw_io.patch
 ./bootstrap.sh
 ./configure $C $L
 make -j1 $V
