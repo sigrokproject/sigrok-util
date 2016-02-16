@@ -1,0 +1,170 @@
+#!/bin/sh
+##
+## This file is part of the sigrok-util project.
+##
+## Copyright (C) 2016 Uwe Hermann <uwe@hermann-uwe.de>
+##
+## This program is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation; either version 2 of the License, or
+## (at your option) any later version.
+##
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the Free Software
+## Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
+##
+
+set -e
+
+# Build target: "i686" (32bit) or "x86_64" (64bit).
+TARGET="i686"
+
+# The path where the compiled packages will be installed.
+PREFIX=$HOME/sr_msys2
+
+# The path where to download files to and where to build packages.
+BUILDDIR=./build
+
+# The path where the libsigrok Python bindings will be installed.
+PYPATH=$PREFIX/lib/python2.7/site-packages
+
+# Edit this to control verbose build output.
+# V="V=1 VERBOSE=1"
+
+# Edit this to enable/disable/modify parallel compiles.
+PARALLEL="-j 2"
+
+# You usually don't need to change anything below this line.
+
+# -----------------------------------------------------------------------------
+
+VER_SIGROK_FIRMWARE_FX2LAFW=0.1.3
+
+# -----------------------------------------------------------------------------
+
+P="$PREFIX/lib/pkgconfig"
+C="$C --prefix=$PREFIX"
+L="--disable-shared --enable-static"
+
+# Path to Qt binaries (needed for cmake to find the Qt libs).
+PATH="/mingw32/qt5-static/bin:$PATH"
+
+W="mingw-w64-$TARGET"
+
+WGET="wget -c --quiet"
+GIT_CLONE="git clone --depth=1"
+
+# Remove build directory contents (if any) and create a new build dir.
+rm -rf $BUILDDIR
+mkdir $BUILDDIR
+cd $BUILDDIR
+
+# -----------------------------------------------------------------------------
+
+if [ "x$1" = "xprepare" ]; then
+  # Update package list, install/update all requirements.
+  pacman -Sy
+  pacman -S \
+	autoconf automake libtool make pkg-config wget patch \
+	$W-toolchain $W-glib2 $W-glibmm $W-libusb $W-check $W-boost \
+	$W-libzip $W-doxygen $W-python3 $W-python3-numpy $W-python3-gobject \
+	$W-python3-setuptools $W-swig $W-qt5-static $W-cmake
+  exit
+fi
+
+# -----------------------------------------------------------------------------
+
+# libusb
+$GIT_CLONE git://github.com/dickens/libusb -b event-abstraction-v4
+cd libusb
+./bootstrap.sh
+./configure $C $L
+make -j1 $V
+make install $V
+cd ..
+
+# libserialport
+$GIT_CLONE git://sigrok.org/libserialport
+cd libserialport
+./autogen.sh
+mkdir build
+cd build
+../configure $C $L
+$SB make $PARALLEL $V
+make install $V
+cd ../..
+
+# libsigrok
+mkdir -p $PYPATH
+$GIT_CLONE git://sigrok.org/libsigrok
+cd libsigrok
+./autogen.sh
+mkdir build
+cd build
+PKG_CONFIG_PATH=$P ../configure $C $L --disable-python
+$SB make $PARALLEL $V
+PYTHONPATH=$PYPATH $SB make install $V
+# $SB make check $V # TODO
+cd ../..
+
+# libsigrokdecode
+$GIT_CLONE git://sigrok.org/libsigrokdecode
+cd libsigrokdecode
+./autogen.sh
+mkdir build
+cd build
+PKG_CONFIG_PATH=$P ../configure $C $L
+$SB make $PARALLEL $V
+make install $V
+# $SB make check $V # TODO
+cd ../..
+
+# sigrok-firmware
+$GIT_CLONE git://sigrok.org/sigrok-firmware
+cd sigrok-firmware
+./autogen.sh
+mkdir build
+cd build
+# Nothing gets cross-compiled here, we just need 'make install' basically.
+../configure $C
+make install $V
+cd ../..
+
+# sigrok-firmware-fx2lafw
+$WGET http://sigrok.org/download/binary/sigrok-firmware-fx2lafw/sigrok-firmware-fx2lafw-bin-$VER_SIGROK_FIRMWARE_FX2LAFW.tar.gz
+tar xfz sigrok-firmware-fx2lafw-bin-$VER_SIGROK_FIRMWARE_FX2LAFW.tar.gz
+cd sigrok-firmware-fx2lafw-bin-$VER_SIGROK_FIRMWARE_FX2LAFW
+cp *.fw $PREFIX/share/sigrok-firmware/
+cd ..
+
+# TODO: Doesn't build, libsigrokdecode linking errors.
+# # sigrok-cli
+# $GIT_CLONE git://sigrok.org/sigrok-cli
+# cd sigrok-cli
+# ./autogen.sh
+# mkdir build
+# cd build
+# PKG_CONFIG_PATH=$P ../configure $C $L
+# $SB make $PARALLEL $V
+# make install $V
+# # makensis -DHOME=$HOME contrib/sigrok-cli_cross.nsi # TODO
+# cd ../..
+
+# TODO: Doesn't build, various linking errors.
+# PulseView
+$GIT_CLONE git://sigrok.org/pulseview
+cd pulseview
+mkdir build
+cd build
+PKG_CONFIG_PATH=$P $SB cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX:PATH=$PREFIX -DDISABLE_WERROR=y -DENABLE_TESTS=n ..
+$SB make $PARALLEL $V
+make install $V
+# $SB make test $V # TODO
+# makensis -DHOME=$HOME contrib/pulseview_cross.nsi # TODO
+cd ../..
+
