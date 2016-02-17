@@ -1,0 +1,59 @@
+-------------------------------------------------------------------------------
+README
+-------------------------------------------------------------------------------
+
+This is a small script for compiling sigrok and its dependencies natively
+on MSYS2/Windows systems.
+
+
+Status
+------
+
+NOT fully working! This is work in progress.
+
+
+Requirements
+------------
+
+See below for instructions on how to install the requirements.
+
+
+Toolchain setup
+---------------
+
+First, you need to install MSYS2 (use the 64bit installer, msys2-x86_64-*.exe):
+
+  https://sourceforge.net/p/msys2/wiki/MSYS2%20installation/
+
+Then, perform the MSYS2 update procedure as per the documentation above.
+
+  $ update-core
+    (If one of the packages is updated here, you MUST restart MSYS2)
+  $ pacman -Su
+
+Now close the shell and start an "MSYS2 MinGW32" shell (do NOT use the
+"MSYS2 Shell", and do NOT use the "MSYS2 MinGW64" shell). All other
+steps will always have to be performed in an "MSYS2 MinGW32" shell.
+
+Install the MSYS2 git package there:
+
+  $ pacman -Sy
+  $ pacman -S git
+
+This is all that is needed to bootstrap your MSYS2 system. You can now use
+our sigrok-native-msys2 script to install all other required MSYS2 packages:
+
+  $ ./sigrok-native-msys2 prepare
+
+
+Building
+--------
+
+ $ ./sigrok-native-msys2
+
+Per default it will install the compiled packages in:
+
+ $HOME/sr_msys2
+
+Please edit the script if you want to change any settings.
+
