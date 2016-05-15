@@ -446,9 +446,9 @@ echo "using gcc : $NDK_TOOLCHAIN_VERSION : \"${TOOLCHAIN_TRIPLET}-g++\" : <cxxfl
 cd ..
 
 # Qt (needed for PulseView)
-$WGET http://download.qt.io/snapshots/qt/${VER_QT_SHORT}/${VER_QT}-beta/latest_src/qt-everywhere-opensource-src-${VER_QT}-beta.tar.gz
-tar xfz qt-everywhere-opensource-src-${VER_QT}-beta.tar.gz
-cd qt-everywhere-opensource-src-${VER_QT}-beta
+$WGET http://download.qt.io/official_releases/qt/${VER_QT_SHORT}/${VER_QT}/single/qt-everywhere-opensource-src-${VER_QT}.tar.xz
+tar xfi qt-everywhere-opensource-src-${VER_QT}.tar.xz
+cd qt-everywhere-opensource-src-${VER_QT}
 patch -p1 < ../../android-qt.patch
 CC= CXX= ./configure \
 	--prefix="$PREFIX" \
