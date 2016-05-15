@@ -208,7 +208,7 @@ fi
 # -----------------------------------------------------------------------------
 
 # Get the latest versions of config.guess/config.sub that know about Android.
-$GIT_CLONE git://git.savannah.gnu.org/config.git
+$GIT_CLONE http://git.savannah.gnu.org/r/config.git
 
 # Get a toolchain for cmake that knows about Android.
 $WGET https://android-cmake.googlecode.com/hg/toolchain/android.toolchain.cmake
