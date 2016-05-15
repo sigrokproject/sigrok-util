@@ -211,7 +211,7 @@ fi
 $GIT_CLONE http://git.savannah.gnu.org/r/config.git
 
 # Get a toolchain for cmake that knows about Android.
-$WGET https://android-cmake.googlecode.com/hg/toolchain/android.toolchain.cmake
+$WGET https://raw.githubusercontent.com/arithran/android-cmake/master/toolchain/android.toolchain.cmake
 patch < ../android.toolchain.cmake.patch android.toolchain.cmake
 
 # -----------------------------------------------------------------------------
