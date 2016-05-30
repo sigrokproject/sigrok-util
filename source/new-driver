@@ -36,16 +36,6 @@ libsigrok_la_SOURCES += \\
 	src/hardware/${short}/api.c
 endif
 """
-TMPL_DRIVERS_EXTERN = """\
-#ifdef HAVE_HW_${upper}
-extern SR_PRIV struct sr_dev_driver ${lib}_driver_info;
-#endif
-"""
-TMPL_DRIVERS_POINTER = """\
-#ifdef HAVE_HW_${upper}
-	(DRVS) {&${lib}_driver_info, NULL},
-#endif
-"""
 FILE_DRV_API = 'drv-api.c'
 FILE_DRV_PROTOCOL = 'drv-protocol.c'
 FILE_DRV_PROTOCOL_H = 'drv-protocol.h'
@@ -72,7 +62,6 @@ def new_driver():
             raise Exception(err.decode())
         gitdir = tmp + '/libsigrok/'
         do_autoconf(gitdir)
-        do_drivers(gitdir)
         do_automake(gitdir)
         do_driverskel(gitdir)
         make_patch(gitdir)
@@ -103,47 +92,6 @@ def do_autoconf(gitdir):
     if state != 'done':
         raise Exception('No SR_DRIVER entries found in configure.ac')
     open(cacpath, 'w').write(out)
-
-
-# add HAVE_HW_ extern and pointers to drivers.c
-def do_drivers(gitdir):
-    path = gitdir + 'src/drivers.c'
-    source = open(path).read()
-    out = ''
-    iflevel = 0
-    state = 'extern'
-    first_entry = ''
-    for line in source.split('\n')[:-1]:
-        m = re.match(r'\s*#\s*if(?:def)?\s+HAVE_HW_(\w+)', line)
-        if m:
-            if iflevel == 0:
-                if not first_entry:
-                    first_entry = m.group(1)
-                elif m.group(1) == first_entry:
-                    # second time we see this, so we're past the externs
-                    if state != 'idle':
-                        # tack driver on to the end of the list
-                        out += tmpl(TMPL_DRIVERS_EXTERN)
-                    state = 'pointer'
-                if state == 'extern':
-                    if m.group(1) > names['upper']:
-                        out += tmpl(TMPL_DRIVERS_EXTERN)
-                        state = 'idle'
-                elif state == 'pointer':
-                    if m.group(1) > names['upper']:
-                        out += tmpl(TMPL_DRIVERS_POINTER)
-                        state = 'done'
-            iflevel += 1
-        elif re.match(r'\s*#\s*endif\b', line):
-            iflevel -= 1
-        elif iflevel == 0 and state == 'pointer':
-            # we passed the last entry
-            out += tmpl(TMPL_DRIVERS_POINTER)
-            state = 'done'
-        out += line + '\n'
-    if state != 'done':
-        raise Exception('No "HAVE_HW_*" markers found in drivers.c' + state)
-    open(path, 'w').write(out)
 
 
 # add HW_ entry to Makefile.am
@@ -186,7 +134,7 @@ def make_patch(gitdir):
     os.chdir(gitdir)
     command('git add src/hardware/' + names['short'])
     cmd = 'git commit -m "%s: Initial driver skeleton." ' % names['short']
-    cmd += 'configure.ac Makefile.am src/drivers.c src/hardware/' + names['short']
+    cmd += 'configure.ac Makefile.am src/hardware/' + names['short']
     command(cmd)
     cmd = "git format-patch HEAD~1"
     out, err = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE).communicate()
