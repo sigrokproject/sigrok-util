@@ -1,7 +1,7 @@
 /*
  * This file is part of the libsigrok project.
  *
- * Copyright (C) ${year} ${author} <${email}>
+ * Copyright (C) {year} {author} <{email}>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,15 +20,15 @@
 #include <config.h>
 #include "protocol.h"
 
-SR_PRIV struct sr_dev_driver ${lib}_driver_info;
+SR_PRIV struct sr_dev_driver {lib}_driver_info;
 
 static int init(struct sr_dev_driver *di, struct sr_context *sr_ctx)
-{
+{{
 	return std_init(sr_ctx, di, LOG_PREFIX);
-}
+}}
 
 static GSList *scan(struct sr_dev_driver *di, GSList *options)
-{
+{{
 	struct drv_context *drvc;
 	GSList *devices;
 
@@ -42,20 +42,20 @@ static GSList *scan(struct sr_dev_driver *di, GSList *options)
 	 * or on a USB scan. */
 
 	return devices;
-}
+}}
 
 static GSList *dev_list(const struct sr_dev_driver *di)
-{
+{{
 	return ((struct drv_context *)(di->context))->instances;
-}
+}}
 
 static int dev_clear(const struct sr_dev_driver *di)
-{
+{{
 	return std_dev_clear(di, NULL);
-}
+}}
 
 static int dev_open(struct sr_dev_inst *sdi)
-{
+{{
 	(void)sdi;
 
 	/* TODO: get handle from sdi->conn and open it. */
@@ -63,10 +63,10 @@ static int dev_open(struct sr_dev_inst *sdi)
 	sdi->status = SR_ST_ACTIVE;
 
 	return SR_OK;
-}
+}}
 
 static int dev_close(struct sr_dev_inst *sdi)
-{
+{{
 	(void)sdi;
 
 	/* TODO: get handle from sdi->conn and close it. */
@@ -74,20 +74,20 @@ static int dev_close(struct sr_dev_inst *sdi)
 	sdi->status = SR_ST_INACTIVE;
 
 	return SR_OK;
-}
+}}
 
 static int cleanup(const struct sr_dev_driver *di)
-{
+{{
 	dev_clear(di);
 
 	/* TODO: free other driver resources, if any. */
 
 	return SR_OK;
-}
+}}
 
 static int config_get(uint32_t key, GVariant **data,
 	const struct sr_dev_inst *sdi, const struct sr_channel_group *cg)
-{
+{{
 	int ret;
 
 	(void)sdi;
@@ -95,18 +95,18 @@ static int config_get(uint32_t key, GVariant **data,
 	(void)cg;
 
 	ret = SR_OK;
-	switch (key) {
+	switch (key) {{
 	/* TODO */
 	default:
 		return SR_ERR_NA;
-	}
+	}}
 
 	return ret;
-}
+}}
 
 static int config_set(uint32_t key, GVariant *data,
 	const struct sr_dev_inst *sdi, const struct sr_channel_group *cg)
-{
+{{
 	int ret;
 
 	(void)data;
@@ -116,18 +116,18 @@ static int config_set(uint32_t key, GVariant *data,
 		return SR_ERR_DEV_CLOSED;
 
 	ret = SR_OK;
-	switch (key) {
+	switch (key) {{
 	/* TODO */
 	default:
 		ret = SR_ERR_NA;
-	}
+	}}
 
 	return ret;
-}
+}}
 
 static int config_list(uint32_t key, GVariant **data,
 	const struct sr_dev_inst *sdi, const struct sr_channel_group *cg)
-{
+{{
 	int ret;
 
 	(void)sdi;
@@ -135,17 +135,17 @@ static int config_list(uint32_t key, GVariant **data,
 	(void)cg;
 
 	ret = SR_OK;
-	switch (key) {
+	switch (key) {{
 	/* TODO */
 	default:
 		return SR_ERR_NA;
-	}
+	}}
 
 	return ret;
-}
+}}
 
 static int dev_acquisition_start(const struct sr_dev_inst *sdi, void *cb_data)
-{
+{{
 	(void)sdi;
 	(void)cb_data;
 
@@ -156,10 +156,10 @@ static int dev_acquisition_start(const struct sr_dev_inst *sdi, void *cb_data)
 	 * callbacks and send header packet. */
 
 	return SR_OK;
-}
+}}
 
 static int dev_acquisition_stop(struct sr_dev_inst *sdi, void *cb_data)
-{
+{{
 	(void)cb_data;
 
 	if (sdi->status != SR_ST_ACTIVE)
@@ -168,11 +168,11 @@ static int dev_acquisition_stop(struct sr_dev_inst *sdi, void *cb_data)
 	/* TODO: stop acquisition. */
 
 	return SR_OK;
-}
+}}
 
-SR_PRIV struct sr_dev_driver ${lib}_driver_info = {
-	.name = "${short}",
-	.longname = "${name}",
+SR_PRIV struct sr_dev_driver {lib}_driver_info = {{
+	.name = "{short}",
+	.longname = "{name}",
 	.api_version = 1,
 	.init = init,
 	.cleanup = cleanup,
@@ -187,6 +187,6 @@ SR_PRIV struct sr_dev_driver ${lib}_driver_info = {
 	.dev_acquisition_start = dev_acquisition_start,
 	.dev_acquisition_stop = dev_acquisition_stop,
 	.context = NULL,
-};
+}};
 
 SR_REGISTER_DEV_DRIVER({lib}_driver_info);

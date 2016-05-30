@@ -27,53 +27,48 @@ import re
 import socket
 import datetime
 
-TMPL_AUTOCONF_DRIVER = "SR_DRIVER([${name}], [${short}])\n"
+TMPL_AUTOCONF_DRIVER = "SR_DRIVER([{name}], [{short}])\n"
 
-TMPL_HWMAKE_DRIVERLIB = """if HW_${upper}
-libsigrok_la_SOURCES += \\
-	src/hardware/${short}/protocol.h \\
-	src/hardware/${short}/protocol.c \\
-	src/hardware/${short}/api.c
-endif
-"""
-FILE_DRV_API = 'drv-api.c'
-FILE_DRV_PROTOCOL = 'drv-protocol.c'
-FILE_DRV_PROTOCOL_H = 'drv-protocol.h'
+TMPL_FILES = ('api.c', 'protocol.c', 'protocol.h')
 
-def tmpl(template):
-    out = re.sub(r'\${([^}]+)}', lambda x: str(names[x.group(1)]), template)
-
-    return out
+TMPL_HWMAKE_DRIVERLIB = """if HW_{upper}
+libsigrok_la_SOURCES +="""
+for tmpl_file in TMPL_FILES:
+    TMPL_HWMAKE_DRIVERLIB += " \\\nsrc/hardware/{short}/" + tmpl_file
+TMPL_HWMAKE_DRIVERLIB += "\nendif"
 
 
-def tmpl_file(filename):
-    template = open(os.path.join(TMPLDIR, filename)).read()
-
-    return tmpl(template)
+def tmpl(template, names):
+    return template.format(**names)
 
 
-def new_driver():
+def tmpl_file(filename, tmpldir, names):
+    with open(os.path.join(tmpldir, filename)) as template:
+        return tmpl(template.read(), names)
+
+
+def new_driver(srcurl, tmpldir, names):
     tmp = tempfile.mkdtemp()
     try:
-        os.chdir(tmp)
-        process = Popen(['git', 'clone', '--depth=1', LIBSR],
+        process = Popen(['git', 'clone', '--depth=1', srcurl, tmp],
                         stdout=PIPE, stderr=PIPE)
         out, err = process.communicate()
         if process.returncode:
             raise Exception(err.decode())
-        gitdir = os.path.join(tmp, 'libsigrok')
-        do_autoconf(gitdir)
-        do_automake(gitdir)
-        do_driverskel(gitdir)
+        gitdir = tmp
+        do_autoconf(gitdir, names)
+        do_automake(gitdir, names)
+        do_driverskel(gitdir, tmpldir, names)
         make_patch(gitdir)
     except Exception as e:
+        raise
         print(e)
     finally:
         shutil.rmtree(tmp)
 
 
-# add DRIVER and DRIVER2 entries to configure.ac
-def do_autoconf(gitdir):
+# add DRIVER entry to configure.ac
+def do_autoconf(gitdir, names):
     cacpath = os.path.join(gitdir, 'configure.ac')
     configure_ac = open(cacpath).read()
 
@@ -87,7 +82,7 @@ def do_autoconf(gitdir):
                 active = True
             if active:
                 if (m and m.group(1).upper() > names['name'].upper()) or m is None:
-                    out += tmpl(TMPL_AUTOCONF_DRIVER)
+                    out += tmpl(TMPL_AUTOCONF_DRIVER, names)
                     state = 'done'
                     active = False
         out += line + '\n'
@@ -97,7 +92,7 @@ def do_autoconf(gitdir):
 
 
 # add HW_ entry to Makefile.am
-def do_automake(gitdir):
+def do_automake(gitdir, names):
     path = os.path.join(gitdir, 'Makefile.am')
     hwmake = open(path).read()
 
@@ -111,12 +106,12 @@ def do_automake(gitdir):
             if m:
                 drv_short = m.group(1)
                 if drv_short > names['upper']:
-                    out += tmpl(TMPL_HWMAKE_DRIVERLIB)
+                    out += tmpl(TMPL_HWMAKE_DRIVERLIB, names)
                     state = 'done'
             elif not re.match(r'\s*libsigrok_la_SOURCES\b|\s*src/hardware/|endif\b', line):
                 print("[%s]" % line.strip())
                 # we passed the last entry
-                out += tmpl(TMPL_HWMAKE_DRIVERLIB)
+                out += tmpl(TMPL_HWMAKE_DRIVERLIB, names)
                 state = 'done'
         out += line + '\n'
     if state != 'done':
@@ -124,30 +119,33 @@ def do_automake(gitdir):
     open(path, 'w').write(out)
 
 
-def do_driverskel(gitdir):
+def do_driverskel(gitdir, tmpldir, names):
     drvdir = os.path.join(gitdir, 'src', 'hardware', names['short'])
     os.mkdir(drvdir)
-    open(os.path.join(drvdir, 'api.c'), 'w').write(tmpl_file(FILE_DRV_API))
-    open(os.path.join(drvdir, 'protocol.c'), 'w').write(tmpl_file(FILE_DRV_PROTOCOL))
-    open(os.path.join(drvdir, 'protocol.h'), 'w').write(tmpl_file(FILE_DRV_PROTOCOL_H))
+    for fname in TMPL_FILES:
+        with open(os.path.join(drvdir, fname), 'w') as outf:
+            outf.write(tmpl_file('drv-{0}'.format(fname), tmpldir, names))
 
 
-def make_patch(gitdir):
-    os.chdir(gitdir)
-    command(['git', 'add', os.path.join('src', 'hardware', names['short'])])
-    cmd = ['git', 'commit',
-           '-m', '%s: Initial driver skeleton.' % names['short'],
-           'configure.ac', 'Makefile.am',
-           os.path.join('src', 'hardware', names['short'])]
-    command(cmd)
-    cmd = ['git', 'format-patch', 'HEAD~1']
-    out, err = Popen(cmd, stdout=PIPE, stderr=PIPE).communicate()
-    if err:
-        raise Exception(err.decode())
-    patch = out.decode().strip()
-    shutil.move(os.path.join(gitdir, patch),
-                os.path.join(scriptdir, patch))
-    print(patch)
+def make_patch(gitdir, names):
+    cwd = os.getcwd()
+    try:
+        os.chdir(gitdir)
+        command(['git', 'add', os.path.join('src', 'hardware', names['short'])])
+        cmd = ['git', 'commit',
+               '-m', '%s: Initial driver skeleton.' % names['short'],
+               'configure.ac', 'Makefile.am',
+               os.path.join('src', 'hardware', names['short'])]
+        command(cmd)
+        cmd = ['git', 'format-patch', 'HEAD~1']
+        out, err = Popen(cmd, stdout=PIPE, stderr=PIPE).communicate()
+        if err:
+            raise Exception(err.decode())
+        patch = out.decode().strip()
+        shutil.move(os.path.join(gitdir, patch), cwd)
+        print("Patch {0} has been generated in {1}".format(patch, cwd))
+    finally:
+        os.chdir(cwd)
 
 
 def command(cmd):
@@ -157,41 +155,54 @@ def command(cmd):
 
 
 def parse_gitconfig():
-    author = email = None
     try:
         author = check_output(["git", "config", "user.name"]).decode().strip();
+    except:
+        author = None
+    try:
         email = check_output(["git", "config", "user.email"]).decode().strip();
     except:
-        print("Please set your name and email in your git config")
-        sys.exit()
+        email = None
     return author, email
+
 
 #
 # main
 #
 
-scriptdir = os.getcwd()
-if scriptdir.split('/')[-2:] != ['sigrok-util', 'source']:
-	print("Please call this script from the 'source' directory.")
-	sys.exit(1)
+if __name__ == '__main__':
+    from argparse import ArgumentParser
 
-LIBSR = 'git://sigrok.org/libsigrok'
-TMPLDIR = scriptdir
+    defaulturl = 'git://sigrok.org/libsigrok'
+    defaultdir = os.path.abspath(os.path.dirname(__file__))
+    author, email = parse_gitconfig()
 
-if len(sys.argv) < 2:
-    print("Usage: new-driver <name>")
-    sys.exit()
+    parser = ArgumentParser(description='Bootstrap a new sigrok hardware driver')
+    parser.add_argument('name', help='new driver name')
+    parser.add_argument('--giturl', default=defaulturl,
+                        help='URL of the libsigrok git repository '
+                        '(defaults to {0})'.format(defaulturl))
+    parser.add_argument('--tmpl-dir', default=defaultdir,
+                        help='Directory in which the templates are stored '
+                        '(defaults to {0})'.format(defaultdir))
+    parser.add_argument('--author', default=author, required=not author,
+                        help='User name to write the Copyright lines')
+    parser.add_argument('--email', default=email, required=not email,
+                        help='Email address to write the Copyright lines')
+    opts = parser.parse_args()
 
-author, email = parse_gitconfig()
-name = ' '.join(sys.argv[1:])
-names = {
-    'name': name,
-    'short': re.sub('[^a-z0-9]', '-', name.lower()),
-    'lib': re.sub('[^a-z0-9]', '_', name.lower()),
-    'upper': re.sub('[^A-Z0-9]', '_', name.upper()),
-    'year': datetime.datetime.now().year,
-    'author': author,
-    'email': email,
-}
-new_driver()
+    if not opts.author or not opts.email:
+        parser.error('Please provide your username and email address, '
+                     'or set your git configuration up.') 
+    name = opts.name
+    names = {
+        'name': name,
+        'short': re.sub('[^a-z0-9]', '-', name.lower()),
+        'lib': re.sub('[^a-z0-9]', '_', name.lower()),
+        'upper': re.sub('[^A-Z0-9]', '_', name.upper()),
+        'year': datetime.datetime.now().year,
+        'author': opts.author,
+        'email': opts.email,
+    }
+    new_driver(opts.giturl, opts.tmpl_dir, names)
 

@@ -1,7 +1,7 @@
 /*
  * This file is part of the libsigrok project.
  *
- * Copyright (C) ${year} ${author} <${email}>
+ * Copyright (C) {year} {author} <{email}>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,8 +20,8 @@
 #include <config.h>
 #include "protocol.h"
 
-SR_PRIV int ${lib}_receive_data(int fd, int revents, void *cb_data)
-{
+SR_PRIV int {lib}_receive_data(int fd, int revents, void *cb_data)
+{{
 	const struct sr_dev_inst *sdi;
 	struct dev_context *devc;
 
@@ -33,9 +33,9 @@ SR_PRIV int ${lib}_receive_data(int fd, int revents, void *cb_data)
 	if (!(devc = sdi->priv))
 		return TRUE;
 
-	if (revents == G_IO_IN) {
+	if (revents == G_IO_IN) {{
 		/* TODO */
-	}
+	}}
 
 	return TRUE;
-}
+}}
