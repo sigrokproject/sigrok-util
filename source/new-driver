@@ -47,7 +47,7 @@ def tmpl(template):
 
 
 def tmpl_file(filename):
-    template = open(TMPLDIR + '/' + filename).read()
+    template = open(os.path.join(TMPLDIR, filename)).read()
 
     return tmpl(template)
 
@@ -61,7 +61,7 @@ def new_driver():
         out, err = process.communicate()
         if process.returncode:
             raise Exception(err.decode())
-        gitdir = tmp + '/libsigrok/'
+        gitdir = os.path.join(tmp, 'libsigrok')
         do_autoconf(gitdir)
         do_automake(gitdir)
         do_driverskel(gitdir)
@@ -73,7 +73,7 @@ def new_driver():
 
 # add DRIVER and DRIVER2 entries to configure.ac
 def do_autoconf(gitdir):
-    cacpath = gitdir + 'configure.ac'
+    cacpath = os.path.join(gitdir, 'configure.ac')
     configure_ac = open(cacpath).read()
 
     out = ''
@@ -97,7 +97,7 @@ def do_autoconf(gitdir):
 
 # add HW_ entry to Makefile.am
 def do_automake(gitdir):
-    path = gitdir + 'Makefile.am'
+    path = os.path.join(gitdir, 'Makefile.am')
     hwmake = open(path).read()
 
     out = ''
@@ -124,27 +124,28 @@ def do_automake(gitdir):
 
 
 def do_driverskel(gitdir):
-    drvdir = gitdir + 'src/hardware/' + names['short']
+    drvdir = os.path.join(gitdir, 'src', 'hardware', names['short'])
     os.mkdir(drvdir)
-    open(drvdir + '/api.c', 'w').write(tmpl_file(FILE_DRV_API))
-    open(drvdir + '/protocol.c', 'w').write(tmpl_file(FILE_DRV_PROTOCOL))
-    open(drvdir + '/protocol.h', 'w').write(tmpl_file(FILE_DRV_PROTOCOL_H))
+    open(os.path.join(drvdir, 'api.c'), 'w').write(tmpl_file(FILE_DRV_API))
+    open(os.path.join(drvdir, 'protocol.c'), 'w').write(tmpl_file(FILE_DRV_PROTOCOL))
+    open(os.path.join(drvdir, 'protocol.h'), 'w').write(tmpl_file(FILE_DRV_PROTOCOL_H))
 
 
 def make_patch(gitdir):
     os.chdir(gitdir)
-    command(['git', 'add', 'src/hardware/' + names['short']])
+    command(['git', 'add', os.path.join('src', 'hardware', names['short'])])
     cmd = ['git', 'commit',
            '-m', '%s: Initial driver skeleton.' % names['short'],
            'configure.ac', 'Makefile.am',
-           'src/hardware/' + names['short']]
+           os.path.join('src', 'hardware', names['short'])]
     command(cmd)
     cmd = ['git', 'format-patch', 'HEAD~1']
     out, err = Popen(cmd, stdout=PIPE, stderr=PIPE).communicate()
     if err:
         raise Exception(err.decode())
     patch = out.decode().strip()
-    shutil.move(gitdir + '/' + patch, scriptdir + '/' + patch)
+    shutil.move(os.path.join(gitdir, patch),
+                os.path.join(scriptdir, patch))
     print(patch)
 
 
