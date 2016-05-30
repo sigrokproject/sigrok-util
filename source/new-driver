@@ -56,7 +56,8 @@ def new_driver():
     tmp = tempfile.mkdtemp()
     try:
         os.chdir(tmp)
-        process = Popen("git clone --depth=1 " + LIBSR, shell=True, stderr=PIPE)
+        process = Popen(['git', 'clone', '--depth=1', LIBSR],
+                        stdout=PIPE, stderr=PIPE)
         out, err = process.communicate()
         if process.returncode:
             raise Exception(err.decode())
@@ -132,12 +133,14 @@ def do_driverskel(gitdir):
 
 def make_patch(gitdir):
     os.chdir(gitdir)
-    command('git add src/hardware/' + names['short'])
-    cmd = 'git commit -m "%s: Initial driver skeleton." ' % names['short']
-    cmd += 'configure.ac Makefile.am src/hardware/' + names['short']
+    command(['git', 'add', 'src/hardware/' + names['short']])
+    cmd = ['git', 'commit',
+           '-m', '%s: Initial driver skeleton.' % names['short'],
+           'configure.ac', 'Makefile.am',
+           'src/hardware/' + names['short']]
     command(cmd)
-    cmd = "git format-patch HEAD~1"
-    out, err = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE).communicate()
+    cmd = ['git', 'format-patch', 'HEAD~1']
+    out, err = Popen(cmd, stdout=PIPE, stderr=PIPE).communicate()
     if err:
         raise Exception(err.decode())
     patch = out.decode().strip()
@@ -146,7 +149,7 @@ def make_patch(gitdir):
 
 
 def command(cmd):
-    out, err = Popen(cmd, shell=True, stderr=PIPE).communicate()
+    out, err = Popen(cmd, stderr=PIPE).communicate()
     if err:
         raise Exception(err.decode())
 
