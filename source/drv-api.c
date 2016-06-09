@@ -22,11 +22,6 @@
 
 SR_PRIV struct sr_dev_driver {lib}_driver_info;
 
-static int init(struct sr_dev_driver *di, struct sr_context *sr_ctx)
-{{
-	return std_init(sr_ctx, di, LOG_PREFIX);
-}}
-
 static GSList *scan(struct sr_dev_driver *di, GSList *options)
 {{
 	struct drv_context *drvc;
@@ -42,11 +37,6 @@ static GSList *scan(struct sr_dev_driver *di, GSList *options)
 	 * or on a USB scan. */
 
 	return devices;
-}}
-
-static GSList *dev_list(const struct sr_dev_driver *di)
-{{
-	return ((struct drv_context *)(di->context))->instances;
 }}
 
 static int dev_clear(const struct sr_dev_driver *di)
@@ -72,15 +62,6 @@ static int dev_close(struct sr_dev_inst *sdi)
 	/* TODO: get handle from sdi->conn and close it. */
 
 	sdi->status = SR_ST_INACTIVE;
-
-	return SR_OK;
-}}
-
-static int cleanup(const struct sr_dev_driver *di)
-{{
-	dev_clear(di);
-
-	/* TODO: free other driver resources, if any. */
 
 	return SR_OK;
 }}
@@ -144,11 +125,8 @@ static int config_list(uint32_t key, GVariant **data,
 	return ret;
 }}
 
-static int dev_acquisition_start(const struct sr_dev_inst *sdi, void *cb_data)
+static int dev_acquisition_start(const struct sr_dev_inst *sdi)
 {{
-	(void)sdi;
-	(void)cb_data;
-
 	if (sdi->status != SR_ST_ACTIVE)
 		return SR_ERR_DEV_CLOSED;
 
@@ -158,10 +136,8 @@ static int dev_acquisition_start(const struct sr_dev_inst *sdi, void *cb_data)
 	return SR_OK;
 }}
 
-static int dev_acquisition_stop(struct sr_dev_inst *sdi, void *cb_data)
+static int dev_acquisition_stop(struct sr_dev_inst *sdi)
 {{
-	(void)cb_data;
-
 	if (sdi->status != SR_ST_ACTIVE)
 		return SR_ERR_DEV_CLOSED;
 
@@ -174,10 +150,10 @@ SR_PRIV struct sr_dev_driver {lib}_driver_info = {{
 	.name = "{short}",
 	.longname = "{name}",
 	.api_version = 1,
-	.init = init,
-	.cleanup = cleanup,
+	.init = std_init,
+	.cleanup = std_cleanup,
 	.scan = scan,
-	.dev_list = dev_list,
+	.dev_list = std_dev_list,
 	.dev_clear = dev_clear,
 	.config_get = config_get,
 	.config_set = config_set,
