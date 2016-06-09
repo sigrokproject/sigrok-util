@@ -59,7 +59,7 @@ def new_driver(srcurl, tmpldir, names):
         do_autoconf(gitdir, names)
         do_automake(gitdir, names)
         do_driverskel(gitdir, tmpldir, names)
-        make_patch(gitdir)
+        make_patch(gitdir, names)
     except Exception as e:
         raise
         print(e)
