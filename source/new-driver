@@ -29,12 +29,12 @@ import datetime
 
 TMPL_AUTOCONF_DRIVER = "SR_DRIVER([{name}], [{short}])\n"
 
-TMPL_FILES = ('api.c', 'protocol.c', 'protocol.h')
+TMPL_FILES = ('protocol.h', 'protocol.c', 'api.c')
 
 TMPL_HWMAKE_DRIVERLIB = """if HW_{upper}
 libsigrok_la_SOURCES +="""
 for tmpl_file in TMPL_FILES:
-    TMPL_HWMAKE_DRIVERLIB += " \\\nsrc/hardware/{short}/" + tmpl_file
+    TMPL_HWMAKE_DRIVERLIB += " \\\n\tsrc/hardware/{short}/" + tmpl_file
 TMPL_HWMAKE_DRIVERLIB += "\nendif\n"
 
 
