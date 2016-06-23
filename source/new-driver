@@ -32,7 +32,7 @@ TMPL_AUTOCONF_DRIVER = "SR_DRIVER([{name}], [{short}])\n"
 TMPL_FILES = ('protocol.h', 'protocol.c', 'api.c')
 
 TMPL_HWMAKE_DRIVERLIB = """if HW_{upper}
-libsigrok_la_SOURCES +="""
+src_libdrivers_la_SOURCES +="""
 for tmpl_file in TMPL_FILES:
     TMPL_HWMAKE_DRIVERLIB += " \\\n\tsrc/hardware/{short}/" + tmpl_file
 TMPL_HWMAKE_DRIVERLIB += "\nendif\n"
@@ -108,7 +108,7 @@ def do_automake(gitdir, names):
                 if drv_short > names['upper']:
                     out += tmpl(TMPL_HWMAKE_DRIVERLIB, names)
                     state = 'done'
-            elif not re.match(r'\s*libsigrok_la_SOURCES\b|\s*src/hardware/|endif\b', line):
+            elif not re.match(r'\s*src_libdrivers_la_SOURCES\b|\s*src/hardware/|endif\b', line):
                 print("[%s]" % line.strip())
                 # we passed the last entry
                 out += tmpl(TMPL_HWMAKE_DRIVERLIB, names)
