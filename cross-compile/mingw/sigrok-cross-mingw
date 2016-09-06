@@ -202,7 +202,6 @@ if [ $DEBUG = 1 ]; then
 	patch -p1 < ../../pv_mwindows.patch
 fi
 cmake $CM -DCMAKE_INSTALL_PREFIX:PATH=$PREFIX -DDISABLE_WERROR=y -DENABLE_TESTS=y .
-exit
 make $PARALLEL $V
 if [ $DEBUG = 1 ]; then
 	make install $V
