@@ -1,0 +1,16 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 80e90e9..d1a564f 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -398,11 +398,6 @@ endif()
+ 
+ target_link_libraries(${PROJECT_NAME} ${PULSEVIEW_LINK_LIBS})
+ 
+-if(WIN32)
+-	# Pass -mwindows so that no "DOS box" opens when PulseView is started.
+-	set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS "-mwindows")
+-endif()
+-
+ #===============================================================================
+ #= Installation
+ #-------------------------------------------------------------------------------
