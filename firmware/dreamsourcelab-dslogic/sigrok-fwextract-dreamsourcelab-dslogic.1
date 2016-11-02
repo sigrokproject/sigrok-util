@@ -1,0 +1,53 @@
+.TH SIGROK\-FWEXTRACT\-DREAMSOURCELAB\-DSLOGIC 1 "Nov 02, 2016"
+.SH "NAME"
+sigrok\-fwextract\-dreamsourcelab\-dslogic \- Extract DreamSourceLab DSLogic / DSLogic Pro / DScope firmware
+.SH "SYNOPSIS"
+.B [PREFIX=...] sigrok\-fwextract\-dreamsourcelab\-dslogic
+.SH "DESCRIPTION"
+This tool downloads the vendor FX2 firmware and FPGA bitstreams
+for the DreamSourceLab DSLogic / DSLogic Pro / DScope devices from the
+vendor's GitHub repository and installs them in the specified location.
+.PP
+In order to download/install the firmware/bitstreams, run the following command:
+.PP
+.B "  $ sudo sigrok-fwextract-dreamsourcelab-dslogic"
+.br
+.RB "  Installing into: /usr/local/share/sigrok-firmware"
+.br
+.PP
+This will download and install the files to the location where libsigrok
+expects to find its firmware files. By default this is
+.BR /usr/local/share/sigrok-firmware .
+.PP
+You can override the
+.B PREFIX
+variable to install the files elsewhere:
+.PP
+.B "  $ PREFIX=$HOME/sr sigrok-fwextract-dreamsourcelab-dslogic"
+.br
+.RB "  Installing into: /home/<user>/sr/share/sigrok-firmware"
+.PP
+.SH OPTIONS
+None.
+.SH "EXIT STATUS"
+Exits with 0 on success, 1 on most failures.
+.SH "SEE ALSO"
+\fBsigrok\-fwextract\-hantek\-dso\fP(1)
+.br
+\fBsigrok\-fwextract\-lecroy\-logicstudio\fP(1)
+.br
+\fBsigrok\-fwextract\-saleae\-logic16\fP(1)
+.br
+\fBsigrok\-fwextract\-sysclk\-lwla1016\fP(1)
+.br
+\fBsigrok\-fwextract\-sysclk\-lwla1034\fP(1)
+.SH "BUGS"
+Please report any bugs via Bugzilla
+.RB "(" http://sigrok.org/bugzilla ")"
+or on the sigrok\-devel mailing list
+.RB "(" sigrok\-devel@lists.souceforge.net ")."
+.SH "LICENSE"
+This program is covered by the GNU General Public License (GPL),
+version 3 or later.
+.SH "AUTHORS"
+Please see the individual source code files.
