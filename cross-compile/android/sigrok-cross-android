@@ -274,7 +274,7 @@ cd ..
 $WGET ftp://ftp.csx.cam.ac.uk/pub/software/programming/pcre/pcre-$VER_PCRE.tar.gz
 tar xfz pcre-$VER_PCRE.tar.gz
 cd pcre-$VER_PCRE
-./configure $C --disable-cpp
+./configure $C --disable-cpp --enable-utf --enable-unicode-properties
 make $PARALLEL $V
 make install $V
 cd ..
