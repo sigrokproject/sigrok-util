@@ -16,10 +16,9 @@ diff -urp libusb-1.0.9.orig/libusb/io.c libusb-1.0.9/libusb/io.c
  /**
   * \page io Synchronous and asynchronous device I/O
   *
-diff -urp libusbx-1.0.17.orig/libusb/os/linux_usbfs.c libusbx-1.0.17/libusb/os/linux_usbfs.c
---- libusbx-1.0.17.orig/libusb/os/linux_usbfs.c	2014-07-05 23:14:45.487803220 +0200
-+++ libusbx-1.0.17/libusb/os/linux_usbfs.c	2014-07-06 16:42:17.013481236 +0200
-@@ -37,11 +37,21 @@
+--- libusb-1.0.19.orig/libusb/os/linux_usbfs.c	2014-05-30 11:18:28.000000000 +0200
++++ libusb-1.0.19/libusb/os/linux_usbfs.c	2016-11-26 15:38:21.199383120 +0100
+@@ -37,11 +37,31 @@
  #include <sys/types.h>
  #include <sys/utsname.h>
  #include <unistd.h>
@@ -34,14 +33,24 @@ diff -urp libusbx-1.0.17.orig/libusb/os/linux_usbfs.c libusbx-1.0.17/libusb/os/l
 +#ifdef __ANDROID__
 +static JavaVM *g_jvm = NULL;
 +static jclass usb_helper_class;
++static jclass usb_event_listener_class;
 +static jmethodID usb_helper_open_mid;
++static jmethodID usb_helper_start_event_monitor_mid;
++static jmethodID usb_helper_stop_event_monitor_mid;
++static jmethodID usb_helper_scan_devices_mid;
++static jmethodID usb_event_listener_init_mid;
 +static int usb_helper_open(const char *pathname, int flags);
++static int usb_helper_start_event_monitor(void);
++static int usb_helper_stop_event_monitor(void);
++static int usb_helper_scan_devices (struct libusb_context *ctx);
++static void usb_helper_hotplug_poll(void);
++static void usb_helper_on_usb_device_action(JNIEnv *env, jobject self, jstring name, jboolean removed);
 +#endif
 +
  /* sysfs vs usbfs:
   * opening a usbfs node causes the device to be resumed, so we attempt to
   * avoid this during enumeration.
-@@ -192,6 +202,11 @@
+@@ -193,6 +213,11 @@
  		snprintf(path, PATH_MAX, "%s/%03d/%03d",
  			usbfs_path, dev->bus_number, dev->device_address);
  
@@ -53,7 +62,78 @@ diff -urp libusbx-1.0.17.orig/libusb/os/linux_usbfs.c libusbx-1.0.17/libusb/os/l
  	fd = open(path, mode);
  	if (fd != -1)
  		return fd; /* Success */
-@@ -2603,3 +2618,79 @@
+@@ -369,6 +394,13 @@
+ 	struct stat statbuf;
+ 	int r;
+ 
++#ifdef __ANDROID__
++	if (g_jvm) {
++		usbfs_path = "/dev/bus/usb";
++		sysfs_can_relate_devices = 0;
++		sysfs_has_descriptors = 0;
++	} else
++#endif
+ 	usbfs_path = find_usbfs_path();
+ 	if (!usbfs_path) {
+ 		usbi_err(ctx, "could not find usbfs");
+@@ -467,6 +499,10 @@
+ 
+ static int linux_start_event_monitor(void)
+ {
++#ifdef __ANDROID__
++	if (g_jvm)
++		return usb_helper_start_event_monitor();
++#endif
+ #if defined(USE_UDEV)
+ 	return linux_udev_start_event_monitor();
+ #else
+@@ -476,6 +512,10 @@
+ 
+ static int linux_stop_event_monitor(void)
+ {
++#ifdef __ANDROID__
++	if (g_jvm)
++		return usb_helper_stop_event_monitor();
++#endif
+ #if defined(USE_UDEV)
+ 	return linux_udev_stop_event_monitor();
+ #else
+@@ -489,6 +529,11 @@
+ 
+ 	usbi_mutex_static_lock(&linux_hotplug_lock);
+ 
++#ifdef __ANDROID__
++	if (g_jvm)
++		ret = usb_helper_scan_devices(ctx);
++	else
++#endif
+ #if defined(USE_UDEV)
+ 	ret = linux_udev_scan_devices(ctx);
+ #else
+@@ -502,6 +547,11 @@
+ 
+ static void op_hotplug_poll(void)
+ {
++#ifdef __ANDROID__
++	if (g_jvm)
++		usb_helper_hotplug_poll();
++	else
++#endif
+ #if defined(USE_UDEV)
+ 	linux_udev_hotplug_poll();
+ #else
+@@ -994,6 +1044,10 @@
+ 	/* XXX -- can we figure out the topology when using usbfs? */
+ 	if (NULL == sysfs_dir || 0 == strncmp(sysfs_dir, "usb", 3)) {
+ 		/* either using usbfs or finding the parent of a root hub */
++#ifdef __ANDROID__
++		if (g_jvm)
++			dev->port_number = dev->device_address;
++#endif
+ 		return LIBUSB_SUCCESS;
+ 	}
+ 
+@@ -2693,3 +2747,262 @@
  	.transfer_priv_size = sizeof(struct linux_transfer_priv),
  	.add_iso_packet_size = 0,
  };
@@ -61,6 +141,12 @@ diff -urp libusbx-1.0.17.orig/libusb/os/linux_usbfs.c libusbx-1.0.17/libusb/os/l
 +#ifdef __ANDROID__
 +jint JNI_OnLoad(JavaVM *vm, void *reserved)
 +{
++	static JNINativeMethod jni_method = {
++		"onUsbDeviceAction",
++		"(Ljava/lang/String;Z)V",
++		(void*)usb_helper_on_usb_device_action
++	};
++
 +	JNIEnv* env;
 +	g_jvm = vm;
 +	if ((*vm)->GetEnv(vm, (void **)&env, JNI_VERSION_1_6) != JNI_OK) {
@@ -68,14 +154,33 @@ diff -urp libusbx-1.0.17.orig/libusb/os/linux_usbfs.c libusbx-1.0.17/libusb/os/l
 +	}
 +
 +	jclass helper = (*env)->FindClass(env, "org/sigrok/androidutils/UsbHelper");
++	jclass event_listener = (*env)->FindClass(env, "org/sigrok/androidutils/UsbEventListenerStub");
 +
-+	if (helper) {
++	if (helper && event_listener) {
 +
 +		usb_helper_class = (jclass)(*env)->NewGlobalRef(env, helper);
 +
 +		usb_helper_open_mid = (*env)->GetStaticMethodID(env, helper, "open",
 +								"(Ljava/lang/String;I)I");
++		usb_helper_start_event_monitor_mid = (*env)->GetStaticMethodID(env, helper, "startEventMonitor",
++									       "(Lorg/sigrok/androidutils/UsbEventListener;)V");
++		usb_helper_stop_event_monitor_mid = (*env)->GetStaticMethodID(env, helper, "stopEventMonitor",
++									      "()V");
++		usb_helper_scan_devices_mid = (*env)->GetStaticMethodID(env, helper, "scanDevices",
++									"()[Ljava/lang/String;");
 +		(*env)->DeleteLocalRef(env, helper);
++
++		usb_event_listener_class = (jclass)(*env)->NewGlobalRef(env, event_listener);
++		usb_event_listener_init_mid = (*env)->GetMethodID(env, event_listener, "<init>",
++									"()V");
++		if ((*env)->RegisterNatives(env, event_listener, &jni_method, 1) < 0) {
++			if ((*env)->ExceptionCheck(env)) {
++				(*env)->ExceptionClear(env);
++			}
++			g_jvm = NULL;
++		}
++
++		(*env)->DeleteLocalRef(env, event_listener);
 +
 +	} else {
 +		if ((*env)->ExceptionCheck(env)) {
@@ -95,9 +200,15 @@ diff -urp libusbx-1.0.17.orig/libusb/os/linux_usbfs.c libusbx-1.0.17/libusb/os/l
 +	}
 +
 +	jclass helper = usb_helper_class;
++	jclass event_listener = usb_event_listener_class;
 +	usb_helper_class = NULL;
++	usb_event_listener_class = NULL;
 +	if (helper)
 +		(*env)->DeleteGlobalRef(env, helper);
++	if (event_listener) {
++		(*env)->UnregisterNatives(env, event_listener);
++		(*env)->DeleteGlobalRef(env, event_listener);
++	}
 +	g_jvm = NULL;
 +}
 +
@@ -130,6 +241,158 @@ diff -urp libusbx-1.0.17.orig/libusb/os/linux_usbfs.c libusbx-1.0.17/libusb/os/l
 +		(*g_jvm)->DetachCurrentThread(g_jvm);
 +	}
 +
++	if (res >= 0) {
++		/* Rewind so that descriptors can be read */
++		lseek(res, SEEK_SET, 0);
++	}
++
 +	return res;
++}
++
++static int usb_helper_start_event_monitor(void)
++{
++	JNIEnv* env;
++	jint st;
++	int do_detach = 0;
++	int res = 0;
++	jobject usb_event_listener;
++
++	if (g_jvm == NULL) {
++		return LIBUSB_ERROR_OTHER;
++	}
++	st = (*g_jvm)->GetEnv(g_jvm, (void **)&env, JNI_VERSION_1_6);
++
++	if (st == JNI_EDETACHED) {
++		st = (*g_jvm)->AttachCurrentThread(g_jvm, &env, NULL);
++		do_detach = 1;
++	}
++
++	if (st != JNI_OK) {
++		return LIBUSB_ERROR_OTHER;
++	}
++
++	usb_event_listener = (*env)->NewObject(env, usb_event_listener_class, usb_event_listener_init_mid);
++	if (usb_event_listener == NULL)
++		res = LIBUSB_ERROR_OTHER;
++	else {
++		(*env)->CallStaticVoidMethod(env, usb_helper_class, usb_helper_start_event_monitor_mid, usb_event_listener);
++		(*env)->DeleteLocalRef(env, usb_event_listener);
++	}
++
++	if (do_detach) {
++		(*g_jvm)->DetachCurrentThread(g_jvm);
++	}
++
++	return res;
++}
++
++static int usb_helper_stop_event_monitor(void)
++{
++	JNIEnv* env;
++	jint st;
++	int do_detach = 0;
++
++	if (g_jvm == NULL) {
++		return LIBUSB_ERROR_OTHER;
++	}
++	st = (*g_jvm)->GetEnv(g_jvm, (void **)&env, JNI_VERSION_1_6);
++
++	if (st == JNI_EDETACHED) {
++		st = (*g_jvm)->AttachCurrentThread(g_jvm, &env, NULL);
++		do_detach = 1;
++	}
++
++	if (st != JNI_OK) {
++		return LIBUSB_ERROR_OTHER;
++	}
++
++	(*env)->CallStaticVoidMethod(env, usb_helper_class, usb_helper_stop_event_monitor_mid);
++
++	if (do_detach) {
++		(*g_jvm)->DetachCurrentThread(g_jvm);
++	}
++
++	return 0;
++}
++
++static int usb_helper_scan_devices (struct libusb_context *ctx)
++{
++	JNIEnv* env;
++	int res = 0;
++	jint st;
++	int do_detach = 0;
++
++	if (g_jvm == NULL) {
++		return LIBUSB_ERROR_OTHER;
++	}
++	st = (*g_jvm)->GetEnv(g_jvm, (void **)&env, JNI_VERSION_1_6);
++
++	if (st == JNI_EDETACHED) {
++		st = (*g_jvm)->AttachCurrentThread(g_jvm, &env, NULL);
++		do_detach = 1;
++	}
++
++	if (st != JNI_OK) {
++		return LIBUSB_ERROR_OTHER;
++	}
++
++	jobject arr = (*env)->CallStaticObjectMethod(env, usb_helper_class, usb_helper_scan_devices_mid);
++
++	if (arr == NULL)
++		res = LIBUSB_ERROR_OTHER;
++	else {
++		jsize i, len = (*env)->GetArrayLength(env, arr);
++		for (i=0; i<len; i++) {
++			jobject str = (*env)->GetObjectArrayElement(env, arr, i);
++			if (str) {
++				const char *ustr = (*env)->GetStringUTFChars(env, str, NULL);
++				if (ustr) {
++					unsigned busnum, devaddr;
++					if (2 != sscanf(ustr, "/dev/bus/usb/%u/%u",
++							&busnum, &devaddr) ||
++					    linux_enumerate_device(ctx, busnum, devaddr, NULL)) {
++						usbi_dbg("failed to enumerate device %s", ustr);
++					}
++					(*env)->ReleaseStringUTFChars(env, str, ustr);
++				} else
++					res = LIBUSB_ERROR_OTHER;
++				(*env)->DeleteLocalRef(env, str);
++			} else
++				res = LIBUSB_ERROR_OTHER;
++			if (res)
++				break;
++		}
++		(*env)->DeleteLocalRef(env, arr);
++	}
++
++	if (do_detach) {
++		(*g_jvm)->DetachCurrentThread(g_jvm);
++	}
++
++	return res;
++}
++
++static void usb_helper_hotplug_poll(void)
++{
++}
++
++static void usb_helper_on_usb_device_action(JNIEnv *env, jobject self, jstring name, jboolean removed)
++{
++	usbi_mutex_static_lock(&linux_hotplug_lock);
++	if (name) {
++		const char *ustr = (*env)->GetStringUTFChars(env, name, NULL);
++		if (ustr) {
++			unsigned busnum, devaddr;
++			if (2 == sscanf(ustr, "/dev/bus/usb/%u/%u",
++					&busnum, &devaddr)) {
++				if (removed)
++					linux_device_disconnected(busnum, devaddr, NULL);
++				else
++					linux_hotplug_enumerate(busnum, devaddr, NULL);
++			}
++			(*env)->ReleaseStringUTFChars(env, name, ustr);
++		}
++	}
++	usbi_mutex_static_unlock(&linux_hotplug_lock);
 +}
 +#endif
