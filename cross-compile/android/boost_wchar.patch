@@ -1,0 +1,46 @@
+--- boost/config/platform/linux.hpp.orig	2016-12-03 12:31:10.512815722 +0100
++++ boost/config/platform/linux.hpp	2016-12-03 12:31:58.180223676 +0100
+@@ -102,4 +102,7 @@
+ #  endif
+ #endif
+ 
++#ifdef __ANDROID__
++#define BOOST_NO_CWCHAR
++#endif
+ 
+--- boost/integer_traits.hpp.orig	2016-12-03 14:22:08.001314430 +0100
++++ boost/integer_traits.hpp	2016-12-03 14:22:19.582412591 +0100
+@@ -23,7 +23,7 @@
+ #include <limits.h>
+ // we need wchar.h for WCHAR_MAX/MIN but not all platforms provide it,
+ // and some may have <wchar.h> but not <cwchar> ...
+-#if !defined(BOOST_NO_INTRINSIC_WCHAR_T) && (!defined(BOOST_NO_CWCHAR) || defined(sun) || defined(__sun) || defined(__QNX__))
++#if !defined(BOOST_NO_INTRINSIC_WCHAR_T) && (!defined(BOOST_NO_CWCHAR) || defined(sun) || defined(__sun) || defined(__QNX__) || defined(__ANDROID__))
+ #include <wchar.h>
+ #endif
+ 
+--- libs/serialization/build/Jamfile.v2.orig	2016-12-03 13:29:51.821334991 +0100
++++ libs/serialization/build/Jamfile.v2	2016-12-03 13:30:21.457586514 +0100
+@@ -103,12 +103,13 @@
+     <link>shared:<define>BOOST_SERIALIZATION_DYN_LINK=1
+     ;
+ 
+-lib boost_wserialization 
+-    : $(WSOURCES).cpp boost_serialization 
+-    :     
+-    <toolset>msvc:<cxxflags>/Gy 
+-    #<toolset>gcc:<cxxflags>"-fvisibility=hidden"
+-    <link>shared:<define>BOOST_SERIALIZATION_DYN_LINK=1
+-    ;
+-
+-boost-install boost_serialization boost_wserialization ;
++# lib boost_wserialization 
++#     : $(WSOURCES).cpp boost_serialization 
++#     :     
++#     <toolset>msvc:<cxxflags>/Gy 
++#     #<toolset>gcc:<cxxflags>"-fvisibility=hidden"
++#     <link>shared:<define>BOOST_SERIALIZATION_DYN_LINK=1
++#     ;
++#
++# boost-install boost_serialization boost_wserialization ;
++boost-install boost_serialization ;
