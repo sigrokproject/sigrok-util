@@ -372,7 +372,7 @@ cd libsigrok
 ./autogen.sh
 mkdir build
 cd build
-CPPFLAGS="$CPPFLAGS_STL" LDFLAGS="$LDFLAGS_STL" ../configure $C $BINDINGS_CONFIG --datadir=/sdcard
+CPPFLAGS="$CPPFLAGS_STL" LDFLAGS="$LDFLAGS_STL" JAVAC="javac -source 1.6 -target 1.6" ../configure $C $BINDINGS_CONFIG --datadir=/sdcard
 make $PARALLEL $V
 make datadir='$(datarootdir)' install $V
 cd ../..
