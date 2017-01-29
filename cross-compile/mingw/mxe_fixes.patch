@@ -4,9 +4,6 @@ MXE setup for sigrok usage.
  - Force libzip to use its own mkstemp() implementation.
    http://sigrok.org/bugzilla/show_bug.cgi?id=570#c2
 
- - Disable currently broken qtassistant (we don't need it anyway).
-   https://github.com/mxe/mxe/issues/565
-
 diff --git a/src/libzip.mk b/src/libzip.mk
 index 9d1e189..d4d5bf9 100644
 --- a/src/libzip.mk
@@ -21,26 +18,3 @@ index 9d1e189..d4d5bf9 100644
      $(MAKE) -C '$(1)' -j '$(JOBS)' install $(MXE_DISABLE_CRUFT) SUBDIRS=lib
  
      '$(TARGET)-gcc' \
-diff --git a/src/qt.mk b/src/qt.mk
-index 5bf3b08..bd8ef7a 100644
---- a/src/qt.mk
-+++ b/src/qt.mk
-@@ -75,12 +75,12 @@ define $(PKG)_BUILD
-     # lrelease (from linguist) needed to prepare translation files
-     $(MAKE) -C '$(1)/tools/linguist/lrelease' -j '$(JOBS)' install
- 
--    cd '$(1)/tools/assistant' && '$(1)/bin/qmake' assistant.pro
--    # can't figure out where -lQtCLucene comes from so use
--    # sed on the output instead of patching the input
--    $(MAKE) -C '$(1)/tools/assistant' sub-lib-qmake_all
--    $(SED) -i 's,-lQtCLucene$$,-lQtCLucene4,' '$(1)/tools/assistant/lib/Makefile.Release'
--    $(MAKE) -C '$(1)/tools/assistant' -j '$(JOBS)' install
-+    ## cd '$(1)/tools/assistant' && '$(1)/bin/qmake' assistant.pro
-+    ## # can't figure out where -lQtCLucene comes from so use
-+    ## # sed on the output instead of patching the input
-+    ## $(MAKE) -C '$(1)/tools/assistant' sub-lib-qmake_all
-+    ## $(SED) -i 's,-lQtCLucene$$,-lQtCLucene4,' '$(1)/tools/assistant/lib/Makefile.Release'
-+    ## $(MAKE) -C '$(1)/tools/assistant' -j '$(JOBS)' install
- 
-     # likewise for these two
-     cd '$(1)/tools/designer/src/designer' && '$(1)/bin/qmake' designer.pro
