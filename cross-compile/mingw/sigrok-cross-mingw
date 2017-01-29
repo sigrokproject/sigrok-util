@@ -104,7 +104,7 @@ includedir=\${prefix}/include
 Name: Python
 Description: Python library
 Version: 3.2
-Libs: -L$PREFIX/Python32/libs -lpython32
+Libs: $PREFIX/Python32/libs/libpython32.a
 Cflags: -I$PREFIX/Python32/include
 EOF
 
