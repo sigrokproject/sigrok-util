@@ -496,6 +496,7 @@ find $PREFIX -iname "*.so" -exec ${TOOLCHAIN_TRIPLET}-strip -S {} \;
 $GIT_CLONE git://sigrok.org/pulseview
 cd pulseview
 patch -p1 < ../../pv_cmake_pkgconfig_fix.patch
+sed -i -e "s,\t\tandroid:versionName=.*$,\t\tandroid:versionName=\"`date -Iseconds`\"," android/AndroidManifest.xml
 cmake $CM -DENABLE_TESTS=y .
 make $PARALLEL $V
 ${TOOLCHAIN_TRIPLET}-strip -S libs/$TARGET_ARCH/libpulseview.so
