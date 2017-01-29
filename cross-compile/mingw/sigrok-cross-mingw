@@ -57,10 +57,11 @@ export PATH=$MXE/usr/bin:$PATH
 
 TOOLCHAIN_TRIPLET="$TARGET-w64-mingw32.static.posix"
 
+CMAKE="$TOOLCHAIN_TRIPLET-cmake"
+
 P="$PREFIX/lib/pkgconfig"
 P2="$MXE/usr/$TOOLCHAIN_TRIPLET/lib/pkgconfig"
 C="--host=$TOOLCHAIN_TRIPLET --prefix=$PREFIX CPPFLAGS=-D__printf__=__gnu_printf__"
-CM="-DCMAKE_TOOLCHAIN_FILE=$MXE/usr/$TOOLCHAIN_TRIPLET/share/cmake/mxe-conf.cmake"
 L="--disable-shared --enable-static"
 
 if [ $TARGET = "i686" ]; then
@@ -200,7 +201,7 @@ if [ $DEBUG = 1 ]; then
 	# Allow a "DOS box" to open on Windows, it'll contain logging output.
 	patch -p1 < ../../pv_mwindows.patch
 fi
-cmake $CM -DCMAKE_INSTALL_PREFIX:PATH=$PREFIX -DDISABLE_WERROR=y -DENABLE_TESTS=y .
+$CMAKE -DCMAKE_INSTALL_PREFIX:PATH=$PREFIX -DDISABLE_WERROR=y -DENABLE_TESTS=y .
 make $PARALLEL $V
 if [ $DEBUG = 1 ]; then
 	make install $V
