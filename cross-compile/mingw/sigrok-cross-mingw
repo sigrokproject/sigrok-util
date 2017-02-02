@@ -2,7 +2,7 @@
 ##
 ## This file is part of the sigrok-util project.
 ##
-## Copyright (C) 2013-2016 Uwe Hermann <uwe@hermann-uwe.de>
+## Copyright (C) 2013-2017 Uwe Hermann <uwe@hermann-uwe.de>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -85,14 +85,14 @@ cd $BUILDDIR
 mkdir -p $PREFIX
 
 # Cross-compiling Python is highly non-trivial, so we avoid it for now.
-# The download below is a repackaged tarball of the official Python 3.2.3 MSI
+# The download below is a repackaged tarball of the official Python 3.6.0 EXE
 # installer for Windows:
-#   - https://www.python.org/ftp/python/3.2.3/python-3.2.3.msi
-#   - https://www.python.org/ftp/python/3.2.3/python-3.2.3.amd64.msi
-# The MSI file has been installed on a Windows box and then c:\Python32\libs
-# and c:\Python32\include have been stored in the Python32_*.tar.gz tarball.
-$WGET http://www.sigrok.org/tmp/Python32_$TARGET.tar.gz -O $PREFIX/Python32.tar.gz
-tar xzf $PREFIX/Python32.tar.gz -C $PREFIX
+#   - https://www.python.org/ftp/python/3.6.0/python-3.6.0.exe
+#   - https://www.python.org/ftp/python/3.6.0/python-3.6.0-amd64.exe
+# The EXE file has been installed on a Windows box and then the "libs" and
+# "include" directories have been stored in the Python36_*.tar.gz tarball.
+$WGET http://www.sigrok.org/tmp/Python36_$TARGET.tar.gz -O $PREFIX/Python36.tar.gz
+tar xzf $PREFIX/Python36.tar.gz -C $PREFIX
 
 # Create a dummy python3.pc file so that pkg-config finds Python 3.
 mkdir -p $PREFIX/lib/pkgconfig
@@ -103,20 +103,20 @@ libdir=\${exec_prefix}/lib
 includedir=\${prefix}/include
 Name: Python
 Description: Python library
-Version: 3.2
-Libs: $PREFIX/Python32/libs/libpython32.a
-Cflags: -I$PREFIX/Python32/include
+Version: 3.6
+Libs: $PREFIX/Python36/libs/libpython36.a
+Cflags: -I$PREFIX/Python36/include
 EOF
 
-# The python32.dll and python32.zip files will be shipped in the NSIS
+# The python36.dll and python36.zip files will be shipped in the NSIS
 # Windows installers (required for protocol decoding to work).
-# The file python32.dll (NOT the same as python3.dll) is copied from an
-# installed Python 3.2.3 (see above) from c:\Windows\system32\python32.dll.
-# The file python32.zip contains all files from the 'DLLs', 'Lib', and 'libs'
-# subdirectories from an installed Python on Windows (c:\python32), i.e. some
-# libraries and all Python stdlib modules.
-$WGET http://www.sigrok.org/tmp/python32_$TARGET.dll -O $PREFIX/python32.dll
-$WGET http://www.sigrok.org/tmp/python32_$TARGET.zip -O $PREFIX/python32.zip
+# The file python36.dll (NOT the same as python3.dll) is copied from an
+# installed Python 3.6.0 (see above).
+# The file python36.zip contains all files from the 'DLLs', 'Lib', and 'libs'
+# subdirectories from an installed Python on Windows, i.e. some libraries and
+# all Python stdlib modules.
+$WGET http://www.sigrok.org/tmp/python36_$TARGET.dll -O $PREFIX/python36.dll
+$WGET http://www.sigrok.org/tmp/python36_$TARGET.zip -O $PREFIX/python36.zip
 
 # Zadig (we ship this with frontends for easy driver switching).
 $WGET http://zadig.akeo.ie/downloads/zadig.exe -O $PREFIX/zadig.exe
