@@ -85,14 +85,14 @@ cd $BUILDDIR
 mkdir -p $PREFIX
 
 # Cross-compiling Python is highly non-trivial, so we avoid it for now.
-# The download below is a repackaged tarball of the official Python 3.6.0 EXE
+# The download below is a repackaged tarball of the official Python 3.4.4 MSI
 # installer for Windows:
-#   - https://www.python.org/ftp/python/3.6.0/python-3.6.0.exe
-#   - https://www.python.org/ftp/python/3.6.0/python-3.6.0-amd64.exe
-# The EXE file has been installed on a Windows box and then the "libs" and
-# "include" directories have been stored in the Python36_*.tar.gz tarball.
-$WGET http://www.sigrok.org/tmp/Python36_$TARGET.tar.gz -O $PREFIX/Python36.tar.gz
-tar xzf $PREFIX/Python36.tar.gz -C $PREFIX
+#   - https://www.python.org/ftp/python/3.4.4/python-3.4.4.msi
+#   - https://www.python.org/ftp/python/3.4.4/python-3.4.4.amd64.msi
+# The MSI file has been installed on a Windows box and then c:\Python34\libs
+# and c:\Python34\include have been stored in the Python34_*.tar.gz tarball.
+$WGET http://www.sigrok.org/tmp/Python34_$TARGET.tar.gz -O $PREFIX/Python34.tar.gz
+tar xzf $PREFIX/Python34.tar.gz -C $PREFIX
 
 # Create a dummy python3.pc file so that pkg-config finds Python 3.
 mkdir -p $PREFIX/lib/pkgconfig
@@ -103,20 +103,20 @@ libdir=\${exec_prefix}/lib
 includedir=\${prefix}/include
 Name: Python
 Description: Python library
-Version: 3.6
-Libs: $PREFIX/Python36/libs/libpython36.a
-Cflags: -I$PREFIX/Python36/include
+Version: 3.4
+Libs: $PREFIX/Python34/libs/libpython34.a
+Cflags: -I$PREFIX/Python34/include
 EOF
 
-# The python36.dll and python36.zip files will be shipped in the NSIS
+# The python34.dll and python34.zip files will be shipped in the NSIS
 # Windows installers (required for protocol decoding to work).
-# The file python36.dll (NOT the same as python3.dll) is copied from an
-# installed Python 3.6.0 (see above).
-# The file python36.zip contains all files from the 'DLLs', 'Lib', and 'libs'
-# subdirectories from an installed Python on Windows, i.e. some libraries and
-# all Python stdlib modules.
-$WGET http://www.sigrok.org/tmp/python36_$TARGET.dll -O $PREFIX/python36.dll
-$WGET http://www.sigrok.org/tmp/python36_$TARGET.zip -O $PREFIX/python36.zip
+# The file python34.dll (NOT the same as python3.dll) is copied from an
+# installed Python 3.4.4 (see above) from c:\Windows\system32\python34.dll.
+# The file python34.zip contains all files from the 'DLLs', 'Lib', and 'libs'
+# subdirectories from an installed Python on Windows (c:\python34), i.e. some
+# libraries and all Python stdlib modules.
+$WGET http://www.sigrok.org/tmp/python34_$TARGET.dll -O $PREFIX/python34.dll
+$WGET http://www.sigrok.org/tmp/python34_$TARGET.zip -O $PREFIX/python34.zip
 
 # Zadig (we ship this with frontends for easy driver switching).
 $WGET http://zadig.akeo.ie/downloads/zadig.exe -O $PREFIX/zadig.exe
