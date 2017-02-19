@@ -44,9 +44,8 @@ PARALLEL="-j "`sysctl -n hw.ncpu`
 export CC=gcc
 export CXX=g++
 
-# Path to Qt binaries (needed for cmake to find the Qt libs).
-# export PATH="/usr/local/opt/qt/bin:$PATH" # Qt4
-export PATH=`brew list qt5 | grep bin | head -n 1 | xargs dirname`":$PATH" # Qt5
+# Path to Qt5 binaries (needed for cmake to find the Qt5 libs).
+export PATH=`brew list qt5 | grep bin | head -n 1 | xargs dirname`":$PATH"
 
 # Path to Python 2/3 pkg-config files.
 # In Homebrew, pkg-config files of "keg-only" formulas (Python is one of them)
