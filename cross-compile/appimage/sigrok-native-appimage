@@ -48,8 +48,7 @@ get_apprun
 # Copy desktop and icon file to AppDir for AppRun to pick them up
 ########################################################################
 
-wget http://sigrok.org/jenkins/job/pulseview/buildtype=shared,compiler=gcc,platform=native-amd64/ws/contrib/pulseview.desktop
-wget -q "http://sigrok.org/gitweb/?p=pulseview.git;a=blob_plain;f=icons/sigrok-logo-notext.png" -O sigrok-logo-notext.png
+cp ../../contrib/pulseview.desktop ../../contrib/sigrok-logo-notext.png .
 
 ########################################################################
 # Copy in the dependencies that cannot be assumed to be available
