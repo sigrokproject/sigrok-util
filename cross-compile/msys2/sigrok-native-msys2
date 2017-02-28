@@ -58,6 +58,8 @@ W="mingw-w64-$TARGET"
 WGET="wget -c --quiet"
 GIT_CLONE="git clone --depth=1"
 
+REPO_BASE="git://sigrok.org"
+
 # Remove build directory contents (if any) and create a new build dir.
 rm -rf $BUILDDIR
 mkdir $BUILDDIR
@@ -88,7 +90,7 @@ make install $V
 cd ..
 
 # libserialport
-$GIT_CLONE git://sigrok.org/libserialport
+$GIT_CLONE $REPO_BASE/libserialport
 cd libserialport
 ./autogen.sh
 mkdir build
@@ -100,7 +102,7 @@ cd ../..
 
 # libsigrok
 mkdir -p $PYPATH
-$GIT_CLONE git://sigrok.org/libsigrok
+$GIT_CLONE $REPO_BASE/libsigrok
 cd libsigrok
 ./autogen.sh
 mkdir build
@@ -112,7 +114,7 @@ PYTHONPATH=$PYPATH $SB make install $V
 cd ../..
 
 # libsigrokdecode
-$GIT_CLONE git://sigrok.org/libsigrokdecode
+$GIT_CLONE $REPO_BASE/libsigrokdecode
 cd libsigrokdecode
 ./autogen.sh
 mkdir build
@@ -124,7 +126,7 @@ make install $V
 cd ../..
 
 # sigrok-firmware
-$GIT_CLONE git://sigrok.org/sigrok-firmware
+$GIT_CLONE $REPO_BASE/sigrok-firmware
 cd sigrok-firmware
 ./autogen.sh
 mkdir build
@@ -143,7 +145,7 @@ cd ..
 
 # TODO: Doesn't build, libsigrokdecode linking errors.
 # # sigrok-cli
-# $GIT_CLONE git://sigrok.org/sigrok-cli
+# $GIT_CLONE $REPO_BASE/sigrok-cli
 # cd sigrok-cli
 # ./autogen.sh
 # mkdir build
@@ -156,7 +158,7 @@ cd ..
 
 # TODO: Doesn't build, various linking errors.
 # PulseView
-$GIT_CLONE git://sigrok.org/pulseview
+$GIT_CLONE $REPO_BASE/pulseview
 cd pulseview
 mkdir build
 cd build
