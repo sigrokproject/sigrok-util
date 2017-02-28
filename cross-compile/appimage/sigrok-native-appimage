@@ -19,8 +19,7 @@ A="./$APP/$APP.AppDir"
 mkdir -p $A/usr/bin $A/usr/lib $A/usr/share
 cd ./$APP
 
-wget -q https://github.com/probonopd/AppImages/raw/master/functions.sh -O ./functions.sh
-. ./functions.sh
+. ../contrib/functions.sh
 
 ########################################################################
 # Get build products from $PREFIX
