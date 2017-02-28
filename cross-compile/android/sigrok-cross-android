@@ -89,6 +89,8 @@ SF_MIRROR=download.sourceforge.net
 WGET="wget -c --quiet"
 GIT_CLONE="git clone --depth=1"
 
+REPO_BASE="git://sigrok.org"
+
 case "$TOOLCHAIN_TRIPLET" in
   arm*) TARGET_ARCH=armeabi;;
   mips*) TARGET_ARCH=mips;;
@@ -329,7 +331,7 @@ make install $V
 cd ..
 
 # libserialport
-$GIT_CLONE git://sigrok.org/libserialport
+$GIT_CLONE $REPO_BASE/libserialport
 cd libserialport
 ./autogen.sh
 mkdir build
@@ -366,7 +368,7 @@ if [ x"$CPPFLAGS_STL" != x ]; then
 fi
 
 # libsigrok
-$GIT_CLONE git://sigrok.org/libsigrok
+$GIT_CLONE $REPO_BASE/libsigrok
 cd libsigrok
 ./autogen.sh
 mkdir build
@@ -377,7 +379,7 @@ make datadir='$(datarootdir)' install $V
 cd ../..
 
 # libsigrokdecode
-$GIT_CLONE git://sigrok.org/libsigrokdecode
+$GIT_CLONE $REPO_BASE/libsigrokdecode
 cd libsigrokdecode
 ./autogen.sh
 mkdir build
@@ -388,7 +390,7 @@ make install $V
 cd ../..
 
 # sigrok-firmware
-$GIT_CLONE git://sigrok.org/sigrok-firmware
+$GIT_CLONE $REPO_BASE/sigrok-firmware
 cd sigrok-firmware
 ./autogen.sh
 mkdir build
@@ -406,7 +408,7 @@ cp *.fw $PREFIX/share/sigrok-firmware/
 cd ..
 
 # sigrok-cli
-$GIT_CLONE git://sigrok.org/sigrok-cli
+$GIT_CLONE $REPO_BASE/sigrok-cli
 cd sigrok-cli
 ./autogen.sh
 mkdir build
@@ -481,7 +483,7 @@ make install $V
 cd ..
 
 # sigrok-androidutils
-$GIT_CLONE git://sigrok.org/sigrok-androidutils
+$GIT_CLONE $REPO_BASE/sigrok-androidutils
 cd sigrok-androidutils
 ./autogen.sh
 ./configure $C --with-android-sdk="${ANDROID_SDK}" --with-android-platform=android-$VER_AND_API
@@ -493,7 +495,7 @@ cd ..
 find $PREFIX -iname "*.so" -exec ${TOOLCHAIN_TRIPLET}-strip -S {} \;
 
 # PulseView
-$GIT_CLONE git://sigrok.org/pulseview
+$GIT_CLONE $REPO_BASE/pulseview
 cd pulseview
 patch -p1 < ../../pv_cmake_pkgconfig_fix.patch
 sed -i -e "s,\t\tandroid:versionName=.*$,\t\tandroid:versionName=\"`date -Iseconds`\"," android/AndroidManifest.xml
