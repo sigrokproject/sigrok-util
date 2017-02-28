@@ -50,6 +50,8 @@ SF_MIRROR=switch.dl.sourceforge.net
 WGET="wget -c --quiet"
 GIT_CLONE="git clone --depth=1"
 
+REPO_BASE="git://sigrok.org"
+
 # -----------------------------------------------------------------------------
 
 # We need to find tools in the toolchain.
@@ -133,7 +135,7 @@ make install $V
 cd ..
 
 # libserialport
-$GIT_CLONE git://sigrok.org/libserialport
+$GIT_CLONE $REPO_BASE/libserialport
 cd libserialport
 ./autogen.sh
 ./configure $C $L
@@ -142,7 +144,7 @@ make install $V
 cd ..
 
 # libsigrok
-$GIT_CLONE git://sigrok.org/libsigrok
+$GIT_CLONE $REPO_BASE/libsigrok
 cd libsigrok
 ./autogen.sh
 ./configure $C $L
@@ -151,7 +153,7 @@ make install $V
 cd ..
 
 # libsigrokdecode
-$GIT_CLONE git://sigrok.org/libsigrokdecode
+$GIT_CLONE $REPO_BASE/libsigrokdecode
 cd libsigrokdecode
 ./autogen.sh
 ./configure $C $L
@@ -160,7 +162,7 @@ make install $V
 cd ..
 
 # sigrok-firmware
-$GIT_CLONE git://sigrok.org/sigrok-firmware
+$GIT_CLONE $REPO_BASE/sigrok-firmware
 cd sigrok-firmware
 ./autogen.sh
 # Nothing gets cross-compiled here, we just need 'make install' basically.
@@ -169,7 +171,7 @@ make install $V
 cd ..
 
 # sigrok-firmware-fx2lafw
-$GIT_CLONE git://sigrok.org/sigrok-firmware-fx2lafw
+$GIT_CLONE $REPO_BASE/sigrok-firmware-fx2lafw
 cd sigrok-firmware-fx2lafw
 ./autogen.sh
 # We're building the fx2lafw firmware on the host, no need to cross-compile.
@@ -179,13 +181,13 @@ make install $V
 cd ..
 
 # sigrok-dumps
-$GIT_CLONE git://sigrok.org/sigrok-dumps
+$GIT_CLONE $REPO_BASE/sigrok-dumps
 cd sigrok-dumps
 make install DESTDIR=$PREFIX/share/sigrok-dumps $V
 cd ..
 
 # sigrok-cli
-$GIT_CLONE git://sigrok.org/sigrok-cli
+$GIT_CLONE $REPO_BASE/sigrok-cli
 cd sigrok-cli
 ./autogen.sh
 ./configure $C
@@ -195,7 +197,7 @@ makensis -DHOME=$HOME contrib/sigrok-cli_cross.nsi
 cd ..
 
 # PulseView
-$GIT_CLONE git://sigrok.org/pulseview
+$GIT_CLONE $REPO_BASE/pulseview
 cd pulseview
 if [ $DEBUG = 1 ]; then
 	# Allow a "DOS box" to open on Windows, it'll contain logging output.
