@@ -10,10 +10,21 @@
 
 PREFIX=$HOME/sr
 
+APPIMAGEKIT_OUTDIR=$HOME/AppImageKit/out
+
 ARCH=x86_64
+
+########################################################################
+# You usually don't have to change anything below this line
+########################################################################
 
 APP=PulseView
 LOWERAPP=${APP,,} 
+
+export STATIC_FILES=`pwd`/contrib
+
+# Add $APPIMAGEKIT_OUTDIR so we can find all the binaries there.
+export PATH=$APPIMAGEKIT_OUTDIR:$PATH
 
 A="./$APP/$APP.AppDir"
 mkdir -p $A/usr/bin $A/usr/lib $A/usr/share
@@ -41,7 +52,7 @@ strip usr/lib/*
 # AppRun is the main launcher that gets executed when AppImage is run
 ########################################################################
 
-get_apprun
+cp $APPIMAGEKIT_OUTDIR/AppRun .
 
 ########################################################################
 # Copy desktop and icon file to AppDir for AppRun to pick them up
