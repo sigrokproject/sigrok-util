@@ -92,7 +92,7 @@ echo $VERSION
 # Patch away absolute paths; it would be nice if they were relative
 ########################################################################
 
-patch_usr
+find usr/ -type f -executable -exec sed -i -e "s|/usr|././|g" {} \;
 
 ########################################################################
 # AppDir complete
