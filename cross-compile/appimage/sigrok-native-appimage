@@ -30,7 +30,7 @@ A="./$APP/$APP.AppDir"
 mkdir -p $A/usr/bin $A/usr/lib $A/usr/share
 cd ./$APP
 
-. ../contrib/functions.sh
+. $STATIC_FILES/functions.sh
 
 ########################################################################
 # Get build products from $PREFIX
@@ -58,7 +58,8 @@ cp $APPIMAGEKIT_OUTDIR/AppRun .
 # Copy desktop and icon file to AppDir for AppRun to pick them up
 ########################################################################
 
-cp ../../contrib/pulseview.desktop ../../contrib/sigrok-logo-notext.png .
+cp $STATIC_FILES/pulseview.desktop .
+cp $STATIC_FILES/sigrok-logo-notext.png .
 
 ########################################################################
 # Copy in the dependencies that cannot be assumed to be available
