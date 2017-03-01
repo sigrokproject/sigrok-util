@@ -101,4 +101,6 @@ patch_usr
 
 cd ..
 
-generate_appimage
+VERSION=$VERSION $APPIMAGEKIT_OUTDIR/appimagetool ./$APP.AppDir/
+mkdir -p ../out/ || true
+mv *.AppImage* ../out/
