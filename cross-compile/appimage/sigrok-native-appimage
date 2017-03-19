@@ -68,6 +68,16 @@ cp $STATIC_FILES/sigrok-logo-notext.png .
 
 copy_deps
 
+# Get all Qt5 plugins (won't be copied automatically).
+QT5PLUGINS=/usr/lib/x86_64-linux-gnu/qt5/plugins # Host (+ AppRun) path.
+mkdir -p .$QT5PLUGINS
+cp -r $QT5PLUGINS/accessible .$QT5PLUGINS
+cp -r $QT5PLUGINS/generic .$QT5PLUGINS
+cp -r $QT5PLUGINS/iconengines .$QT5PLUGINS
+cp -r $QT5PLUGINS/imageformats .$QT5PLUGINS
+cp -r $QT5PLUGINS/platforminputcontexts .$QT5PLUGINS
+cp -r $QT5PLUGINS/platforms .$QT5PLUGINS
+
 ########################################################################
 # Delete stuff that should not go into the AppImage
 ########################################################################
