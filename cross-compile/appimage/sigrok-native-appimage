@@ -80,6 +80,10 @@ cp -r $QT5PLUGINS/imageformats .$QT5PLUGINS
 cp -r $QT5PLUGINS/platforminputcontexts .$QT5PLUGINS
 cp -r $QT5PLUGINS/platforms .$QT5PLUGINS
 
+# Get some additional dependencies of the Qt5 plugins.
+ldd .$QT5PLUGINS/platforms/libqxcb.so | grep "=>" | awk '{print $3}' | xargs -I '{}' cp -v '{}' ./usr/lib || true
+ldd .$QT5PLUGINS/imageformats/libqsvg.so | grep "=>" | awk '{print $3}' | xargs -I '{}' cp -v '{}' ./usr/lib || true
+
 # Python 3
 cp /usr/lib/x86_64-linux-gnu/libpython$PYVER* ./usr/lib
 mkdir -p ./usr/share/pyshared
