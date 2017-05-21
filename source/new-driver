@@ -178,7 +178,7 @@ if __name__ == '__main__':
     author, email = parse_gitconfig()
 
     parser = ArgumentParser(description='Bootstrap a new sigrok hardware driver')
-    parser.add_argument('name', help='new driver name')
+    parser.add_argument('name', nargs='*', default=[], help='new driver name')
     parser.add_argument('--giturl', default=defaulturl,
                         help='URL of the libsigrok git repository '
                         '(defaults to {0})'.format(defaulturl))
@@ -194,7 +194,9 @@ if __name__ == '__main__':
     if not opts.author or not opts.email:
         parser.error('Please provide your username and email address, '
                      'or set your git configuration up.')
-    name = opts.name
+    name = ' '.join(opts.name)
+    if not name:
+        parser.error('Please provide a driver name.')
     names = {
         'name': name,
         'short': re.sub('[^a-z0-9]', '-', name.lower()),
