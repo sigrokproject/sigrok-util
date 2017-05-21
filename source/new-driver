@@ -193,7 +193,7 @@ if __name__ == '__main__':
 
     if not opts.author or not opts.email:
         parser.error('Please provide your username and email address, '
-                     'or set your git configuration up.') 
+                     'or set your git configuration up.')
     name = opts.name
     names = {
         'name': name,
