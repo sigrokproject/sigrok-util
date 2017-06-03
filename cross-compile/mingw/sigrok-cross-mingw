@@ -199,6 +199,7 @@ cd ..
 # PulseView
 $GIT_CLONE $REPO_BASE/pulseview
 cd pulseview
+cp ../../FileAssociation.nsh contrib
 if [ $DEBUG = 1 ]; then
 	# Allow a "DOS box" to open on Windows, it'll contain logging output.
 	patch -p1 < ../../pv_mwindows.patch
