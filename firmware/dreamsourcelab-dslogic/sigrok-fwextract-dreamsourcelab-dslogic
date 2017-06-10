@@ -29,7 +29,7 @@ FWDIR="$PREFIX/share/sigrok-firmware"
 # Use the last known-working firmware/bitstream set. Newer versions have
 # incompatible changes that cause issues that need to be investigated.
 # http://sigrok.org/bugzilla/show_bug.cgi?id=886
-FWURL="https://github.com/DreamSourceLab/DSView/raw/4cc02c8d780e17527cd05e0ba7aa45288e49bd8a/DSView/res"
+FWURL="https://github.com/DreamSourceLab/DSView/raw/886b847c21c606df3138ce7ad8f8e8c363ee758b/DSView/res"
 
 echo "Installing into: $FWDIR"
 
@@ -44,3 +44,9 @@ $WGET $FWURL/DSCope.fw -O $FWDIR/dreamsourcelab-dscope-fx2.fw
 
 $WGET $FWURL/DSLogicPro.bin -O $FWDIR/dreamsourcelab-dslogic-pro-fpga.fw
 $WGET $FWURL/DSLogicPro.fw -O $FWDIR/dreamsourcelab-dslogic-pro-fx2.fw
+
+$WGET $FWURL/DSLogicPlus.bin -O $FWDIR/dreamsourcelab-dslogic-plus-fpga.fw
+$WGET $FWURL/DSLogicPlus.fw -O $FWDIR/dreamsourcelab-dslogic-plus-fx2.fw
+
+$WGET $FWURL/DSLogicBasic.bin -O $FWDIR/dreamsourcelab-dslogic-basic-fpga.fw
+$WGET $FWURL/DSLogicBasic.fw -O $FWDIR/dreamsourcelab-dslogic-basic-fx2.fw
