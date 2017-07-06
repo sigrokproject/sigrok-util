@@ -50,8 +50,6 @@ static int dev_open(struct sr_dev_inst *sdi)
 
 	/* TODO: get handle from sdi->conn and open it. */
 
-	sdi->status = SR_ST_ACTIVE;
-
 	return SR_OK;
 }}
 
@@ -60,8 +58,6 @@ static int dev_close(struct sr_dev_inst *sdi)
 	(void)sdi;
 
 	/* TODO: get handle from sdi->conn and close it. */
-
-	sdi->status = SR_ST_INACTIVE;
 
 	return SR_OK;
 }}
@@ -92,9 +88,6 @@ static int config_set(uint32_t key, GVariant *data,
 
 	(void)data;
 	(void)cg;
-
-	if (sdi->status != SR_ST_ACTIVE)
-		return SR_ERR_DEV_CLOSED;
 
 	ret = SR_OK;
 	switch (key) {{
@@ -127,9 +120,6 @@ static int config_list(uint32_t key, GVariant **data,
 
 static int dev_acquisition_start(const struct sr_dev_inst *sdi)
 {{
-	if (sdi->status != SR_ST_ACTIVE)
-		return SR_ERR_DEV_CLOSED;
-
 	/* TODO: configure hardware, reset acquisition state, set up
 	 * callbacks and send header packet. */
 
@@ -138,9 +128,6 @@ static int dev_acquisition_start(const struct sr_dev_inst *sdi)
 
 static int dev_acquisition_stop(struct sr_dev_inst *sdi)
 {{
-	if (sdi->status != SR_ST_ACTIVE)
-		return SR_ERR_DEV_CLOSED;
-
 	/* TODO: stop acquisition. */
 
 	return SR_OK;
