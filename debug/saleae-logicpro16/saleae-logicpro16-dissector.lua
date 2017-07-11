@@ -43,9 +43,15 @@ local cmd_enum = {
     [0x88] = "Read I2C",
     [0x89] = "Wake I2C",
     [0x8b] = "Read Firmware Version",
+    [0x86] = "Read Temperature",
 }
 
 local reg_enum = {
+    -- see https://www.hittite.com/content/documents/data_sheet/hmcad1100.pdf
+    -- for ADC details
+    [0x03] = "ADC Index",
+    [0x04] = "ADC Value (LSB)",
+    [0x05] = "ADC Value (MSB)",
     [0x08] = "Analog Channels (LSB)",
     [0x09] = "Analog Channels (MSB)",
     [0x06] = "Digital Channels (LSB)",
@@ -53,6 +59,10 @@ local reg_enum = {
     [0x0f] = "LED Red",
     [0x10] = "LED Green",
     [0x11] = "LED Blue",
+    [0x12] = "Voltage",
+    [0x15] = "Bank Power?",
+    [0x17] = "Magic EEPROM Value?",
+    [0x40] = "Capture Status",
 }
 
 local i2c_result_enum = {
@@ -325,7 +335,7 @@ local function dissect_response(range, pinfo, tree)
     tree:add(p_logicpro16.fields.cmd, request_cmd):set_generated()
 
     if request_cmd == 0x81 then -- register read
-        local t = tree:add(p_logicpro16.fields.rawdata, range(1))
+        local t = tree:add(p_logicpro16.fields.rawdata, range(0))
     elseif request_cmd == 0x87 then -- i2c write
         tree:add(p_logicpro16.fields.i2cresult, range(0, 1))
         local t = tree:add(p_logicpro16.fields.i2cdata, range(1))
