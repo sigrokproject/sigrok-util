@@ -307,12 +307,42 @@ def extract_fx2_firmware_single(elf, symname, filename):
     print("saved %d bytes to %s" % (len(blob), filename))
     return True
 
+def extract_fx3_firmware(elf, symname, filename):
+    index = 0
+    blobs = []
+    while True:
+        sym = elf.dynsym.get(symname + '_' + str(index))
+        if not sym:
+            break
+        index += 1
+        hex = bytes.decode(elf.load_symbol(sym))
+        if hex[-1] == '\0':
+            hex = hex[:-1]
+        for part in hex.split(';'):
+            if not part:
+                continue
+            if part[0] != ':':
+                raise Exception('ihex line does not start with ":"')
+            blobs.append(bytes.fromhex(part[1:]))
+    if not blobs:
+        return
+    with open(filename, 'wb') as f:
+        for blob in blobs:
+            f.write(blob)
+    print("saved %d bytes from %d blobs to %s" % (sum(map(len, blobs)),
+        len(blobs), filename))
+
 def extract_symbol(elf, symname, filename):
     blob = elf.load_symbol(elf.dynsym[symname])
     f = open(filename, 'wb')
     f.write(blob)
     f.close()
     print("saved %d bytes to %s" % (len(blob), filename))
+
+def try_extract_symbol(elf, symname, filename):
+    if not symname in elf.dynsym:
+        return
+    extract_symbol(elf, symname, filename)
 
 def extract_bitstream(elf, lv):
     extract_symbol(elf, 'gLogic16Lv' + lv + 'CompressedBitstream',
@@ -339,5 +369,9 @@ try:
         extract_fx2_firmware(elf, 'gLogic16HexFileLines', 'saleae-logic16-fx2.fw')
     extract_bitstream(elf, '18')
     extract_bitstream(elf, '33')
+    extract_fx3_firmware(elf, 'LogicPro16FirmwareStrings', 'saleae-logicpro16-fx3.fw')
+    extract_fx3_firmware(elf, 'LogicPro8FirmwareStrings', 'saleae-logicpro8-fx3.fw')
+    try_extract_symbol(elf, 'gLogicPro16CompressedBitstream', 'saleae-logicpro16-fpga.bitstream')
+    try_extract_symbol(elf, 'gLogicProCompressedBitstream', 'saleae-logicpro8-fpga.bitstream')
 except Exception as e:
     print("Error: %s" % str(e))
