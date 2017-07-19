@@ -20,8 +20,6 @@
 #include <config.h>
 #include "protocol.h"
 
-SR_PRIV struct sr_dev_driver {lib}_driver_info;
-
 static GSList *scan(struct sr_dev_driver *di, GSList *options)
 {{
 	struct drv_context *drvc;
@@ -37,11 +35,6 @@ static GSList *scan(struct sr_dev_driver *di, GSList *options)
 	 * or on a USB scan. */
 
 	return devices;
-}}
-
-static int dev_clear(const struct sr_dev_driver *di)
-{{
-	return std_dev_clear(di, NULL);
 }}
 
 static int dev_open(struct sr_dev_inst *sdi)
@@ -86,6 +79,7 @@ static int config_set(uint32_t key, GVariant *data,
 {{
 	int ret;
 
+	(void)sdi;
 	(void)data;
 	(void)cg;
 
@@ -123,12 +117,16 @@ static int dev_acquisition_start(const struct sr_dev_inst *sdi)
 	/* TODO: configure hardware, reset acquisition state, set up
 	 * callbacks and send header packet. */
 
+	(void)sdi;
+
 	return SR_OK;
 }}
 
 static int dev_acquisition_stop(struct sr_dev_inst *sdi)
 {{
 	/* TODO: stop acquisition. */
+
+	(void)sdi;
 
 	return SR_OK;
 }}
@@ -141,7 +139,7 @@ SR_PRIV struct sr_dev_driver {lib}_driver_info = {{
 	.cleanup = std_cleanup,
 	.scan = scan,
 	.dev_list = std_dev_list,
-	.dev_clear = dev_clear,
+	.dev_clear = std_dev_clear,
 	.config_get = config_get,
 	.config_set = config_set,
 	.config_list = config_list,

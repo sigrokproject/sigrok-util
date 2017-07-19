@@ -27,16 +27,7 @@
 
 #define LOG_PREFIX "{short}"
 
-/** Private, per-device-instance driver context. */
 struct dev_context {{
-	/* Model-specific information */
-
-	/* Acquisition settings */
-
-	/* Operational state */
-
-	/* Temporary state across callbacks */
-
 }};
 
 SR_PRIV int {lib}_receive_data(int fd, int revents, void *cb_data);
