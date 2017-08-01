@@ -1,0 +1,108 @@
+#!/bin/sh
+##
+## This file is part of the sigrok-util project.
+##
+## Copyright (C) 2017 Uwe Hermann <uwe@hermann-uwe.de>
+##
+## This program is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation; either version 2 of the License, or
+## (at your option) any later version.
+##
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, see <http://www.gnu.org/licenses/>.
+##
+
+set -e
+
+# The path where the installed sigrok libraries/binaries are located.
+PREFIX=$HOME/sr_macosx
+
+# The path where to download files to and where to build packages.
+BUILDDIR=./build_app
+
+# Path to Qt5 binaries.
+QTBINDIR=`brew list qt5 | grep bin | head -n 1 | xargs dirname`
+
+# Path to boost libraries.
+BOOSTLIBDIR=`brew list boost | grep libboost_system | head -n 1 | xargs dirname`
+
+# Path to Python 3 framework.
+PYTHONFRAMEWORKDIR=`brew list python3 | grep Python.framework | head -n 1 | xargs dirname`/../../../..
+
+PYVER="3.6"
+
+# You usually don't need to change anything below this line.
+
+# -----------------------------------------------------------------------------
+
+# Remove build directory contents (if any) and create a new build dir.
+rm -rf $BUILDDIR
+mkdir $BUILDDIR
+cd $BUILDDIR
+
+APPNAME="PulseView"
+APPNAME_BINARY="pulseview"
+APPVER="nightly"
+
+CONTENTSDIR="$APPNAME.app/Contents"
+MACOSDIR="$CONTENTSDIR/MacOS"
+FRAMEWORKSDIR="$CONTENTSDIR/Frameworks"
+SHARE_DIR="$CONTENTSDIR/share"
+PYDIR="$FRAMEWORKSDIR/Python.framework/Versions/$PYVER"
+
+mkdir -p $MACOSDIR $FRAMEWORKSDIR $SHARE_DIR
+
+cp $PREFIX/bin/$APPNAME_BINARY $MACOSDIR
+cp -R $PREFIX/share/libsigrokdecode $SHARE_DIR
+rm -rf $SHARE_DIR/libsigrokdecode/decoders/**/__pycache__
+rm -rf $SHARE_DIR/libsigrokdecode/decoders/common/**/__pycache__
+cp -R $PREFIX/share/sigrok-firmware $SHARE_DIR
+
+# Manually copy some boost libs that "macdeployqt" won't copy.
+cp $BOOSTLIBDIR/libboost_timer-mt.dylib $FRAMEWORKSDIR
+cp $BOOSTLIBDIR/libboost_chrono-mt.dylib $FRAMEWORKSDIR
+chmod 644 $FRAMEWORKSDIR/*boost*
+
+$QTBINDIR/macdeployqt $APPNAME.app
+
+# Copy Python framework and fix it up.
+cp -R $PYTHONFRAMEWORKDIR $FRAMEWORKSDIR
+chmod 644 $PYDIR/lib/libpython*.dylib
+rm -rf $PYDIR/Headers
+rm -rf $PYDIR/bin
+rm -rf $PYDIR/include
+rm -rf $PYDIR/share
+rm -rf $PYDIR/lib/pkgconfig
+rm -rf $PYDIR/lib/python$PYVER/lib2to3
+rm -rf $PYDIR/lib/python$PYVER/distutils
+rm -rf $PYDIR/lib/python$PYVER/idlelib
+rm -rf $PYDIR/lib/python$PYVER/test
+rm -rf $PYDIR/lib/python$PYVER/**/test
+rm -rf $PYDIR/lib/python$PYVER/tkinter
+rm -rf $PYDIR/lib/python$PYVER/turtledemo
+rm -rf $PYDIR/lib/python$PYVER/unittest
+rm -rf $PYDIR/lib/python$PYVER/__pycache__
+rm -rf $PYDIR/lib/python$PYVER/**/__pycache__
+rm -rf $PYDIR/lib/python$PYVER/**/**/__pycache__
+rm -rf $PYDIR/Resources
+install_name_tool -change \
+	/usr/local/opt/python3/Frameworks/Python.framework/Versions/$PYVER/Python \
+	@executable_path/../Frameworks/Python.framework/Versions/$PYVER/Python \
+	$FRAMEWORKSDIR/libsigrokdecode.*.dylib
+
+# Add PulseView wrapper script that sets PYTHONHOME and SIGROKDECODE_DIR.
+mv $MACOSDIR/$APPNAME_BINARY $MACOSDIR/$APPNAME_BINARY.real
+cp ../contrib/pulseview $MACOSDIR
+chmod 755 $MACOSDIR/$APPNAME_BINARY
+
+cp ../contrib/Info.plist $CONTENTSDIR
+cp ../contrib/pulseview.icns $CONTENTSDIR/Resources
+
+hdiutil create "${APPNAME}_${APPVER}.dmg" -volname "$APPNAME $APPVER" \
+	-fs HFS+ -srcfolder "$APPNAME.app"
