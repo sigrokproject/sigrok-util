@@ -96,7 +96,7 @@ install_name_tool -change \
 	@executable_path/../Frameworks/Python.framework/Versions/$PYVER/Python \
 	$FRAMEWORKSDIR/libsigrokdecode.*.dylib
 
-# Add PulseView wrapper script that sets PYTHONHOME and SIGROKDECODE_DIR.
+# Add PulseView wrapper (sets PYTHONHOME/SIGROK_FIRMWARE_DIR/SIGROKDECODE_DIR).
 mv $MACOSDIR/$APPNAME_BINARY $MACOSDIR/$APPNAME_BINARY.real
 cp ../contrib/pulseview $MACOSDIR
 chmod 755 $MACOSDIR/$APPNAME_BINARY
