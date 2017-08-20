@@ -45,6 +45,10 @@ chmod a+x usr/bin/*
 cp $PREFIX/lib/lib*.so* usr/lib/
 cp -r $PREFIX/share/libsigrokdecode usr/share/
 cp -r $PREFIX/share/sigrok-firmware usr/share/
+cp -r $PREFIX/share/applications usr/share/
+cp -r $PREFIX/share/icons usr/share/
+cp -r $PREFIX/share/metainfo usr/share/
+cp -r $PREFIX/share/mime usr/share/
 
 # Reduce binary size
 strip usr/bin/*
@@ -60,8 +64,8 @@ cp $APPIMAGEKIT_OUTDIR/AppRun .
 # Copy desktop and icon file to AppDir for AppRun to pick them up
 ########################################################################
 
-cp $STATIC_FILES/pulseview.desktop .
-cp $STATIC_FILES/sigrok-logo-notext.png .
+cp usr/share/applications/*.desktop .
+cp usr/share/icons/hicolor/48x48/apps/pulseview.png .
 
 ########################################################################
 # Copy in the dependencies that cannot be assumed to be available
