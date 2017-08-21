@@ -12,6 +12,7 @@ PREFIX=$HOME/sr
 
 APPIMAGEKIT_OUTDIR=$HOME/AppImageKit/out
 
+# ARCH=i386
 ARCH=x86_64
 
 PYVER=3.4
@@ -112,9 +113,8 @@ rm -r ./home
 # Determine the version of the app; also include needed glibc version
 ########################################################################
 
-VER1="NIGHTLY"
 GLIBC_NEEDED=$(glibc_needed)
-VERSION=$VER1.glibc$GLIBC_NEEDED
+VERSION="NIGHTLY.glibc$GLIBC_NEEDED"
 echo $VERSION
 
 ########################################################################

@@ -1,7 +1,7 @@
 # This file is supposed to be sourced by each Recipe
 # that wants to use the functions contained herein
 # like so:
-# wget -q https://github.com/probonopd/AppImages/raw/master/functions.sh -O ./functions.sh
+# wget -q https://github.com/AppImage/AppImages/raw/master/functions.sh -O ./functions.sh
 # . ./functions.sh
 
 # RECIPE=$(realpath "$0")
@@ -21,6 +21,33 @@ OPTIONS="-o Debug::NoLocking=1
 -o APT::Install-Recommends=0
 -o APT::Install-Suggests=0
 "
+
+# Detect system architecture to know which binaries of AppImage tools
+# should be downloaded and used.
+case "$(uname -i)" in
+  x86_64|amd64)
+#    echo "x86-64 system architecture"
+    SYSTEM_ARCH="x86_64";;
+  i?86)
+#    echo "x86 system architecture"
+    SYSTEM_ARCH="i686";;
+#  arm*)
+#    echo "ARM system architecture"
+#    SYSTEM_ARCH="";;
+  unknown)
+#         uname -i not answer on debian, then:
+    case "$(uname -m)" in
+      x86_64|amd64)
+#        echo "x86-64 system architecture"
+        SYSTEM_ARCH="x86_64";;
+      i?86)
+#        echo "x86 system architecture"
+        SYSTEM_ARCH="i686";;
+    esac ;;
+  *)
+    echo "Unsupported system architecture"
+    exit 1;;
+esac
 
 # Either get the file from remote or from a static place.
 # critical for builds without network access like in Open Build Service
@@ -48,8 +75,8 @@ patch_usr()
 # Download AppRun and make it executable
 get_apprun()
 {
-  # wget -c https://github.com/probonopd/AppImageKit/releases/download/5/AppRun -O ./AppRun # 64-bit
-  wget -c https://github.com/probonopd/AppImageKit/releases/download/6/AppRun_6-x86_64 -O AppRun # 64-bit
+  TARGET_ARCH=${ARCH:-$SYSTEM_ARCH}
+  wget -c https://github.com/AppImage/AppImageKit/releases/download/continuous/AppRun-${TARGET_ARCH} -O AppRun
   chmod a+x AppRun
 }
 
@@ -81,16 +108,15 @@ move_lib()
 # Delete blacklisted files
 delete_blacklisted()
 {
-  BLACKLISTED_FILES=$( cat_file_from_url https://github.com/probonopd/AppImages/raw/master/excludelist | sed '/^\s*$/d' | sed '/^#.*$/d')
+  BLACKLISTED_FILES=$(cat_file_from_url https://github.com/AppImage/AppImages/raw/master/excludelist | sed 's|#.*||g')
   echo $BLACKLISTED_FILES
   for FILE in $BLACKLISTED_FILES ; do
-    FOUND=$(find . -xtype f -name "${FILE}" 2>/dev/null)
-    if [ ! -z "$FOUND" ] ; then
-      echo "Deleting blacklisted ${FOUND}"
-      rm -f "${FOUND}"
-    fi
+    FILES="$(find . -name "${FILE}" -not -path "./usr/optional/*")"
+    for FOUND in $FILES ; do
+      rm -vf "$FOUND" "$(readlink -f "$FOUND")"
+    done
   done
-  
+
   # Do not bundle developer stuff
   rm -rf usr/include || true
   rm -rf usr/lib/cmake || true
@@ -108,7 +134,7 @@ glibc_needed()
 get_desktopintegration()
 {
   REALBIN=$(grep -o "^Exec=.*" *.desktop | sed -e 's|Exec=||g' | cut -d " " -f 1 | head -n 1)
-  cat_file_from_url https://raw.githubusercontent.com/probonopd/AppImageKit/master/desktopintegration > ./usr/bin/$REALBIN.wrapper
+  cat_file_from_url https://raw.githubusercontent.com/AppImage/AppImageKit/master/desktopintegration > ./usr/bin/$REALBIN.wrapper
   chmod a+x ./usr/bin/$REALBIN.wrapper
 
   sed -i -e "s|^Exec=$REALBIN|Exec=$REALBIN.wrapper|g" $1.desktop
@@ -117,6 +143,11 @@ get_desktopintegration()
 # Generate AppImage; this expects $ARCH, $APP and $VERSION to be set
 generate_appimage()
 {
+  # Download AppImageAssistant
+  URL="https://github.com/AppImage/AppImageKit/releases/download/6/AppImageAssistant_6-${SYSTEM_ARCH}.AppImage"
+  wget -c "$URL" -O AppImageAssistant
+  chmod a+x ./AppImageAssistant
+
   # if [[ "$RECIPE" == *ecipe ]] ; then
   #   echo "#!/bin/bash -ex" > ./$APP.AppDir/Recipe
   #   echo "# This recipe was used to generate this AppImage." >> ./$APP.AppDir/Recipe
@@ -142,37 +173,39 @@ generate_appimage()
      exit 1
     fi
   fi
-  wget -c "https://github.com/probonopd/AppImageKit/releases/download/6/AppImageAssistant_6-x86_64.AppImage" -O  AppImageAssistant # (64-bit)
-  chmod a+x ./AppImageAssistant
+
   mkdir -p ../out || true
-  rm ../out/$APP"-"$VERSION"-x86_64.AppImage" 2>/dev/null || true
-  ./AppImageAssistant ./$APP.AppDir/ ../out/$APP"-"$VERSION"-"$ARCH".AppImage"
+  rm ../out/$APP"-"$VERSION".glibc"$GLIBC_NEEDED"-"$ARCH".AppImage" 2>/dev/null || true
+  GLIBC_NEEDED=${GLIBC_NEEDED:=$(glibc_needed)}
+  ./AppImageAssistant ./$APP.AppDir/ ../out/$APP"-"$VERSION".glibc"$GLIBC_NEEDED"-"$ARCH".AppImage"
 }
 
 # Generate AppImage type 2
 generate_type2_appimage()
 {
   # Get the ID of the last successful build on Travis CI
-  # ID=$(wget -q https://api.travis-ci.org/repos/probonopd/appimagetool/builds -O - | head -n 1 | sed -e 's|}|\n|g' | grep '"result":0' | head -n 1 | sed -e 's|,|\n|g' | grep '"id"' | cut -d ":" -f 2)
+  # ID=$(wget -q https://api.travis-ci.org/repos/AppImage/appimagetool/builds -O - | head -n 1 | sed -e 's|}|\n|g' | grep '"result":0' | head -n 1 | sed -e 's|,|\n|g' | grep '"id"' | cut -d ":" -f 2)
   # Get the transfer.sh URL from the logfile of the last successful build on Travis CI
   # Only Travis knows why build ID and job ID don't match and why the above doesn't give both...
   # URL=$(wget -q "https://s3.amazonaws.com/archive.travis-ci.org/jobs/$((ID+1))/log.txt" -O - | grep "https://transfer.sh/.*/appimagetool" | tail -n 1 | sed -e 's|\r||g')
   # if [ -z "$URL" ] ; then
   #   URL=$(wget -q "https://s3.amazonaws.com/archive.travis-ci.org/jobs/$((ID+2))/log.txt" -O - | grep "https://transfer.sh/.*/appimagetool" | tail -n 1 | sed -e 's|\r||g')
   # fi
-  URL="https://github.com/probonopd/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage"
+  URL="https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-${SYSTEM_ARCH}.AppImage"
   wget -c "$URL" -O appimagetool
   chmod a+x ./appimagetool
   set +x
   if ( [ ! -z "$KEY" ] ) && ( ! -z "$TRAVIS" ) ; then
-    wget https://github.com/probonopd/AppImageKit/files/584665/data.zip -O data.tar.gz.gpg
+    wget https://github.com/AppImage/AppImageKit/files/584665/data.zip -O data.tar.gz.gpg
     ( set +x ; echo $KEY | gpg2 --batch --passphrase-fd 0 --no-tty --skip-verify --output data.tar.gz --decrypt data.tar.gz.gpg )
     tar xf data.tar.gz
     sudo chown -R $USER .gnu*
     mv $HOME/.gnu* $HOME/.gnu_old ; mv .gnu* $HOME/
-    VERSION=$VERSION ./appimagetool -n -s --bintray-user $BINTRAY_USER --bintray-repo $BINTRAY_REPO -v ./$APP.AppDir/
+    GLIBC_NEEDED=${GLIBC_NEEDED:=$(glibc_needed)}
+    VERSION=$VERSION.glibc$GLIBC_NEEDED ./appimagetool -n -s --bintray-user $BINTRAY_USER --bintray-repo $BINTRAY_REPO -v ./$APP.AppDir/
   else
-    VERSION=$VERSION ./appimagetool -n --bintray-user $BINTRAY_USER --bintray-repo $BINTRAY_REPO -v ./$APP.AppDir/
+    GLIBC_NEEDED=${GLIBC_NEEDED:=$(glibc_needed)}
+    VERSION=$VERSION.glibc$GLIBC_NEEDED ./appimagetool -n --bintray-user $BINTRAY_USER --bintray-repo $BINTRAY_REPO -v ./$APP.AppDir/
   fi
   set -x
   mkdir -p ../out/ || true
@@ -180,14 +213,14 @@ generate_type2_appimage()
 }
 
 # Generate status file for use by apt-get; assuming that the recipe uses no newer
-# ingredients than what would require more recent dependencies than what we assume 
+# ingredients than what would require more recent dependencies than what we assume
 # to be part of the base system
 generate_status()
 {
   mkdir -p ./tmp/archives/
   mkdir -p ./tmp/lists/partial
   touch tmp/pkgcache.bin tmp/srcpkgcache.bin
-  wget -q -c "https://github.com/probonopd/AppImages/raw/master/excludedeblist"
+  wget -q -c "https://github.com/AppImage/AppImages/raw/master/excludedeblist"
   rm status 2>/dev/null || true
   for PACKAGE in $(cat excludedeblist | cut -d "#" -f 1) ; do
     printf "Package: $PACKAGE\nStatus: install ok installed\nArchitecture: all\nVersion: 9:999.999.999\n\n" >> status
@@ -198,6 +231,13 @@ generate_status()
 get_desktop()
 {
    find usr/share/applications -iname "*${LOWERAPP}.desktop" -exec cp {} . \; || true
+}
+
+fix_desktop() {
+    # fix trailing semicolons
+    for key in Actions Categories Implements Keywords MimeType NotShowIn OnlyShowIn; do
+      sed -i '/'"$key"'.*[^;]$/s/$/;/' $1
+    done
 }
 
 # Find the icon file and copy it to the AppDir
@@ -218,24 +258,22 @@ get_version()
   if [ -z "$THEDEB" ] ; then
     echo "Version could not be determined from the .deb; you need to determine it manually"
   fi
-  VER1=$(echo $THEDEB | cut -d "~" -f 1 | cut -d "_" -f 2 | cut -d "-" -f 1 | sed -e 's|1%3a||g' | sed -e 's|+dfsg||g' )
-  GLIBC_NEEDED=$(glibc_needed)
-  VERSION=$VER1.glibc$GLIBC_NEEDED
+  VERSION=$(echo $THEDEB | cut -d "~" -f 1 | cut -d "_" -f 2 | cut -d "-" -f 1 | sed -e 's|1%3a||g' | sed -e 's|+dfsg||g' )
   echo $VERSION
 }
 
 # transfer.sh
-transfer() { if [ $# -eq 0 ]; then echo "No arguments specified. Usage:\necho transfer /tmp/test.md\ncat /tmp/test.md | transfer test.md"; return 1; fi 
+transfer() { if [ $# -eq 0 ]; then echo "No arguments specified. Usage:\necho transfer /tmp/test.md\ncat /tmp/test.md | transfer test.md"; return 1; fi
 tmpfile=$( mktemp -t transferXXX ); if tty -s; then basefile=$(basename "$1" | sed -e 's/[^a-zA-Z0-9._-]/-/g'); curl --progress-bar --upload-file "$1" "https://transfer.sh/$basefile" >> $tmpfile; else curl --progress-bar --upload-file "-" "https://transfer.sh/$1" >> $tmpfile ; fi; cat $tmpfile; rm -f $tmpfile; }
 
 # Patch binary files; fill with padding if replacement is shorter than original
 # http://everydaywithlinux.blogspot.de/2012/11/patch-strings-in-binary-files-with-sed.html
 # Example: patch_strings_in_file foo "/usr/local/lib/foo" "/usr/lib/foo"
-function patch_strings_in_file() {
+patch_strings_in_file() {
     local FILE="$1"
     local PATTERN="$2"
     local REPLACEMENT="$3"
-    # Find all unique strings in FILE that contain the pattern 
+    # Find all unique strings in FILE that contain the pattern
     STRINGS=$(strings ${FILE} | grep ${PATTERN} | sort -u -r)
     if [ "${STRINGS}" != "" ] ; then
         echo "File '${FILE}' contain strings with '${PATTERN}' in them:"
@@ -251,7 +289,7 @@ function patch_strings_in_file() {
                 while [ ${#NEW_STRING_HEX} -lt ${#OLD_STRING_HEX} ] ; do
                     NEW_STRING_HEX="${NEW_STRING_HEX}00"
                 done
-                # Now, replace every occurrence of OLD_STRING with NEW_STRING 
+                # Now, replace every occurrence of OLD_STRING with NEW_STRING
                 echo -n "Replacing ${OLD_STRING} with ${NEW_STRING}... "
                 hexdump -ve '1/1 "%.2X"' ${FILE} | \
                 sed "s/${OLD_STRING_HEX}/${NEW_STRING_HEX}/g" | \
