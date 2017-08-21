@@ -5,7 +5,7 @@
 ## This file is licensed under the terms of the MIT license.
 ##
 
-# Bundle PulseView and its dependencies as an AppImage for x86_64 Linux.
+# Bundle PulseView and its dependencies as an AppImage for x86_64/i386 Linux.
 # Note: This assumes the full sigrok stack has been installed into $PREFIX.
 
 PREFIX=$HOME/sr
@@ -75,7 +75,7 @@ cp usr/share/icons/hicolor/48x48/apps/pulseview.png .
 copy_deps
 
 # Get all Qt5 plugins (won't be copied automatically).
-QT5PLUGINS=/usr/lib/x86_64-linux-gnu/qt5/plugins # Host (+ AppRun) path.
+QT5PLUGINS=/usr/lib/$ARCH-linux-gnu/qt5/plugins # Host (+ AppRun) path.
 mkdir -p .$QT5PLUGINS
 cp -r $QT5PLUGINS/accessible .$QT5PLUGINS
 cp -r $QT5PLUGINS/generic .$QT5PLUGINS
@@ -89,19 +89,19 @@ ldd .$QT5PLUGINS/platforms/libqxcb.so | grep "=>" | awk '{print $3}' | xargs -I 
 ldd .$QT5PLUGINS/imageformats/libqsvg.so | grep "=>" | awk '{print $3}' | xargs -I '{}' cp -v '{}' ./usr/lib || true
 
 # Python 3
-cp /usr/lib/x86_64-linux-gnu/libpython$PYVER* ./usr/lib
+cp /usr/lib/$ARCH-linux-gnu/libpython$PYVER* ./usr/lib
 mkdir -p ./usr/share/pyshared
 cp -r /usr/lib/python$PYVER/* ./usr/share/pyshared # AppRun expects this path.
 
-cp -r ./usr/share/pyshared/plat-x86_64-linux-gnu/* ./usr/share/pyshared
+cp -r ./usr/share/pyshared/plat-$ARCH-linux-gnu/* ./usr/share/pyshared
 
 ########################################################################
 # Delete stuff that should not go into the AppImage
 ########################################################################
 
 move_lib
-mv ./usr/lib/x86_64-linux-gnu/* usr/lib/
-rm -r ./usr/lib/x86_64-linux-gnu/
+mv ./usr/lib/$ARCH-linux-gnu/* usr/lib/
+rm -r ./usr/lib/$ARCH-linux-gnu/
 
 delete_blacklisted
 
