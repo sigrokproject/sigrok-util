@@ -476,7 +476,7 @@ CC= CXX= ./configure \
 	-skip qtwebchannel \
 	-skip qtwebsockets \
 	-skip qtxmlpatterns \
-	-opensource -confirm-license -silent
+	-opensource -confirm-license -silent -no-warnings-are-errors
 export ANDROID_API_VERSION=android-$VER_AND_API
 export ANDROID_BUILD_TOOLS_REVISION=$VER_AND_BT
 make module-qtbase module-qtandroidextras module-qtsvg module-qtimageformats $PARALLEL $V
