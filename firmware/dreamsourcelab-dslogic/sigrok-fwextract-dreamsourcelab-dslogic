@@ -26,9 +26,9 @@ if [ -z $PREFIX ]; then
 fi
 FWDIR="$PREFIX/share/sigrok-firmware"
 
-# Use the upstream 0.97 firmware/bitstream set. This is the only supported
+# Use the upstream 0.98 firmware/bitstream set. This is the only supported
 # set of files in libsigrok >= 20170621.
-FWURL="https://github.com/DreamSourceLab/DSView/raw/886b847c21c606df3138ce7ad8f8e8c363ee758b/DSView/res"
+FWURL="https://github.com/DreamSourceLab/DSView/raw/040475c67a9660a23ad07c905367bcae76b8392c/DSView/res"
 
 echo "Installing into: $FWDIR"
 
