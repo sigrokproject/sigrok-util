@@ -44,7 +44,7 @@ Apply some fixes that are currently required for a proper build:
 Build all required packages:
 
  $ make MXE_TARGETS=i686-w64-mingw32.static.posix gcc glib libzip libusb1 \
-   libftdi1 glibmm qt5 boost check
+   libftdi1 glibmm qtbase qtimageformats qtsvg boost check
 
 This will take a while.
 
