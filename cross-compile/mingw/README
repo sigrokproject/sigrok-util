@@ -43,12 +43,17 @@ Apply some fixes that are currently required for a proper build:
 
 Build all required packages:
 
- $ make MXE_TARGETS=i686-w64-mingw32.static.posix gcc glib libzip libusb1 \
-   libftdi1 glibmm qtbase qtimageformats qtsvg boost check
+ $ make MXE_TARGETS=i686-w64-mingw32.static.posix \
+   MXE_PLUGIN_DIRS=plugins/examples/qt5-freeze \
+   gcc glib libzip libusb1 libftdi1 glibmm qtbase qtimageformats qtsvg \
+   boost check qtbase_CONFIGURE_OPTS='-no-sql-mysql'
 
 This will take a while.
 
 See http://mxe.cc for details on MXE.
+
+Note: We're "freezing" the Qt5 version to Qt 5.7.x, since that's the last
+version that supports Windows XP (which we currently still want to support).
 
 
 Building
