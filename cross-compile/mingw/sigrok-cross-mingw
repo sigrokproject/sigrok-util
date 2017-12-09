@@ -120,6 +120,19 @@ EOF
 $WGET http://www.sigrok.org/tmp/python34_$TARGET.dll -O $PREFIX/python34.dll
 $WGET http://www.sigrok.org/tmp/python34_$TARGET.zip -O $PREFIX/python34.zip
 
+# In order to link against Python we need libpython34.a.
+# The upstream Python 32bit installer ships this, the x86_64 installer
+# doesn't. Thus, we generate the file manually here.
+if [ $TARGET = "x86_64" ]; then
+	cp $PREFIX/python34.dll .
+	$MXE/usr/$TARGET-w64-mingw32.static.posix/bin/gendef python34.dll
+	$MXE/usr/bin/$TARGET-w64-mingw32.static.posix-dlltool \
+		--dllname python34.dll --def python34.def \
+		--output-lib libpython34.a
+	mv -f libpython34.a $PREFIX/Python34/libs
+	rm -f python34.dll
+fi
+
 # Zadig (we ship this with frontends for easy driver switching).
 $WGET http://zadig.akeo.ie/downloads/zadig.exe -O $PREFIX/zadig.exe
 $WGET http://zadig.akeo.ie/downloads/zadig_xp.exe -O $PREFIX/zadig_xp.exe
