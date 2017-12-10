@@ -206,7 +206,7 @@ cd sigrok-cli
 ./configure $C
 make $PARALLEL $V
 make install $V
-makensis -DHOME=$HOME contrib/sigrok-cli_cross.nsi
+makensis contrib/sigrok-cli_cross.nsi
 cd ..
 
 # PulseView
@@ -224,6 +224,6 @@ if [ $DEBUG = 1 ]; then
 else
 	make install/strip $V
 fi
-makensis -DHOME=$HOME contrib/pulseview_cross.nsi
+makensis contrib/pulseview_cross.nsi
 cd ..
 
