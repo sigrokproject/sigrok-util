@@ -23,17 +23,17 @@ Toolchain setup
 
 First, you need to install MSYS2 (use the 64bit installer, msys2-x86_64-*.exe):
 
-  https://sourceforge.net/p/msys2/wiki/MSYS2%20installation/
+  http://www.msys2.org
+  https://github.com/msys2/msys2/wiki/MSYS2-installation
 
 Then, perform the MSYS2 update procedure as per the documentation above.
 
-  $ update-core
-    (If one of the packages is updated here, you MUST restart MSYS2)
+  $ pacman -Syu # If needed, close MSYS2, run it again from Start menu.
   $ pacman -Su
 
-Now close the shell and start an "MSYS2 MinGW32" shell (do NOT use the
-"MSYS2 Shell", and do NOT use the "MSYS2 MinGW64" shell). All other
-steps will always have to be performed in an "MSYS2 MinGW32" shell.
+Now close the shell and start an "MSYS2 MinGW 32-bit" shell (do NOT use the
+"MSYS2 MSYS" shell, and do NOT use the "MSYS2 MinGW 64-bit" shell). All other
+steps will always have to be performed in an "MSYS2 MinGW 32-bit" shell.
 
 Install the MSYS2 git package there:
 
