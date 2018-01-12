@@ -74,7 +74,9 @@ fi
 
 if [ $DEBUG = 1 ]; then
 	# CFLAGS/CXXFLAGS contains "-g" per default for autotools projects.
-	CM="$CM -DCMAKE_BUILD_TYPE=Debug"
+	BUILD_TYPE="Debug"
+else
+	BUILD_TYPE="Release"
 fi
 
 # Remove build directory contents (if any) and create a new build dir.
@@ -213,11 +215,12 @@ cd ..
 $GIT_CLONE $REPO_BASE/pulseview
 cd pulseview
 cp ../../FileAssociation.nsh contrib
-if [ $DEBUG = 1 ]; then
-	# Allow a "DOS box" to open on Windows, it'll contain logging output.
-	patch -p1 < ../../pv_mwindows.patch
-fi
-$CMAKE -DCMAKE_INSTALL_PREFIX:PATH=$PREFIX -DDISABLE_WERROR=y -DENABLE_TESTS=y .
+$CMAKE \
+	-DCMAKE_INSTALL_PREFIX:PATH=$PREFIX \
+	-DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+	-DDISABLE_WERROR=y \
+	-DENABLE_TESTS=y
+	.
 make $PARALLEL $V
 if [ $DEBUG = 1 ]; then
 	make install $V
