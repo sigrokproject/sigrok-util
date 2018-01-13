@@ -78,7 +78,7 @@ if [ "x$1" = "xprepare" ]; then
   pacman -Sy
   pacman -S \
 	autoconf automake autoconf-archive libtool make pkg-config wget patch \
-	$W-toolchain $W-glib2 $W-glibmm $W-libusb $W-libfdi $W-check $W-boost \
+	$W-toolchain $W-glib2 $W-glibmm $W-libusb $W-libftdi $W-check $W-boost \
 	$W-libzip $W-doxygen $W-python3 $W-python3-numpy $W-python3-gobject \
 	$W-python3-setuptools $W-swig $W-qt5-static $W-cmake $W-nsis
   exit
