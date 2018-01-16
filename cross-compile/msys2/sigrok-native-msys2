@@ -2,7 +2,7 @@
 ##
 ## This file is part of the sigrok-util project.
 ##
-## Copyright (C) 2016 Uwe Hermann <uwe@hermann-uwe.de>
+## Copyright (C) 2016-2018 Uwe Hermann <uwe@hermann-uwe.de>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -20,17 +20,14 @@
 
 set -e
 
-# Build target: "i686" (32bit) or "x86_64" (64bit).
-TARGET="i686"
+# The base path prefix where the compiled packages will be installed.
+PREFIXBASE=$HOME/sr_msys2
 
-# The path where the compiled packages will be installed.
-PREFIX=$HOME/sr_msys2
+# The base path prefix where to download files to and where to build packages.
+BUILDBASE=./build
 
-# The path where to download files to and where to build packages.
-BUILDDIR=./build
-
-# The path where the libsigrok Python bindings will be installed.
-PYPATH=$PREFIX/lib/python2.7/site-packages
+# The $PREFIX subdir where the libsigrok Python bindings will be installed.
+PYBASE=lib/python2.7/site-packages
 
 # Edit this to control verbose build output.
 # V="V=1 VERBOSE=1"
@@ -38,19 +35,44 @@ PYPATH=$PREFIX/lib/python2.7/site-packages
 # Edit this to enable/disable/modify parallel compiles.
 PARALLEL="-j 2"
 
+# Edit this to enable/disable debug builds.
+DEBUG=0
+
 # You usually don't need to change anything below this line.
 
 # -----------------------------------------------------------------------------
 
+# The build target type: "i686" (32bit) or "x86_64" (64bit).
+# This is selected based on which MSYS2 shell is being used to do the build.
+TARGET=$MSYSTEM_CARCH
+
 VER_SIGROK_FIRMWARE_FX2LAFW=0.1.3
 
-# -----------------------------------------------------------------------------
+WGET="wget -c --quiet"
+GIT_CLONE="git clone --depth=1"
 
+REPO_BASE="git://sigrok.org"
+
+# Construct the build and install directory pathnames.
+if [ $TARGET = "i686" ]; then
+	SUFFIX="32"
+else
+	SUFFIX="64"
+fi
 if [ $DEBUG = 1 ]; then
+	# CFLAGS/CXXFLAGS contains "-g" per default for autotools projects.
 	BUILD_TYPE="Debug"
+	PREFIX=$PREFIXBASE"_debug_"$SUFFIX
+	BUILDDIR=$BUILDBASE"_debug_"$SUFFIX
 else
 	BUILD_TYPE="Release"
+	PREFIX=$PREFIXBASE"_release_"$SUFFIX
+	BUILDDIR=$BUILDBASE"_release_"$SUFFIX
 fi
+
+PYPATH=$PREFIX/$PYBASE
+
+# -----------------------------------------------------------------------------
 
 P="$PREFIX/lib/pkgconfig"
 C="$C --prefix=$PREFIX"
@@ -61,10 +83,7 @@ PATH="/mingw32/qt5-static/bin:$PATH"
 
 W="mingw-w64-$TARGET"
 
-WGET="wget -c --quiet"
-GIT_CLONE="git clone --depth=1"
-
-REPO_BASE="git://sigrok.org"
+mkdir -p $PYPATH
 
 # Remove build directory contents (if any) and create a new build dir.
 rm -rf $BUILDDIR
@@ -107,7 +126,6 @@ make install $V
 cd ../..
 
 # libsigrok
-mkdir -p $PYPATH
 $GIT_CLONE $REPO_BASE/libsigrok
 cd libsigrok
 ./autogen.sh
@@ -173,7 +191,7 @@ PKG_CONFIG_PATH=$P $SB cmake \
 	-DCMAKE_INSTALL_PREFIX:PATH=$PREFIX \
 	-DCMAKE_BUILD_TYPE=$BUILD_TYPE \
 	-DDISABLE_WERROR=y \
-	-DENABLE_TESTS=n
+	-DENABLE_TESTS=n \
 	..
 $SB make $PARALLEL $V
 make install $V

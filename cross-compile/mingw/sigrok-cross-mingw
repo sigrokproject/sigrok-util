@@ -2,7 +2,7 @@
 ##
 ## This file is part of the sigrok-util project.
 ##
-## Copyright (C) 2013-2017 Uwe Hermann <uwe@hermann-uwe.de>
+## Copyright (C) 2013-2018 Uwe Hermann <uwe@hermann-uwe.de>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -26,11 +26,11 @@ TARGET="i686"
 # The path where your MXE directory is located.
 MXE=$HOME/mxe-git
 
-# The path where the cross-compiled packages will be installed.
-PREFIX=$HOME/sr_mingw
+# The base path prefix where the cross-compiled packages will be installed.
+PREFIXBASE=$HOME/sr_mingw
 
-# The path where to download files to and where to build packages.
-BUILDDIR=./build
+# The base path prefix where to download files to and where to build packages.
+BUILDBASE=./build
 
 # Edit this to control verbose build output.
 # V="V=1 VERBOSE=1"
@@ -52,6 +52,23 @@ GIT_CLONE="git clone --depth=1"
 
 REPO_BASE="git://sigrok.org"
 
+# Construct the build and install directory pathnames.
+if [ $TARGET = "i686" ]; then
+	SUFFIX="32"
+else
+	SUFFIX="64"
+fi
+if [ $DEBUG = 1 ]; then
+	# CFLAGS/CXXFLAGS contains "-g" per default for autotools projects.
+	BUILD_TYPE="Debug"
+	PREFIX=$PREFIXBASE"_debug_"$SUFFIX
+	BUILDDIR=$BUILDBASE"_debug_"$SUFFIX
+else
+	BUILD_TYPE="Release"
+	PREFIX=$PREFIXBASE"_release_"$SUFFIX
+	BUILDDIR=$BUILDBASE"_release_"$SUFFIX
+fi
+
 # -----------------------------------------------------------------------------
 
 # We need to find tools in the toolchain.
@@ -70,13 +87,6 @@ if [ $TARGET = "i686" ]; then
 	export PKG_CONFIG_PATH_i686_w64_mingw32_static_posix="$P:$P2"
 else
 	export PKG_CONFIG_PATH_x86_64_w64_mingw32_static_posix="$P:$P2"
-fi
-
-if [ $DEBUG = 1 ]; then
-	# CFLAGS/CXXFLAGS contains "-g" per default for autotools projects.
-	BUILD_TYPE="Debug"
-else
-	BUILD_TYPE="Release"
 fi
 
 # Remove build directory contents (if any) and create a new build dir.
@@ -219,7 +229,7 @@ $CMAKE \
 	-DCMAKE_INSTALL_PREFIX:PATH=$PREFIX \
 	-DCMAKE_BUILD_TYPE=$BUILD_TYPE \
 	-DDISABLE_WERROR=y \
-	-DENABLE_TESTS=y
+	-DENABLE_TESTS=y \
 	.
 make $PARALLEL $V
 if [ $DEBUG = 1 ]; then
