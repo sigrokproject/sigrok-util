@@ -45,8 +45,6 @@ DEBUG=0
 
 # -----------------------------------------------------------------------------
 
-SF_MIRROR=switch.dl.sourceforge.net
-
 WGET="wget -c --quiet"
 GIT_CLONE="git clone --depth=1"
 
