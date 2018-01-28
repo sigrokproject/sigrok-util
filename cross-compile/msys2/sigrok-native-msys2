@@ -46,7 +46,7 @@ DEBUG=0
 # This is selected based on which MSYS2 shell is being used to do the build.
 TARGET=$MSYSTEM_CARCH
 
-VER_SIGROK_FIRMWARE_FX2LAFW=0.1.5
+VER_SIGROK_FIRMWARE_FX2LAFW=0.1.6
 
 WGET="wget -c --quiet"
 GIT_CLONE="git clone --depth=1"
