@@ -42,6 +42,13 @@ DEBUG=0
 
 # -----------------------------------------------------------------------------
 
+# Abort if the user runs the script in an "MSYS2 MSYS" shell.
+if [ $MSYSTEM = "MSYS2" ]; then
+	echo "Building in an 'MSYS2 MSYS' shell will not work, aborting."
+	echo "Please use the 'MSYS2 MinGW 64-bit' (or 32-bit) shell."
+	exit
+fi
+
 # The build target type: "i686" (32bit) or "x86_64" (64bit).
 # This is selected based on which MSYS2 shell is being used to do the build.
 TARGET=$MSYSTEM_CARCH
