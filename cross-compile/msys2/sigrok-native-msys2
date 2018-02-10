@@ -43,7 +43,7 @@ DEBUG=0
 # -----------------------------------------------------------------------------
 
 # Abort if the user runs the script in an "MSYS2 MSYS" shell.
-if [ $MSYSTEM = "MSYS2" ]; then
+if [ $MSYSTEM = "MSYS" ]; then
 	echo "Building in an 'MSYS2 MSYS' shell will not work, aborting."
 	echo "Please use the 'MSYS2 MinGW 64-bit' (or 32-bit) shell."
 	exit
