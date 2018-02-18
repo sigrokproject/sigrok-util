@@ -79,6 +79,9 @@ fi
 
 PYPATH=$PREFIX/$PYBASE
 
+# Eliminate the host Python path environment variable, if any is set.
+export PYTHONPATH=
+
 # -----------------------------------------------------------------------------
 
 P="$PREFIX/lib/pkgconfig"
