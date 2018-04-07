@@ -84,7 +84,7 @@ export PYTHONPATH=
 
 # -----------------------------------------------------------------------------
 
-P="$PREFIX/lib/pkgconfig"
+P="$PREFIX/lib/pkgconfig:$PKG_CONFIG_PATH"
 C="$C --prefix=$PREFIX"
 L="--disable-shared --enable-static"
 
