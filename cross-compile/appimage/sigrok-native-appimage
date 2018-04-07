@@ -1,11 +1,11 @@
 #!/bin/bash
 ##
 ## Copyright (C) 2016 Simon Peter
-## Copyright (C) 2017 Uwe Hermann <uwe@hermann-uwe.de>
+## Copyright (C) 2017-2018 Uwe Hermann <uwe@hermann-uwe.de>
 ## This file is licensed under the terms of the MIT license.
 ##
 
-# Bundle PulseView and its dependencies as an AppImage for x86_64/i386 Linux.
+# Bundle PulseView/sigrok-cli (and deps) as an AppImage for x86_64/i386 Linux.
 # Note: This assumes the full sigrok stack has been installed into $PREFIX.
 
 PREFIX=$HOME/sr
@@ -21,7 +21,11 @@ PYVER=3.4
 # You usually don't have to change anything below this line
 ########################################################################
 
-APP=PulseView
+if [ "x$1" = "xsigrok-cli" ]; then
+	APP=sigrok-cli
+else
+	APP=PulseView
+fi
 LOWERAPP=${APP,,} 
 
 export STATIC_FILES=`pwd`/contrib
@@ -41,15 +45,27 @@ cd ./$APP
 
 cd $APP.AppDir/
 
-cp $PREFIX/bin/pulseview usr/bin/
+cp $PREFIX/bin/$LOWERAPP usr/bin/
 chmod a+x usr/bin/*
 cp $PREFIX/lib/lib*.so* usr/lib/
 cp -r $PREFIX/share/libsigrokdecode usr/share/
 cp -r $PREFIX/share/sigrok-firmware usr/share/
-cp -r $PREFIX/share/applications usr/share/
+mkdir -p usr/share/applications
+cp $PREFIX/share/applications/org.sigrok.$APP.desktop usr/share/applications
 cp -r $PREFIX/share/icons usr/share/
 cp -r $PREFIX/share/metainfo usr/share/
 cp -r $PREFIX/share/mime usr/share/
+
+# Drop unneeded stuff.
+if [ "x$1" = "xsigrok-cli" ]; then
+	rm -f usr/lib/libsigc*
+	rm -f usr/lib/libglibmm*
+	rm -f usr/lib/libsigrokcxx*
+	rm -f usr/share/icons/hicolor/*/apps/pulseview.*
+	rm -f usr/share/metainfo/org.sigrok.PulseView.appdata.xml
+else
+	rm -f usr/share/icons/hicolor/scalable/apps/sigrok-cli.svg
+fi
 
 # Reduce binary size
 strip usr/bin/*
@@ -65,8 +81,8 @@ cp $APPIMAGEKIT_OUTDIR/AppRun .
 # Copy desktop and icon file to AppDir for AppRun to pick them up
 ########################################################################
 
-cp usr/share/applications/*.desktop .
-cp usr/share/icons/hicolor/48x48/apps/pulseview.png .
+cp $PREFIX/share/applications/org.sigrok.$APP.desktop .
+cp $PREFIX/share/icons/hicolor/scalable/apps/$LOWERAPP.svg .
 
 ########################################################################
 # Copy in the dependencies that cannot be assumed to be available
@@ -75,19 +91,21 @@ cp usr/share/icons/hicolor/48x48/apps/pulseview.png .
 
 copy_deps
 
-# Get all Qt5 plugins (won't be copied automatically).
-QT5PLUGINS=/usr/lib/$ARCH-linux-gnu/qt5/plugins # Host (+ AppRun) path.
-mkdir -p .$QT5PLUGINS
-cp -r $QT5PLUGINS/accessible .$QT5PLUGINS
-cp -r $QT5PLUGINS/generic .$QT5PLUGINS
-cp -r $QT5PLUGINS/iconengines .$QT5PLUGINS
-cp -r $QT5PLUGINS/imageformats .$QT5PLUGINS
-cp -r $QT5PLUGINS/platforminputcontexts .$QT5PLUGINS
-cp -r $QT5PLUGINS/platforms .$QT5PLUGINS
-
-# Get some additional dependencies of the Qt5 plugins.
-ldd .$QT5PLUGINS/platforms/libqxcb.so | grep "=>" | awk '{print $3}' | xargs -I '{}' cp -v '{}' ./usr/lib || true
-ldd .$QT5PLUGINS/imageformats/libqsvg.so | grep "=>" | awk '{print $3}' | xargs -I '{}' cp -v '{}' ./usr/lib || true
+if [ "x$1" != "xsigrok-cli" ]; then
+	# Get all Qt5 plugins (won't be copied automatically).
+	QT5PLUGINS=/usr/lib/$ARCH-linux-gnu/qt5/plugins # Host (+ AppRun) path.
+	mkdir -p .$QT5PLUGINS
+	cp -r $QT5PLUGINS/accessible .$QT5PLUGINS
+	cp -r $QT5PLUGINS/generic .$QT5PLUGINS
+	cp -r $QT5PLUGINS/iconengines .$QT5PLUGINS
+	cp -r $QT5PLUGINS/imageformats .$QT5PLUGINS
+	cp -r $QT5PLUGINS/platforminputcontexts .$QT5PLUGINS
+	cp -r $QT5PLUGINS/platforms .$QT5PLUGINS
+	
+	# Get some additional dependencies of the Qt5 plugins.
+	ldd .$QT5PLUGINS/platforms/libqxcb.so | grep "=>" | awk '{print $3}' | xargs -I '{}' cp -v '{}' ./usr/lib || true
+	ldd .$QT5PLUGINS/imageformats/libqsvg.so | grep "=>" | awk '{print $3}' | xargs -I '{}' cp -v '{}' ./usr/lib || true
+fi
 
 # Python 3
 cp /usr/lib/$ARCH-linux-gnu/libpython$PYVER* ./usr/lib

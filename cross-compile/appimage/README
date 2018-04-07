@@ -2,7 +2,7 @@
 README
 -------------------------------------------------------------------------------
 
-This is a small script for bundling PulseView and its dependencies
+This is a small script for bundling PulseView/sigrok-cli and its dependencies
 for Linux systems as an AppImage.
 
 AppImage is a bundle format for Linux applications that allows the user to 
@@ -37,9 +37,15 @@ can run on as many different systems as possible.
 Building
 --------
 
+For PulseView:
+
  $ ./sigrok-native-appimage
 
-Per default it will put the AppImage in:
+For sigrok-cli:
+
+ $ ./sigrok-native-appimage sigrok-cli
+
+Per default the script will put the AppImages in:
 
  ./out/*.AppImage
 
