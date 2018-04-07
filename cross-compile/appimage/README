@@ -19,24 +19,19 @@ https://github.com/probonopd/AppImages
 Status
 ------
 
-Work in progress.
+Working, nightly AppImages are provided here:
+https://sigrok.org/jenkins/job/sigrok-native-appimage/
 
 
 Requirements
 ------------
 
-Currently the script uses pre-existing build products from Jenkins
-that are built on Debian unstable. This makes the build product run on none
-but the latest distributions. A much better choice would be to build e.g.,
-on Debian oldstable, CentOS 6, or Ubuntu Trusty or earlier.
-Examples for building bleeding-edge Qt4 and Qt5 applications on such mature
-build systems can be found at
-https://github.com/probonopd/AppImages/blob/master/recipes
+The script assumes you have built all of the sigrok subprojects and
+installed them into $HOME/sr (e.g. via the sigrok-cross-linux script).
 
-The script has been tested on Ubuntu 16.04 but is assumed
-to also run on Debian unstable with no or minor changes. However, it is
-strongly suggested to build and package the AppImage on a significantly
-older distribution as mentioned above for any productive use.
+The AppImages are tested to build fine on Ubuntu 14.04 (32bit and 64bit).
+These older distros are used for the build so that the generated AppImages
+can run on as many different systems as possible.
 
 
 Building
