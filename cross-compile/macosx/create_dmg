@@ -92,7 +92,7 @@ rm -rf $PYDIR/lib/python$PYVER/**/__pycache__
 rm -rf $PYDIR/lib/python$PYVER/**/**/__pycache__
 rm -rf $PYDIR/Resources
 install_name_tool -change \
-	/usr/local/opt/python3/Frameworks/Python.framework/Versions/$PYVER/Python \
+	/usr/local/opt/python/Frameworks/Python.framework/Versions/$PYVER/Python \
 	@executable_path/../Frameworks/Python.framework/Versions/$PYVER/Python \
 	$FRAMEWORKSDIR/libsigrokdecode.*.dylib
 
