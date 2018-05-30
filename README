@@ -27,19 +27,10 @@ Requirements
 Building and installing
 -----------------------
 
-In order to get the sigrok-util source code and build it, run:
+In order to get the sigrok-util source code, run:
 
  $ git clone git://sigrok.org/sigrok-util
  $ cd sigrok-util
- $ make
-
-For installing sigrok-util:
-
- $ make install
-
-See the following wiki page for more (OS-specific) instructions:
-
- http://sigrok.org/wiki/Building
 
 
 Copyright and license
@@ -69,5 +60,5 @@ You can find the sigrok developers in the #sigrok IRC channel on Freenode.
 Website
 -------
 
- http://sigrok.org/wiki/Sigrok-util
+ http://sigrok.org
 
