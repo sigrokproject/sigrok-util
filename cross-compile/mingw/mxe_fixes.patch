@@ -1,11 +1,41 @@
 These patches are currently required to get a properly working
 MXE setup for sigrok usage.
 
+ - libsigrok currently requires a special libusb branch.
+
  - Force libzip to use its own mkstemp() implementation.
    http://sigrok.org/bugzilla/show_bug.cgi?id=570#c2
 
+diff --git a/src/libusb1.mk b/src/libusb1.mk
+index 0b58dff3..281a1169 100644
+--- a/src/libusb1.mk
++++ b/src/libusb1.mk
+@@ -5,10 +5,10 @@ $(PKG)_WEBSITE  := http://libusb.org/
+ $(PKG)_DESCR    := LibUsb-1.0
+ $(PKG)_IGNORE   :=
+ $(PKG)_VERSION  := 1.0.21
+-$(PKG)_CHECKSUM := 7dce9cce9a81194b7065ee912bcd55eeffebab694ea403ffb91b67db66b1824b
+-$(PKG)_SUBDIR   := libusb-$($(PKG)_VERSION)
+-$(PKG)_FILE     := libusb-$($(PKG)_VERSION).tar.bz2
+-$(PKG)_URL      := https://$(SOURCEFORGE_MIRROR)/project/libusb/libusb-1.0/libusb-$($(PKG)_VERSION)/$($(PKG)_FILE)
++$(PKG)_CHECKSUM := 58fee7f3f05fda209d14c55763df36ab86028bd9ab82c9bb74f1d5ab3208bcfd
++$(PKG)_SUBDIR   := libusb-event-abstraction-v4
++$(PKG)_FILE     := libusb-event-abstraction-v4.zip
++$(PKG)_URL      := https://github.com/dickens/libusb/archive/event-abstraction-v4.zip
+ $(PKG)_DEPS     := cc
+ 
+ define $(PKG)_UPDATE
+@@ -19,7 +19,7 @@ define $(PKG)_UPDATE
+ endef
+ 
+ define $(PKG)_BUILD
+-    cd '$(1)' && ./configure \
++    cd '$(1)' && autoreconf -i && ./configure \
+         $(MXE_CONFIGURE_OPTS) \
+         CFLAGS=-D_WIN32_WINNT=0x0500
+     $(MAKE) -C '$(1)' -j '$(JOBS)' install
 diff --git a/src/libzip.mk b/src/libzip.mk
-index 9d1e189..d4d5bf9 100644
+index 28ea792c..ee1bcfbe 100644
 --- a/src/libzip.mk
 +++ b/src/libzip.mk
 @@ -18,7 +18,8 @@ endef
