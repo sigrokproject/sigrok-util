@@ -6,6 +6,11 @@ MXE setup for sigrok usage.
  - Force libzip to use its own mkstemp() implementation.
    http://sigrok.org/bugzilla/show_bug.cgi?id=570#c2
 
+ - We're reverting to glib 2.44.1 for now since more recent
+   versions (e.g. 2.50.2) seem to have a bug. Details:
+   https://sigrok.org/bugzilla/show_bug.cgi?id=1232
+   https://github.com/mxe/mxe/issues/2168
+
 diff --git a/src/libusb1.mk b/src/libusb1.mk
 index 0b58dff3..281a1169 100644
 --- a/src/libusb1.mk
@@ -48,3 +53,293 @@ index 28ea792c..ee1bcfbe 100644
      $(MAKE) -C '$(1)' -j '$(JOBS)' install $(MXE_DISABLE_CRUFT) SUBDIRS=lib
  
      '$(TARGET)-gcc' \
+diff --git a/src/glib-1-fixes.patch b/src/glib-1-fixes.patch
+index 021a5cac..428cc6a9 100644
+--- a/src/glib-1-fixes.patch
++++ b/src/glib-1-fixes.patch
+@@ -5,7 +5,7 @@ Contains ad hoc patches for cross building.
+ From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+ From: Mark Brand <mabrand@mabrand.nl>
+ Date: Thu, 23 Sep 2010 21:42:46 +0200
+-Subject: [PATCH 1/9] fix tool paths
++Subject: [PATCH] fix tool paths
+ 
+ 
+ diff --git a/glib-2.0.pc.in b/glib-2.0.pc.in
+@@ -29,17 +29,14 @@ index 1111111..2222222 100644
+ From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+ From: Hans Petter Jansson <hpj@cl.no>
+ Date: Fri, 15 Jun 2012 15:25:01 +0200
+-Subject: [PATCH 2/9] Avoid DllMain symbol conflict when linking statically
++Subject: [PATCH] Avoid DllMain symbol conflict when linking statically
+ 
+-Adjusted by Boris Nagaev on 29-Jan-2017 to fix
+-https://gist.github.com/starius/f4fc85939352cb50122ba29e0f5b140d
+-when updating to glib-2.50.2.
+ 
+ diff --git a/gio/giomodule.c b/gio/giomodule.c
+ index 1111111..2222222 100644
+ --- a/gio/giomodule.c
+ +++ b/gio/giomodule.c
+-@@ -928,14 +928,12 @@ extern GType g_cocoa_notification_backend_get_type (void);
++@@ -918,14 +918,12 @@ extern GType g_gtk_notification_backend_get_type (void);
+  
+  static HMODULE gio_dll = NULL;
+  
+@@ -56,7 +53,7 @@ index 1111111..2222222 100644
+  	 DWORD     fdwReason,
+  	 LPVOID    lpvReserved)
+  {
+-@@ -945,8 +943,6 @@ DllMain (HINSTANCE hinstDLL,
++@@ -935,8 +933,6 @@ DllMain (HINSTANCE hinstDLL,
+    return TRUE;
+  }
+  
+@@ -69,7 +66,7 @@ diff --git a/glib/glib-init.c b/glib/glib-init.c
+ index 1111111..2222222 100644
+ --- a/glib/glib-init.c
+ +++ b/glib/glib-init.c
+-@@ -245,14 +245,14 @@ glib_init (void)
++@@ -237,14 +237,14 @@ glib_init (void)
+  
+  #if defined (G_OS_WIN32)
+  
+@@ -86,31 +83,18 @@ index 1111111..2222222 100644
+           DWORD     fdwReason,
+           LPVOID    lpvReserved)
+  {
+-diff --git a/gobject/gtype.c b/gobject/gtype.c
+-index 1111111..2222222 100644
+---- a/gobject/gtype.c
+-+++ b/gobject/gtype.c
+-@@ -4450,7 +4450,7 @@ gobject_init (void)
+-   _g_signal_init ();
+- }
+- 
+--#if defined (G_OS_WIN32)
+-+#if 0
+- 
+- BOOL WINAPI DllMain (HINSTANCE hinstDLL,
+-                      DWORD     fdwReason,
+ 
+ From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+ From: Hans Petter Jansson <hpj@cl.no>
+ Date: Fri, 15 Jun 2012 15:27:22 +0200
+-Subject: [PATCH 3/9] Allow building without inotify support
++Subject: [PATCH] Allow building without inotify support
+ 
+ 
+ diff --git a/configure.ac b/configure.ac
+ index 1111111..2222222 100644
+ --- a/configure.ac
+ +++ b/configure.ac
+-@@ -1599,10 +1599,16 @@ dnl *****************************
++@@ -1659,10 +1659,16 @@ dnl *****************************
+  dnl ** Check for inotify (GIO) **
+  dnl *****************************
+  inotify_support=no
+@@ -131,7 +115,7 @@ index 1111111..2222222 100644
+ From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+ From: Hans Petter Jansson <hpj@cl.no>
+ Date: Fri, 15 Jun 2012 15:28:14 +0200
+-Subject: [PATCH 4/9] Make sure STDC_HEADERS is set for AC_CHECK_ALIGNOF.
++Subject: [PATCH] Make sure STDC_HEADERS is set for AC_CHECK_ALIGNOF.
+  Backported from upstream
+ 
+ 
+@@ -139,7 +123,7 @@ diff --git a/configure.ac b/configure.ac
+ index 1111111..2222222 100644
+ --- a/configure.ac
+ +++ b/configure.ac
+-@@ -511,6 +511,8 @@ LT_INIT([disable-static win32-dll])
++@@ -499,6 +499,8 @@ LT_INIT([disable-static win32-dll])
+  dnl when using libtool 2.x create libtool early, because it's used in configure
+  m4_ifdef([LT_OUTPUT], [LT_OUTPUT])
+  
+@@ -152,7 +136,7 @@ index 1111111..2222222 100644
+ From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+ From: Hans Petter Jansson <hpj@cl.no>
+ Date: Fri, 15 Jun 2012 15:29:06 +0200
+-Subject: [PATCH 5/9] Link with dnsapi
++Subject: [PATCH] Link with dnsapi
+ 
+ 
+ diff --git a/gio-2.0.pc.in b/gio-2.0.pc.in
+@@ -171,15 +155,15 @@ index 1111111..2222222 100644
+ From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+ From: Hans Petter Jansson <hpj@cl.no>
+ Date: Fri, 15 Jun 2012 15:29:38 +0200
+-Subject: [PATCH 6/9] Ensure globals are initialized even when DllMain is not
+- being run
++Subject: [PATCH] Ensure globals are initialized even when DllMain is not being
++ run
+ 
+ 
+ diff --git a/glib/gmain.c b/glib/gmain.c
+ index 1111111..2222222 100644
+ --- a/glib/gmain.c
+ +++ b/glib/gmain.c
+-@@ -2657,12 +2657,15 @@ g_get_real_time (void)
++@@ -2577,12 +2577,15 @@ g_get_real_time (void)
+  #if defined (G_OS_WIN32)
+  static ULONGLONG (*g_GetTickCount64) (void) = NULL;
+  static guint32 g_win32_tick_epoch = 0;
+@@ -195,7 +179,7 @@ index 1111111..2222222 100644
+    g_GetTickCount64 = NULL;
+    kernel32 = GetModuleHandle ("KERNEL32.DLL");
+    if (kernel32 != NULL)
+-@@ -2721,6 +2724,9 @@ g_get_monotonic_time (void)
++@@ -2641,6 +2644,9 @@ g_get_monotonic_time (void)
+     *    timeBeginPeriod() to increase it as much as they want
+     */
+  
+@@ -535,7 +519,7 @@ index 1111111..2222222 100644
+    win32_check_for_error (WAIT_FAILED != WaitForSingleObject (wt->handle, INFINITE));
+  }
+  
+-@@ -1041,6 +1145,8 @@ g_thread_lookup_native_funcs (void)
++@@ -984,6 +1088,8 @@ g_thread_lookup_native_funcs (void)
+  void
+  g_thread_win32_init (void)
+  {
+@@ -548,7 +532,7 @@ index 1111111..2222222 100644
+ From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+ From: Gerardo Ballabio <gerardo.ballabio@gmail.com>
+ Date: Sun, 16 Aug 2015 13:18:24 +0200
+-Subject: [PATCH 7/9] Remove an annoying runtime warning
++Subject: [PATCH] Remove an annoying runtime warning
+ 
+ that pops up when using GtkApplication in Gtk+ 3 programs.
+ 
+@@ -556,7 +540,7 @@ diff --git a/gio/gdbusaddress.c b/gio/gdbusaddress.c
+ index 1111111..2222222 100644
+ --- a/gio/gdbusaddress.c
+ +++ b/gio/gdbusaddress.c
+-@@ -1387,6 +1387,7 @@ __declspec(dllexport) void CALLBACK g_win32_run_session_bus (HWND hwnd, HINSTANC
++@@ -1325,6 +1325,7 @@ __declspec(dllexport) void CALLBACK g_win32_run_session_bus (HWND hwnd, HINSTANC
+  __declspec(dllexport) void CALLBACK
+  g_win32_run_session_bus (HWND hwnd, HINSTANCE hinst, char *cmdline, int nCmdShow)
+  {
+@@ -564,7 +548,7 @@ index 1111111..2222222 100644
+    GDBusDaemon *daemon;
+    GMainLoop *loop;
+    const char *address;
+-@@ -1418,6 +1419,7 @@ g_win32_run_session_bus (HWND hwnd, HINSTANCE hinst, char *cmdline, int nCmdShow
++@@ -1354,6 +1355,7 @@ g_win32_run_session_bus (HWND hwnd, HINSTANCE hinst, char *cmdline, int nCmdShow
+  
+    g_main_loop_unref (loop);
+    g_object_unref (daemon);
+@@ -576,7 +560,7 @@ index 1111111..2222222 100644
+ From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+ From: aquiles2k <aj@elane2k.com>
+ Date: Wed, 6 Apr 2016 22:39:53 +0300
+-Subject: [PATCH 8/9] fix error "won't overwrite defined macro" on OSX
++Subject: [PATCH] fix error "won't overwrite defined macro" on OSX
+ 
+ See https://github.com/mxe/mxe/issues/1281
+ 
+@@ -596,48 +580,22 @@ index 1111111..2222222 100644
+  dnl At the end, if we're not within glib, we'll define the public
+  dnl definitions in terms of our private definitions.
+ 
+-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+-From: Tony Theodore <tonyt@logyst.com>
+-Date: Mon, 26 Feb 2018 16:09:53 +1100
+-Subject: [PATCH 9/9] darwin: disable g_cocoa_notification_backend
+ 
++From: Boris Pek <tehnick-8@mail.ru>
++Date: Thu, 28 Apr 2016 16:48:12 +0300
++Subject: [PATCH] fix build with GCC >= 6.x
+ 
+-diff --git a/gio/Makefile.am b/gio/Makefile.am
+-index 1111111..2222222 100644
+---- a/gio/Makefile.am
+-+++ b/gio/Makefile.am
+-@@ -279,10 +279,6 @@ unix_sources = \
+- 
+- appinfo_sources += $(unix_appinfo_sources)
+- 
+--if OS_COCOA
+--unix_sources += gcocoanotificationbackend.c
+--endif
+--
+- giounixincludedir=$(includedir)/gio-unix-2.0/gio
+- giounixinclude_HEADERS = \
+- 	gdesktopappinfo.h	\
+-diff --git a/gio/giomodule.c b/gio/giomodule.c
+-index 1111111..2222222 100644
+---- a/gio/giomodule.c
+-+++ b/gio/giomodule.c
+-@@ -918,9 +918,6 @@ extern GType g_proxy_resolver_portal_get_type (void);
+- extern GType g_network_monitor_portal_get_type (void);
+- #endif
+- 
+--#ifdef HAVE_COCOA
+--extern GType g_cocoa_notification_backend_get_type (void);
+--#endif
++See plugins/gcc6/README.md
++
++diff --git a/gio/gregistrysettingsbackend.c b/gio/gregistrysettingsbackend.c
++--- a/gio/gregistrysettingsbackend.c
+++++ b/gio/gregistrysettingsbackend.c
++@@ -228,7 +228,7 @@
++   if (result_code == ERROR_KEY_DELETED)
++     trace ("(%s)", win32_message);
++   else
++-    g_message (win32_message);
+++    g_message ("%s", win32_message);
++ };
+  
+- #ifdef G_PLATFORM_WIN32
+  
+-@@ -1117,9 +1114,6 @@ _g_io_modules_ensure_loaded (void)
+-       g_type_ensure (g_network_monitor_portal_get_type ());
+-       g_type_ensure (g_proxy_resolver_portal_get_type ());
+- #endif
+--#ifdef HAVE_COCOA
+--      g_type_ensure (g_cocoa_notification_backend_get_type ());
+--#endif
+- #ifdef G_OS_WIN32
+-       g_type_ensure (_g_winhttp_vfs_get_type ());
+- #endif
+diff --git a/src/glib.mk b/src/glib.mk
+index 825b86bb..499a45b8 100644
+--- a/src/glib.mk
++++ b/src/glib.mk
+@@ -3,9 +3,9 @@
+ PKG             := glib
+ $(PKG)_WEBSITE  := https://gtk.org/
+ $(PKG)_DESCR    := GLib
+-$(PKG)_IGNORE   :=
+-$(PKG)_VERSION  := 2.50.2
+-$(PKG)_CHECKSUM := be68737c1f268c05493e503b3b654d2b7f43d7d0b8c5556f7e4651b870acfbf5
++$(PKG)_IGNORE   := 
++$(PKG)_VERSION  := 2.44.1
++$(PKG)_CHECKSUM := 8811deacaf8a503d0a9b701777ea079ca6a4277be10e3d730d2112735d5eca07
+ $(PKG)_SUBDIR   := glib-$($(PKG)_VERSION)
+ $(PKG)_FILE     := glib-$($(PKG)_VERSION).tar.xz
+ $(PKG)_URL      := https://download.gnome.org/sources/glib/$(call SHORT_PKG_VERSION,$(PKG))/$($(PKG)_FILE)
+@@ -27,6 +27,7 @@ define $(PKG)_BUILD_DARWIN
+     cd '$(BUILD_DIR)' && '$(SOURCE_DIR)/configure' \
+         $(MXE_CONFIGURE_OPTS) \
+         --enable-regex \
++	--disable-compile-warnings \
+         --disable-threads \
+         --disable-selinux \
+         --disable-inotify \
+@@ -55,6 +56,7 @@ define $(PKG)_BUILD_NATIVE
+     cd '$(SOURCE_DIR)' && NOCONFIGURE=true ./autogen.sh
+     cd '$(BUILD_DIR)' && '$(SOURCE_DIR)/configure' \
+         $(MXE_CONFIGURE_OPTS) \
++	--disable-compile-warnings \
+         --enable-regex \
+         --disable-threads \
+         --disable-selinux \
+@@ -97,6 +99,7 @@ define $(PKG)_BUILD
+     cd '$(SOURCE_DIR)' && NOCONFIGURE=true ./autogen.sh
+     cd '$(BUILD_DIR)' && '$(SOURCE_DIR)/configure' \
+         $(MXE_CONFIGURE_OPTS) \
++	--disable-compile-warnings \
+         --with-threads=win32 \
+         --with-pcre=system \
+         --with-libiconv=gnu \
