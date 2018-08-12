@@ -35,7 +35,7 @@ BOOSTLIBDIR=`brew list boost | grep libboost_system | head -n 1 | xargs dirname`
 # Path to Python 3 framework.
 PYTHONFRAMEWORKDIR=`brew list python3 | grep Python.framework | head -n 1 | xargs dirname`/../../../..
 
-PYVER="3.6"
+PYVER="3.7"
 
 # You usually don't need to change anything below this line.
 
