@@ -26,8 +26,11 @@ PREFIX=$HOME/sr_macosx
 # The path where to download files to and where to build packages.
 BUILDDIR=./build_app
 
+# We use Qt 5.5 in order to remain compatible with more versions of Mac OS X.
+QTVER=qt@5.5
+
 # Path to Qt5 binaries.
-QTBINDIR=`brew list qt5 | grep bin | head -n 1 | xargs dirname`
+QTBINDIR=`brew list $QTVER | grep bin | head -n 1 | xargs dirname`
 
 # Path to boost libraries.
 BOOSTLIBDIR=`brew list boost | grep libboost_system | head -n 1 | xargs dirname`

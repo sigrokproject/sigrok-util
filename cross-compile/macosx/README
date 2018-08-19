@@ -23,6 +23,8 @@ Requirements
      available on your system (from Apple) but are required in newer versions
      built by Homebrew: autoconf, automake, libtool, libffi (maybe others).
      Without linking "libffi" for example, the check for pygobject3 will fail.
+   - We currently hardcode the build to use Qt 5.5 (not the latest available
+     version) in order to remain compatible with some older Mac OS X versions.
 
 
 Building
