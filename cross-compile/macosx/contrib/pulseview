@@ -20,7 +20,7 @@
 
 DIR="$(dirname "$0")"
 cd "$DIR"
-export PYTHONHOME="../Frameworks/Python.framework/Versions/3.6"
+export PYTHONHOME="../Frameworks/Python.framework/Versions/3.7"
 export SIGROK_FIRMWARE_DIR="../share/sigrok-firmware"
 export SIGROKDECODE_DIR="../share/libsigrokdecode/decoders"
 exec ./pulseview.real "$@"
