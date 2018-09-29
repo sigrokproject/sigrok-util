@@ -1,0 +1,37 @@
+Fix for bug #1195.
+
+Patch taken from the MSYS2 MINGW-packages repo, filename
+0110-MINGW-translate-gcc-internal-defines-to-python-platf.patch,
+but applied to pyconfig.h instead of pyport.h.
+
+Without this, Py_ssize_t ends up being 4 on 64bit Windows (where it
+should be 8) and all kinds of weird issues happen as a result,
+including 4GB allocations for no apparent reason, and none of the
+protocol decoders working (at all).
+
+The respective Py_ssize_t related code is in pyport.h.
+
+--- pyconfig.h.orig	2018-09-29 18:06:33.625204450 +0200
++++ pyconfig.h	2018-09-29 18:34:09.165488139 +0200
+@@ -1,6 +1,21 @@
+ #ifndef Py_CONFIG_H
+ #define Py_CONFIG_H
+ 
++#ifdef __MINGW32__
++/* Translate GCC[mingw*] platform specific defines to those
++ * used in python code.
++ */
++#if !defined(MS_WIN64) && defined(_WIN64)
++#  define MS_WIN64
++#endif
++#if !defined(MS_WIN32) && defined(_WIN32)
++#  define MS_WIN32
++#endif
++#if !defined(MS_WINDOWS) && defined(MS_WIN32)
++#  define MS_WINDOWS
++#endif
++#endif /* __MINGW32__*/
++
+ /* pyconfig.h.  NOT Generated automatically by configure.
+ 
+ This is a manually maintained version used for the Watcom,
