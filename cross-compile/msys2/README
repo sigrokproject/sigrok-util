@@ -31,9 +31,9 @@ Then, perform the MSYS2 update procedure as per the documentation above.
   $ pacman -Syu # If needed, close MSYS2, run it again from Start menu.
   $ pacman -Su
 
-Now close the shell and start an "MSYS2 MinGW 32-bit" shell (do NOT use the
-"MSYS2 MSYS" shell, and do NOT use the "MSYS2 MinGW 64-bit" shell). All other
-steps will always have to be performed in an "MSYS2 MinGW 32-bit" shell.
+Now close the shell and start an "MSYS2 MinGW 64-bit" or "MSYS2 MinGW 32-bit"
+shell (do NOT use the "MSYS2 MSYS" shell). All other steps will always have to
+be performed in an "MSYS2 MinGW 62-bit" or "MSYS2 MinGW 32-bit" shell.
 
 Install the MSYS2 git package there:
 
@@ -53,7 +53,10 @@ Building
 
 Per default it will install the compiled packages in:
 
- $HOME/sr_msys2
+ $HOME/sr_msys2_release_32
+
+This depends on whether you're running the build in a "MSYS2 MinGW 64-bit" or
+"MSYS2 MinGW 32-bit" shell, and whether you enabled debug builds or not.
 
 Please edit the script if you want to change any settings.
 
