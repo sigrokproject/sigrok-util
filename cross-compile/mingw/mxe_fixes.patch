@@ -8,11 +8,15 @@ MXE setup for sigrok usage.
    https://sigrok.org/bugzilla/show_bug.cgi?id=1232
    https://github.com/mxe/mxe/issues/2168
 
+ - We're patching glib to fix various MinGW compiler warnings. Details:
+   https://sigrok.org/bugzilla/show_bug.cgi?id=986
+   https://gitlab.gnome.org/GNOME/glib/commit/3d7cde654c4c6f3bdad32f5521f28f5802a7c377
+
 diff --git a/src/libusb1.mk b/src/libusb1.mk
-index 0b58dff3..281a1169 100644
+index 358d0f3c..2f97246e 100644
 --- a/src/libusb1.mk
 +++ b/src/libusb1.mk
-@@ -5,10 +5,10 @@ $(PKG)_WEBSITE  := http://libusb.org/
+@@ -5,10 +5,10 @@ $(PKG)_WEBSITE  := https://libusb.info/
  $(PKG)_DESCR    := LibUsb-1.0
  $(PKG)_IGNORE   :=
  $(PKG)_VERSION  := 1.0.21
@@ -285,6 +289,89 @@ index 021a5cac..428cc6a9 100644
 - #ifdef G_OS_WIN32
 -       g_type_ensure (_g_winhttp_vfs_get_type ());
 - #endif
+diff --git a/src/glib-2-format.patch b/src/glib-2-format.patch
+new file mode 100644
+index 00000000..3d594af0
+--- /dev/null
++++ b/src/glib-2-format.patch
+@@ -0,0 +1,77 @@
++--- a/configure.ac.orig	2018-10-03 16:23:45.065890113 +0200
+++++ b/configure.ac	2018-10-03 16:28:04.378188119 +0200
++@@ -562,7 +562,7 @@ AS_IF([test x$glib_native_win32 != xyes
++ 	# long long is a 64 bit integer.
++ 	AC_MSG_CHECKING(for format to printf and scanf a guint64)
++ 	AC_CACHE_VAL(glib_cv_long_long_format,[
++-		for format in ll q I64; do
+++		for format in ll q; do
++ 		  AC_TRY_RUN([#include <stdio.h>  
++ 			int main()
++ 			{
++@@ -588,7 +588,7 @@ AS_IF([test x$glib_native_win32 != xyes
++ 	# __int64 is a 64 bit integer.
++ 	AC_MSG_CHECKING(for format to printf and scanf a guint64)
++ 	# We know this is MSVCRT.DLL, and what the formats are
++-	glib_cv_long_long_format=I64
+++	glib_cv_long_long_format=ll
++ 	AC_MSG_RESULT(%${glib_cv_long_long_format}u)
++         AC_DEFINE(HAVE_LONG_LONG_FORMAT,1,[define if system printf can print long long])
++ 	AC_DEFINE(HAVE_INT64_AND_I64,1,[define to support printing 64-bit integers with format I64])
++@@ -3176,8 +3176,8 @@ $ac_cv_sizeof___int64)
++     guint64_format='"'$glib_cv_long_long_format'u"'
++   fi
++   glib_extension=
++-  gint64_constant='(val##i64)'
++-  guint64_constant='(val##ui64)'
+++  gint64_constant='(val##ll)'
+++  guint64_constant='(val##ull)'
++   ;;
++ esac
++ glib_size_t=$ac_cv_sizeof_size_t
++@@ -3204,8 +3204,8 @@ long)
++   glib_msize_type='LONG'
++   ;;
++ "long long"|__int64)
++-  gsize_modifier='"I64"'
++-  gsize_format='"I64u"'
+++  gsize_modifier='"ll"'
+++  gsize_format='"llu"'
++   glib_msize_type='INT64'
++   ;;
++ esac
++@@ -3227,8 +3227,8 @@ long)
++   glib_mssize_type='LONG'
++   ;;
++ "long long"|__int64)
++-  gssize_modifier='"I64"'
++-  gssize_format='"I64i"'
+++  gssize_modifier='"ll"'
+++  gssize_format='"lli"'
++   glib_mssize_type='INT64'
++   ;;
++ esac
++@@ -3257,17 +3257,17 @@ $ac_cv_sizeof_long)
++   ;;
++ $ac_cv_sizeof_long_long)
++   glib_intptr_type_define='long long'
++-  gintptr_modifier='"I64"'
++-  gintptr_format='"I64i"'
++-  guintptr_format='"I64u"'
+++  gintptr_modifier='"ll"'
+++  gintptr_format='"lli"'
+++  guintptr_format='"llu"'
++   glib_gpi_cast='(gint64)'
++   glib_gpui_cast='(guint64)'
++   ;;
++ $ac_cv_sizeof___int64)
++   glib_intptr_type_define=__int64
++-  gintptr_modifier='"I64"'
++-  gintptr_format='"I64i"'
++-  guintptr_format='"I64u"'
+++  gintptr_modifier='"ll"'
+++  gintptr_format='"lli"'
+++  guintptr_format='"llu"'
++   glib_gpi_cast='(gint64)'
++   glib_gpui_cast='(guint64)'
++   ;;
 diff --git a/src/glib.mk b/src/glib.mk
 index 825b86bb..499a45b8 100644
 --- a/src/glib.mk
