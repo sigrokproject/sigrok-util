@@ -3,9 +3,6 @@ MXE setup for sigrok usage.
 
  - libsigrok currently requires a special libusb branch.
 
- - Force libzip to use its own mkstemp() implementation.
-   http://sigrok.org/bugzilla/show_bug.cgi?id=570#c2
-
  - We're reverting to glib 2.44.1 for now since more recent
    versions (e.g. 2.50.2) seem to have a bug. Details:
    https://sigrok.org/bugzilla/show_bug.cgi?id=1232
@@ -39,20 +36,6 @@ index 0b58dff3..281a1169 100644
          $(MXE_CONFIGURE_OPTS) \
          CFLAGS=-D_WIN32_WINNT=0x0500
      $(MAKE) -C '$(1)' -j '$(JOBS)' install
-diff --git a/src/libzip.mk b/src/libzip.mk
-index 28ea792c..ee1bcfbe 100644
---- a/src/libzip.mk
-+++ b/src/libzip.mk
-@@ -18,7 +18,8 @@ endef
- 
- define $(PKG)_BUILD
-     cd '$(1)' && ./configure \
--        $(MXE_CONFIGURE_OPTS)
-+        $(MXE_CONFIGURE_OPTS) \
-+        ac_cv_func_mkstemp=no
-     $(MAKE) -C '$(1)' -j '$(JOBS)' install $(MXE_DISABLE_CRUFT) SUBDIRS=lib
- 
-     '$(TARGET)-gcc' \
 diff --git a/src/glib-1-fixes.patch b/src/glib-1-fixes.patch
 index 021a5cac..428cc6a9 100644
 --- a/src/glib-1-fixes.patch
