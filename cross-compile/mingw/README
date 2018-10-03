@@ -25,7 +25,7 @@ Requirements
  - pkg-config (>= 0.22)
  - sdcc (needed for building the fx2lafw firmware)
  - nsis
- - MXE (*-w64-* targets, the *-pc-* targets are not supported)
+ - MXE (*-w64-*.posix targets; *-pc-* and non-posix targets are not supported)
 
 
 MXE setup
@@ -50,6 +50,9 @@ Build all required packages:
 
 This will take a while.
 
+You can also use "MXE_TARGETS=x86_64-w64-mingw32.static.posix" to build
+64-bit installers instead.
+
 See http://mxe.cc for details on MXE.
 
 Note: We're "freezing" the Qt5 version to Qt 5.7.x, since that's the last
@@ -67,7 +70,10 @@ Per default it expects MXE in:
 
 Per default it will install the cross-compiled packages in:
 
- $HOME/sr_mingw
+ $HOME/sr_mingw_release_32
+
+This depends on whether you're doing a 64-bit or 32-bit build, and whether
+you enabled debug builds or not.
 
 Please edit the script if you want to change any settings.
 
