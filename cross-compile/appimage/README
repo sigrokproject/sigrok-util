@@ -33,6 +33,10 @@ install-build-deps.sh file). Then:
  $ cd $HOME
  $ git clone https://github.com/AppImage/AppImageKit
  $ cd AppImageKit
+
+Apply chdir.patch (required to fix sigrok bug #1300), then build:
+
+ $ patch -p1 < chdir.patch
  $ ./build.sh
 
 Temporary workaround for an AppImageKit issue:

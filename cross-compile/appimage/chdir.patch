@@ -1,0 +1,14 @@
+--- a/src/AppRun.c.orig	2018-10-11 20:59:25.978078674 +0200
++++ b/src/AppRun.c	2018-10-11 20:59:37.082078674 +0200
+@@ -156,9 +156,11 @@ int main(int argc, char *argv[]) {
+     size_t appdir_s = strlen(appdir);
+     char *usr_in_appdir = malloc(appdir_s + 5);
+     snprintf(usr_in_appdir, appdir_s + 5, "%s/usr", appdir);
++#if 0
+     ret = chdir(usr_in_appdir);
+     if (ret != 0)
+         die("Could not cd into %s\n", usr_in_appdir);
++#endif
+ 
+     // set environment variables
+     char *old_env;
