@@ -12,9 +12,6 @@ No need to install. No system libraries or system preferences are altered.
 For more information on AppImage, please see
 http://appimage.org/
 
-For example AppImages, please see
-https://github.com/probonopd/AppImages
-
 
 Status
 ------
@@ -28,6 +25,20 @@ Requirements
 
 The script assumes you have built all of the sigrok subprojects and
 installed them into $HOME/sr (e.g. via the sigrok-cross-linux script).
+
+It also assumes you have built AppImageKit in $HOME. First, install all
+build requirements of AppImageKit (see AppImageKit docs or its
+install-build-deps.sh file). Then:
+
+ $ cd $HOME
+ $ git clone https://github.com/AppImage/AppImageKit
+ $ cd AppImageKit
+ $ ./build.sh
+
+Temporary workaround for an AppImageKit issue:
+
+ $ mkdir -p build/lib/appimagekit
+ $ cp build/out/mksquashfs build/lib/appimagekit
 
 The AppImages are tested to build fine on Ubuntu 14.04 (32bit and 64bit).
 These older distros are used for the build so that the generated AppImages
