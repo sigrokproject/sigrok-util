@@ -2,6 +2,9 @@
 # should NOT be bundled inside AppImages. This is a working document; expect it to change
 # over time. File format: one filename per line. Each entry should have a justification comment.
 
+# See the useful tool at https://abi-laboratory.pro/index.php?view=navigator&symbol=hb_buffer_set_cluster_level#result
+# to investigate issues with missing symbols.
+
 ld-linux.so.2
 ld-linux-x86-64.so.2
 libanl.so.1
@@ -33,6 +36,7 @@ libstdc++.so.6
 # usr/lib/libstdc++.so.6: version `GLIBCXX_3.4.21' not found
 
 libGL.so.1
+libEGL.so.1
 # Part of the video driver (OpenGL); present on any regular
 # desktop system, may also be provided by proprietary drivers.
 # Known to cause issues if it's bundled.
@@ -45,6 +49,10 @@ libdrm.so.2
 # libGL error: failed to load driver: swrast
 # Unrecognized OpenGL version
 
+libglapi.so.0
+# Part of mesa
+# known to cause problems with graphics, see https://github.com/RPCS3/rpcs3/issues/4427#issuecomment-381674910
+
 libxcb.so.1
 # Workaround for:
 # Fedora 23
@@ -52,7 +60,7 @@ libxcb.so.1
 # Uncertain if this is required to be bundled for some distributions - if so we need to write a version check script and use LD_PRELOAD to load the system version if it is newer
 # Fedora 25:
 # undefined symbol: xcb_send_request_with_fds
-# https://github.com/probonopd/AppImages/issues/128
+# https://github.com/AppImage/AppImages/issues/128
 
 libX11.so.6
 # Workaround for:
@@ -79,9 +87,27 @@ libfontconfig.so.1
 # Workaround for:
 # Application stalls when loading fonts during application launch; e.g., KiCad on ubuntu-mate
 
-libselinux.so.1
+libthai.so.0
+# Workaround for:
+# audacity: /tmp/.mount_AudaciUsFbON/usr/lib/libthai.so.0: version `LIBTHAI_0.1.25' not found (required by /usr/lib64/libpango-1.0.so.0)
+# on openSUSE Tumbleweed
+
+# other "low-level" font rendering libraries
+# should fix https://github.com/probonopd/linuxdeployqt/issues/261#issuecomment-377522251
+# and https://github.com/probonopd/linuxdeployqt/issues/157#issuecomment-320755694
+libfreetype.so.6
+libharfbuzz.so.0
+
+# Note, after discussion we do not exlude this, but we can use a dummy library that just does nothing
+# libselinux.so.1
 # Workaround for:
 # sed: error while loading shared libraries: libpcre.so.3: cannot open shared object file: No such file or directory
+# Some distributions, such as Arch Linux, do not come with libselinux.so.1 by default.
+# The solution is to bundle a dummy mock library:
+# echo "extern int is_selinux_enabled(void){return 0;}" >> selinux-mock.c
+# gcc -s -shared -o libselinux.so.1 -Wl,-soname,libselinux.so.1 selinux-mock.c 
+# strip libselinux.so.1
+# More information: https://github.com/AppImage/AppImages/issues/83
 
 # The following are assumed to be part of the base system
 # Removing these has worked e.g., for Krita. Feel free to report if
@@ -99,8 +125,8 @@ libgpg-error.so.0
 # libheimntlm.so.0 # Seemingly needed when running Ubuntu 14.04 binaries on Fedora 23
 # libhx509.so.5 # Missing on openSUSE LEAP 42.0
 libICE.so.6
-libidn.so.11
-libk5crypto.so.3
+# libidn.so.11 # Does not come with Solus by default
+# libk5crypto.so.3 # Runnning AppImage built on Debian 9 or Ubuntu 16.04 on an Archlinux fails otherwise; https://github.com/AppImage/AppImages/issues/301
 libkeyutils.so.1
 # libkrb5.so.26 # Disputed, seemingly needed by Arch Linux since Kerberos is named differently there. Missing on openSUSE LEAP 42.0
 # libkrb5.so.3 # Disputed, seemingly needed by Arch Linux since Kerberos is named differently there
@@ -120,7 +146,7 @@ libgobject-2.0.so.0
 
 # Workaround for:
 # Rectangles instead of fonts
-# https://github.com/probonopd/AppImages/issues/240
+# https://github.com/AppImage/AppImages/issues/240
 libpangoft2-1.0.so.0
 libpangocairo-1.0.so.0
 libpango-1.0.so.0
@@ -132,6 +158,10 @@ libpango-1.0.so.0
 # in file libgpg-error.so.0 with link time reference
 libgpg-error.so.0
 
+libjack.so.0
+# it must match the ABI of the JACK server which is installed in the base system
+# rncbc confirmed this
+
 # Unsolved issue:
 # https://github.com/probonopd/linuxdeployqt/issues/35
 # Error initializing NSS with a persistent database (sql:/home/me/.pki/nssdb): libsoftokn3.so: cannot open shared object file: No such file or directory
@@ -139,13 +169,18 @@ libgpg-error.so.0
 # nss_error=-5925, os_error=0
 # libnss3.so should not be removed from the bundles, as this causes other issues, e.g.,
 # https://github.com/probonopd/linuxdeployqt/issues/35#issuecomment-256213517
-# and https://github.com/probonopd/AppImages/pull/114
+# and https://github.com/AppImage/AppImages/pull/114
 # libnss3.so
 
 # The following cannot be excluded, see
-# https://github.com/probonopd/AppImages/commit/6c7473d8cdaaa2572248dcc53d7f617a577ade6b
+# https://github.com/AppImage/AppImages/commit/6c7473d8cdaaa2572248dcc53d7f617a577ade6b
 # http://stackoverflow.com/questions/32644157/forcing-a-binary-to-use-a-specific-newer-version-of-a-shared-library-so
 # libssl.so.1
 # libssl.so.1.0.0
 # libcrypto.so.1
 # libcrypto.so.1.0.0
+
+# The following may be spefific to a particular GPU and may need to be excluded
+# according to https://github.com/RicardoEPRodrigues/3Engine/issues/4#issuecomment-402532194
+# libGLEW.so.2.0 # to be confirmed
+# libglut.so.3 # to be confirmed
