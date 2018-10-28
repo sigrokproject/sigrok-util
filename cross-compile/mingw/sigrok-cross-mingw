@@ -235,6 +235,7 @@ $CMAKE \
 	-DENABLE_TESTS=y \
 	.
 make $PARALLEL $V
+make manual
 if [ $DEBUG = 1 ]; then
 	make install $V
 else
