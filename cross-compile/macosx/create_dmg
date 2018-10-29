@@ -51,7 +51,7 @@ cd $BUILDDIR
 
 APPNAME="PulseView"
 APPNAME_BINARY="pulseview"
-APPVER="nightly"
+APPVER="NIGHTLY"
 
 CONTENTSDIR="$APPNAME.app/Contents"
 MACOSDIR="$CONTENTSDIR/MacOS"
@@ -107,5 +107,5 @@ chmod 755 $MACOSDIR/$APPNAME_BINARY
 cp ../contrib/Info.plist $CONTENTSDIR
 cp ../contrib/pulseview.icns $CONTENTSDIR/Resources
 
-hdiutil create "${APPNAME}_${APPVER}.dmg" -volname "$APPNAME $APPVER" \
+hdiutil create "${APPNAME}-${APPVER}.dmg" -volname "$APPNAME $APPVER" \
 	-fs HFS+ -srcfolder "$APPNAME.app"
