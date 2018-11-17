@@ -20,6 +20,8 @@
 #include <config.h>
 #include "protocol.h"
 
+static struct sr_dev_driver {lib}_driver_info;
+
 static GSList *scan(struct sr_dev_driver *di, GSList *options)
 {{
 	struct drv_context *drvc;
@@ -131,7 +133,7 @@ static int dev_acquisition_stop(struct sr_dev_inst *sdi)
 	return SR_OK;
 }}
 
-SR_PRIV struct sr_dev_driver {lib}_driver_info = {{
+static struct sr_dev_driver {lib}_driver_info = {{
 	.name = "{short}",
 	.longname = "{name}",
 	.api_version = 1,
@@ -149,5 +151,4 @@ SR_PRIV struct sr_dev_driver {lib}_driver_info = {{
 	.dev_acquisition_stop = dev_acquisition_stop,
 	.context = NULL,
 }};
-
 SR_REGISTER_DEV_DRIVER({lib}_driver_info);
