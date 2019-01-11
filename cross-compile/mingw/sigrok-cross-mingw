@@ -149,8 +149,8 @@ if [ $TARGET = "x86_64" ]; then
 fi
 
 # Zadig (we ship this with frontends for easy driver switching).
-$WGET http://zadig.akeo.ie/downloads/zadig.exe -O $PREFIX/zadig.exe
-$WGET http://zadig.akeo.ie/downloads/zadig_xp.exe -O $PREFIX/zadig_xp.exe
+$WGET https://github.com/pbatard/libwdi/releases/download/b721/zadig-2.4.exe -O $PREFIX/zadig.exe
+$WGET https://github.com/pbatard/libwdi/releases/download/v1.2.5/zadig_xp-2.2.exe -O $PREFIX/zadig_xp.exe
 
 # libusb
 $GIT_CLONE git://github.com/dickens/libusb -b event-abstraction-v4
