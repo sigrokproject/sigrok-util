@@ -28,6 +28,7 @@ else
 fi
 LOWERAPP=${APP,,} 
 
+export ARCH
 export STATIC_FILES=`pwd`/contrib
 
 # Add $APPIMAGEKIT_OUTDIR so we can find all the binaries there.
