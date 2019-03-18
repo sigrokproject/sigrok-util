@@ -48,19 +48,20 @@ export CXX=g++
 QTVER=qt@5.5
 
 # Path to Qt5 binaries (needed for cmake to find the Qt5 libs).
-export PATH=`brew list $QTVER | grep bin | head -n 1 | xargs dirname`":$PATH"
-
-# Path to Python 2/3 pkg-config files.
-# In Homebrew, pkg-config files of "keg-only" formulas (Python is one of them)
-# aren't installed into /usr/local/lib/pkgconfig (we manually reference them).
-PY2=`brew list python | grep pkgconfig | head -n 1 | xargs dirname`
-PY3=`brew list python3 | grep pkgconfig | head -n 1 | xargs dirname`
+export PATH="$(brew --prefix $QTVER)/bin:$PATH"
 
 # You usually don't need to change anything below this line.
 
 # -----------------------------------------------------------------------------
 
-P="$PREFIX/lib/pkgconfig:/usr/local/opt/$QTVER/lib/pkgconfig:$PY2:$PY3"
+# PKG_CONFIG_PATH will need to point to pkg-config files of Homebrew's
+# keg-only formulae.
+P="$PREFIX/lib/pkgconfig"
+for FORMULA in libffi python@2 python@3 "$QTVER"; do
+    P="$P:$(brew --prefix "$FORMULA")/lib/pkgconfig"
+done
+
+# Extra options to pass to configure.
 C="$C --prefix=$PREFIX"
 
 # Remove build directory contents (if any) and create a new build dir.
