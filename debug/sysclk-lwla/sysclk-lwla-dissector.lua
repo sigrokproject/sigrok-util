@@ -223,8 +223,8 @@ function p_lwla.init()
     -- will make it inaccessible from Linux, so Wireshark cannot fetch the
     -- descriptor by itself.  However, it is sufficient if the VirtualBox
     -- guest requests the descriptor once while Wireshark is capturing.
---    usb_product_dissectors:add(0x29616688, p_lwla) -- SysClk LWLA1016
---    usb_product_dissectors:add(0x29616689, p_lwla) -- SysClk LWLA1034
+--    usb_product_dissectors:add(0x29616688, p_lwla) -- Sysclk LWLA1016
+--    usb_product_dissectors:add(0x29616689, p_lwla) -- Sysclk LWLA1034
 
     -- Addendum: Protocol registration based on product ID does not always
     -- work as desired.  Register the protocol on the interface class instead.
