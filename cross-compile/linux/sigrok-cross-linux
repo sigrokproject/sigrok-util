@@ -47,7 +47,7 @@ fi
 PARALLEL="-j 2"
 
 # Edit this to enable/disable building certain components.
-BUILD_SIGROK_FIRMWARE_FX2LAFW=0
+BUILD_SIGROK_FIRMWARE_FX2LAFW=1
 
 # Uncomment the following lines to build with clang and run scan-build.
 # export CC=clang
