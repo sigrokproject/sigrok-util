@@ -44,7 +44,7 @@ Temporary workaround for an AppImageKit issue:
  $ mkdir -p build/lib/appimagekit
  $ cp build/out/mksquashfs build/lib/appimagekit
 
-The AppImages are tested to build fine on Ubuntu 14.04 (32bit and 64bit).
+The AppImages are tested to build fine on Ubuntu 16.04 (32bit and 64bit).
 These older distros are used for the build so that the generated AppImages
 can run on as many different systems as possible.
 

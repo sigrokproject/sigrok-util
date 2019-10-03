@@ -15,7 +15,7 @@ APPIMAGEKIT_OUTDIR=$HOME/AppImageKit/build/out
 # ARCH=i386
 ARCH=x86_64
 
-PYVER=3.4
+PYVER=3.5
 
 ########################################################################
 # You usually don't have to change anything below this line
@@ -96,12 +96,15 @@ if [ "x$1" != "xsigrok-cli" ]; then
 	# Get all Qt5 plugins (won't be copied automatically).
 	QT5PLUGINS=/usr/lib/$ARCH-linux-gnu/qt5/plugins # Host (+ AppRun) path.
 	mkdir -p .$QT5PLUGINS
-	cp -r $QT5PLUGINS/accessible .$QT5PLUGINS
+	cp -r $QT5PLUGINS/bearer .$QT5PLUGINS
+	cp -r $QT5PLUGINS/egldeviceintegrations .$QT5PLUGINS
 	cp -r $QT5PLUGINS/generic .$QT5PLUGINS
 	cp -r $QT5PLUGINS/iconengines .$QT5PLUGINS
 	cp -r $QT5PLUGINS/imageformats .$QT5PLUGINS
 	cp -r $QT5PLUGINS/platforminputcontexts .$QT5PLUGINS
 	cp -r $QT5PLUGINS/platforms .$QT5PLUGINS
+	cp -r $QT5PLUGINS/printsupport .$QT5PLUGINS
+	cp -r $QT5PLUGINS/xcbglintegrations .$QT5PLUGINS
 	
 	# Get some additional dependencies of the Qt5 plugins.
 	ldd .$QT5PLUGINS/platforms/libqxcb.so | grep "=>" | awk '{print $3}' | xargs -I '{}' cp -v '{}' ./usr/lib || true
