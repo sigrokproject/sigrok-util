@@ -10,12 +10,12 @@ ld-linux-x86-64.so.2
 libanl.so.1
 libBrokenLocale.so.1
 libcidn.so.1
-libcrypt.so.1
+# libcrypt.so.1 # Not part of glibc anymore as of Fedora 30. See https://github.com/slic3r/Slic3r/issues/4798 and https://pagure.io/fedora-docs/release-notes/c/01d74b33564faa42959c035e1eee286940e9170e?branch=f28
 libc.so.6
 libdl.so.2
 libm.so.6
 libmvec.so.1
-libnsl.so.1
+# libnsl.so.1 # Not part of glibc anymore as of Fedora 28. See https://github.com/RPCS3/rpcs3/issues/5224#issuecomment-434930594
 libnss_compat.so.2
 libnss_db.so.2
 libnss_dns.so.2
@@ -36,10 +36,16 @@ libstdc++.so.6
 # usr/lib/libstdc++.so.6: version `GLIBCXX_3.4.21' not found
 
 libGL.so.1
+# The above may be missing on Chrome OS, https://www.reddit.com/r/Crostini/comments/d1lp67/ultimaker_cura_no_longer_running_as_an_appimage/
 libEGL.so.1
 # Part of the video driver (OpenGL); present on any regular
 # desktop system, may also be provided by proprietary drivers.
 # Known to cause issues if it's bundled.
+
+libGLdispatch.so.0
+libGLX.so.0
+# reported to be superfluent and conflicting system libraries (graphics driver)
+# see https://github.com/linuxdeploy/linuxdeploy/issues/89
 
 libdrm.so.2
 # Workaround for:
@@ -52,6 +58,10 @@ libdrm.so.2
 libglapi.so.0
 # Part of mesa
 # known to cause problems with graphics, see https://github.com/RPCS3/rpcs3/issues/4427#issuecomment-381674910
+
+libgbm.so.1
+# Part of mesa
+# https://github.com/probonopd/linuxdeployqt/issues/390#issuecomment-529036305
 
 libxcb.so.1
 # Workaround for:
@@ -113,7 +123,6 @@ libharfbuzz.so.0
 # Removing these has worked e.g., for Krita. Feel free to report if
 # you think that some of these should go into AppImages and why.
 libcom_err.so.2
-libcrypt.so.1
 libexpat.so.1
 libgcc_s.so.1
 libglib-2.0.so.0
@@ -127,7 +136,7 @@ libgpg-error.so.0
 libICE.so.6
 # libidn.so.11 # Does not come with Solus by default
 # libk5crypto.so.3 # Runnning AppImage built on Debian 9 or Ubuntu 16.04 on an Archlinux fails otherwise; https://github.com/AppImage/AppImages/issues/301
-libkeyutils.so.1
+# libkeyutils.so.1 # Does not come with Void Linux by default; https://github.com/Subsurface-divelog/subsurface/issues/1971#issuecomment-466606834
 # libkrb5.so.26 # Disputed, seemingly needed by Arch Linux since Kerberos is named differently there. Missing on openSUSE LEAP 42.0
 # libkrb5.so.3 # Disputed, seemingly needed by Arch Linux since Kerberos is named differently there
 # libkrb5support.so.0 # Disputed, seemingly needed by Arch Linux since Kerberos is named differently there
@@ -150,6 +159,10 @@ libgobject-2.0.so.0
 libpangoft2-1.0.so.0
 libpangocairo-1.0.so.0
 libpango-1.0.so.0
+
+# FIXME:
+# Can get symbol lookup error: /lib64/libpango-1.0.so.0: undefined symbol: g_log_structured_standard
+# if libcairo is bundled but libpango is not
 
 # Workaround for:
 # e.g., Spotify
@@ -180,7 +193,15 @@ libjack.so.0
 # libcrypto.so.1
 # libcrypto.so.1.0.0
 
-# The following may be spefific to a particular GPU and may need to be excluded
-# according to https://github.com/RicardoEPRodrigues/3Engine/issues/4#issuecomment-402532194
-# libGLEW.so.2.0 # to be confirmed
+# According to https://github.com/RicardoEPRodrigues/3Engine/issues/4#issuecomment-511598362
+# libGLEW is not tied to a specific GPU. It's linked against libGL.so.1 
+# and that one is different depending on the installed driver. 
+# In fact libGLEW is changing its soversion very often, so you should always bundle libGLEW.so.2.0
+
 # libglut.so.3 # to be confirmed
+
+libxcb-dri3.so.0 # https://github.com/AppImage/AppImages/issues/348
+libxcb-dri2.so.0 # https://github.com/probonopd/linuxdeployqt/issues/331#issuecomment-442276277
+
+# If the next line turns out to cause issues, we will have to remove it again and find another solution
+libfribidi.so.0 # https://github.com/olive-editor/olive/issues/221 and https://github.com/knapsu/plex-media-player-appimage/issues/14
