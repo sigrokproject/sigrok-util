@@ -466,21 +466,18 @@ CC= CXX= ./configure \
 	-android-arch "$TARGET_ARCH" \
 	-android-toolchain-version "$NDK_TOOLCHAIN_VERSION" \
 	-skip qtconnectivity \
-	-skip qtdeclarative \
 	-skip qtlocation \
 	-skip qtmultimedia \
 	-skip qtscript \
 	-skip qtsensors \
 	-skip qtserialport \
-	-skip qttools \
-	-skip qttranslations \
 	-skip qtwebchannel \
 	-skip qtwebsockets \
 	-skip qtxmlpatterns \
 	-opensource -confirm-license -silent -no-warnings-are-errors
 export ANDROID_API_VERSION=android-$VER_AND_API
 export ANDROID_BUILD_TOOLS_REVISION=$VER_AND_BT
-make module-qtbase module-qtandroidextras module-qtsvg module-qtimageformats $PARALLEL $V
+make module-qtbase module-qtandroidextras module-qtsvg module-qtimageformats module-qttranslations $PARALLEL $V
 make install $V
 cd ..
 

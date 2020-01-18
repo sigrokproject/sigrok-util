@@ -22,3 +22,15 @@ diff --git a/qtbase/mkspecs/features/qt_common.prf b/qtbase/mkspecs/features/qt_
 +    SUBDIRS = qdbus
 +    qtHaveModule(widgets): SUBDIRS += qdbusviewer
 +}
+--- a/qttools/src/src.pro	2020-01-17 17:05:25.333379076 +0100
++++ b/qttools/src/src.pro	2020-01-17 17:05:32.037403499 +0100
+@@ -14,8 +14,7 @@ qtHaveModule(widgets) {
+ }
+ 
+ SUBDIRS += linguist \
+-    qdoc \
+-    qtplugininfo
++    qdoc
+ if(!android|android_app):!ios: SUBDIRS += qtpaths
+ 
+ mac {
