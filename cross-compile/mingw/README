@@ -46,7 +46,7 @@ Build all required packages:
  $ make MXE_TARGETS=i686-w64-mingw32.static.posix \
    MXE_PLUGIN_DIRS=plugins/examples/qt5-freeze \
    gcc glib libzip libusb1 libftdi1 hidapi glibmm qtbase qtimageformats
-   qtsvg boost check gendef qtbase_CONFIGURE_OPTS='-no-sql-mysql'
+   qtsvg qttranslations boost check gendef qtbase_CONFIGURE_OPTS='-no-sql-mysql'
 
 This will take a while.
 
