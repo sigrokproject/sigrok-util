@@ -31,17 +31,12 @@ ANDROID_NDK=$ANDROID_PATH/android-ndk-r10e
 ANDROID_SDK=$ANDROID_PATH/android-sdk-linux
 
 # The path where your Android toolchain directory is located.
-# TOOLCHAIN=$ANDROID_PATH/android-arm-toolchain
-# TOOLCHAIN=$ANDROID_PATH/android-mipsel-toolchain
-# TOOLCHAIN=$ANDROID_PATH/android-i686-toolchain
 TOOLCHAIN=$ANDROID_NDK/toolchains/arm-linux-androideabi-4.9/prebuilt/linux-x86
 # TOOLCHAIN=$ANDROID_NDK/toolchains/x86-4.9/prebuilt/linux-x86
-# TOOLCHAIN=$ANDROID_NDK/toolchains/mipsel-linux-android-4.9/prebuilt/linux-x86
 
 # Select which Android toolchain to use.
 # Don't forget to also adapt TOOLCHAIN above if you change TOOLCHAIN_TRIPLET!
 TOOLCHAIN_TRIPLET=arm-linux-androideabi
-# TOOLCHAIN_TRIPLET=mipsel-linux-android
 # TOOLCHAIN_TRIPLET=i686-linux-android
 
 # The path where the cross-compiled packages will be installed.
@@ -93,7 +88,6 @@ REPO_BASE="git://sigrok.org"
 
 case "$TOOLCHAIN_TRIPLET" in
   arm*) TARGET_ARCH=armeabi;;
-  mips*) TARGET_ARCH=mips;;
   i686*) TARGET_ARCH=x86;;
   *) echo >&2 "Unknown prefix for TOOLCHAIN_TRIPLET."; exit 1;;
 esac
@@ -116,9 +110,6 @@ if [ "x$1" = "xprepare" ]; then
   ./build/tools/make-standalone-toolchain.sh --platform=android-$VER_AND_API \
     --toolchain=x86-4.9 \
     --install-dir=$ANDROID_PATH/android-i686-toolchain
-  ./build/tools/make-standalone-toolchain.sh --platform=android-$VER_AND_API \
-    --toolchain=mipsel-linux-android-4.9 \
-    --install-dir=$ANDROID_PATH/android-mipsel-toolchain
   cd ..
 
   # SDK
