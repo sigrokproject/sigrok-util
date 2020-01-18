@@ -31,6 +31,7 @@ QTVER=qt@5.5
 
 # Path to Qt5 binaries.
 QTBINDIR=`brew list $QTVER | grep bin | head -n 1 | xargs dirname`
+QTTRANSLATIONSDIR=`brew --prefix $QTVER`/translations
 
 # Path to boost libraries.
 BOOSTLIBDIR=`brew list boost | grep libboost_system | head -n 1 | xargs dirname`
@@ -71,6 +72,13 @@ cp -R $PREFIX/share/sigrok-firmware $SHARE_DIR
 cp $BOOSTLIBDIR/libboost_timer-mt.dylib $FRAMEWORKSDIR
 cp $BOOSTLIBDIR/libboost_chrono-mt.dylib $FRAMEWORKSDIR
 chmod 644 $FRAMEWORKSDIR/*boost*
+
+# Manually copy translations ("macdeployqt" won't copy them).
+mkdir -p $CONTENTSDIR/translations
+for lang in "de"; do
+	cp $QTTRANSLATIONSDIR/qt_$lang.qm $CONTENTSDIR/translations
+	cp $QTTRANSLATIONSDIR/qtbase_$lang.qm $CONTENTSDIR/translations
+done
 
 $QTBINDIR/macdeployqt $APPNAME.app
 
