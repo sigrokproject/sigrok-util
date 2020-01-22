@@ -2,7 +2,7 @@
 ##
 ## This file is part of the sigrok-util project.
 ##
-## Copyright (C) 2013-2018 Uwe Hermann <uwe@hermann-uwe.de>
+## Copyright (C) 2013-2020 Uwe Hermann <uwe@hermann-uwe.de>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -147,6 +147,10 @@ if [ $TARGET = "x86_64" ]; then
 	mv -f libpython34.a $PREFIX/Python34/libs
 	rm -f python34.dll
 fi
+
+# We need to include the *.pyd files from python34.zip into the installers,
+# otherwise importing certain modules (e.g. ctypes) won't work (bug #1409).
+unzip -q $PREFIX/python34.zip *.pyd -d $PREFIX
 
 # Zadig (we ship this with frontends for easy driver switching).
 $WGET https://github.com/pbatard/libwdi/releases/download/b721/zadig-2.4.exe -O $PREFIX/zadig.exe

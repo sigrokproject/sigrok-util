@@ -22,6 +22,7 @@ Requirements
  - git
  - wget
  - p7zip
+ - unzip
  - pkg-config (>= 0.22)
  - sdcc (needed for building the fx2lafw firmware)
  - nsis
