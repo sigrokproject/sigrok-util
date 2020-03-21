@@ -1,0 +1,64 @@
+.TH SIGROK\-FWEXTRACT\-KINGST\-LA2016 1 "Mar 21, 2020"
+.SH "NAME"
+sigrok\-fwextract\-kingst\-la2016 \- Extract Kingst LA2016 firmware
+.SH "SYNOPSIS"
+.B sigrok\-fwextract\-kingst\-la2016 [FILE]
+.SH "DESCRIPTION"
+This tool extracts FX2 firmware and FPGA bitstreams from the vendor
+software for the Kingst LA2016 USB logic analyzer. Download the Linux
+version from[1], and unpack it to find the main binary called "KingstVIS".
+.PP
+In order to extract the firmware/bitstreams, run the following command:
+.PP
+.B "  $ tar -xzf KingstVIS_v3.4.0.tar.gz KingstVIS/KingstVIS"
+.PP
+.B "  $ sigrok-fwextract-kingst-la2016 KingstVIS/KingstVIS"
+.br
+.RB "  saved 177666 bytes to kingst-la2016a-fpga.bitstream
+.br
+.RB "  saved 5350 bytes to kingst-la-01a1.fw"
+.br
+.RB "  saved 5430 bytes to kingst-la-01a2.fw"
+.br
+.RB "  saved 5718 bytes to kingst-la-01a3.fw"
+.br
+.RB "  saved 142412 bytes to kingst-la-01a4.fw"
+.br
+.RB "  saved 5452 bytes to kingst-la-03a1.fw"
+.PP
+Copy the resulting files over to the location where libsigrok expects
+to find its firmware files. By default this is
+.BR /usr/local/share/sigrok-firmware .
+.SH OPTIONS
+None.
+.SH "EXIT STATUS"
+Exits with 0 on success, 1 on most failures.
+.SH "SEE ALSO"
+\fBsigrok\-fwextract\-saleae\-logic16\fP(1)
+.br
+\fBsigrok\-fwextract\-dreamsourcelab\-dslogic\fP(1)
+.br
+\fBsigrok\-fwextract\-hantek\-dso\fP(1)
+.br
+\fBsigrok\-fwextract\-lecroy\-logicstudio\fP(1)
+.br
+\fBsigrok\-fwextract\-sysclk\-lwla1016\fP(1)
+.br
+\fBsigrok\-fwextract\-sysclk\-lwla1034\fP(1)
+.SH "BUGS"
+Please report any bugs via Bugzilla
+.RB "(" http://sigrok.org/bugzilla ")"
+or on the sigrok\-devel mailing list
+.RB "(" sigrok\-devel@lists.souceforge.net ")."
+.SH "LICENSE"
+This program is covered by the GNU General Public License (GPL),
+version 3 or later.
+.SH "AUTHORS"
+Please see the individual source code files.
+.SH "NOTES"
+.IP " 1." 4
+Vendor website
+.RS 4
+.RB http://www.qdkingst.com/download
+.br
+\%MD5 of v3.4.0: ca407133cb83b700983d2b704a4255c2
