@@ -123,15 +123,19 @@ class res_writer(object):
     def __init__(self, res):
         self.res = res
         
-    def _write_file(self, fn, data, decoder=None):
+    def _write_file(self, fn, data, decoder=None, zero_pad_to=None):
         if decoder is not None:
             data = decoder(data)
+        if zero_pad_to is not None:
+            if len(data) > zero_pad_to:
+                raise Exception("can not zero_pad_to %d bytes -- data is already %d bytes" % (zero_pad_to, len(data)))
+            data += b"\0" * (zero_pad_to - len(data))
         with open(fn, "wb") as fp:
             fp.write(data)
         print("saved %d bytes to %s" % (len(data), fn))
         
-    def extract(self, res_fn, out_fn, decoder=None):
-        self._write_file(out_fn, self.res.get_resource(res_fn), decoder=decoder)
+    def extract(self, res_fn, out_fn, decoder=None, zero_pad_to=None):
+        self._write_file(out_fn, self.res.get_resource(res_fn), decoder=decoder, zero_pad_to=zero_pad_to)
     
     def extract_re(self, res_fn_re, out_fn, decoder=None):
         for res_fn in res.find_resource_names(res_fn_re):
@@ -188,5 +192,5 @@ if __name__ == "__main__":
     res = qt_resources(sys.argv[1])
     
     writer = res_writer(res)
-    writer.extract("fwfpga/LA2016A", "kingst-la2016a-fpga.bitstream")
+    writer.extract("fwfpga/LA2016A", "kingst-la2016a-fpga.bitstream", zero_pad_to=180224)
     writer.extract_re(r"fwusb/fw(.*)", r"kingst-la-\1.fw", decoder=maybe_intel_hex_as_blob)
