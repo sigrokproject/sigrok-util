@@ -34,7 +34,7 @@ QTBINDIR=`brew list $QTVER | grep bin | head -n 1 | xargs dirname`
 QTTRANSLATIONSDIR=`brew --prefix $QTVER`/translations
 
 # Path to boost libraries.
-BOOSTLIBDIR=`brew list boost | grep libboost_system | head -n 1 | xargs dirname`
+BOOSTLIBDIR=`brew list boost | grep libboost_system | grep -v cmake | head -n 1 | xargs dirname`
 
 # Path to Python 3 framework.
 PYTHONFRAMEWORKDIR=`brew list python3 | grep Python.framework | head -n 1 | xargs dirname`/../../../..
