@@ -38,3 +38,11 @@ Per default it will install the compiled packages in:
 
 Please edit the script if you want to change any settings.
 
+
+Creating a DMG file
+-------------------
+
+ $ ./create_dmg pulseview
+
+ $ ./create_dmg sigrok-cli
+

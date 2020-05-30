@@ -2,7 +2,7 @@
 ##
 ## This file is part of the sigrok-util project.
 ##
-## Copyright (C) 2017 Uwe Hermann <uwe@hermann-uwe.de>
+## Copyright (C) 2017-2020 Uwe Hermann <uwe@hermann-uwe.de>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -23,8 +23,16 @@ set -e
 # The path where the installed sigrok libraries/binaries are located.
 PREFIX=$HOME/sr_macosx
 
+if [ "x$1" = "xsigrok-cli" ]; then
+	APPNAME="sigrok-cli"
+	APPNAME_BINARY="sigrok-cli"
+else
+	APPNAME="PulseView"
+	APPNAME_BINARY="pulseview"
+fi
+
 # The path where to download files to and where to build packages.
-BUILDDIR=./build_app
+BUILDDIR=./build_app_$APPNAME_BINARY
 
 # We use Qt 5.5 in order to remain compatible with more versions of Mac OS X.
 QTVER=qt@5.5
@@ -50,8 +58,6 @@ rm -rf $BUILDDIR
 mkdir $BUILDDIR
 cd $BUILDDIR
 
-APPNAME="PulseView"
-APPNAME_BINARY="pulseview"
 APPVER="NIGHTLY"
 
 CONTENTSDIR="$APPNAME.app/Contents"
@@ -68,17 +74,19 @@ rm -rf $SHARE_DIR/libsigrokdecode/decoders/**/__pycache__
 rm -rf $SHARE_DIR/libsigrokdecode/decoders/common/**/__pycache__
 cp -R $PREFIX/share/sigrok-firmware $SHARE_DIR
 
-# Manually copy some boost libs that "macdeployqt" won't copy.
-cp $BOOSTLIBDIR/libboost_timer-mt.dylib $FRAMEWORKSDIR
-cp $BOOSTLIBDIR/libboost_chrono-mt.dylib $FRAMEWORKSDIR
-chmod 644 $FRAMEWORKSDIR/*boost*
-
-# Manually copy translations ("macdeployqt" won't copy them).
-mkdir -p $CONTENTSDIR/translations
-for lang in "de"; do
-	cp $QTTRANSLATIONSDIR/qt_$lang.qm $CONTENTSDIR/translations
-	cp $QTTRANSLATIONSDIR/qtbase_$lang.qm $CONTENTSDIR/translations
-done
+if [ "x$1" = "xpulseview" ]; then
+	# Manually copy some boost libs that "macdeployqt" won't copy.
+	cp $BOOSTLIBDIR/libboost_timer-mt.dylib $FRAMEWORKSDIR
+	cp $BOOSTLIBDIR/libboost_chrono-mt.dylib $FRAMEWORKSDIR
+	chmod 644 $FRAMEWORKSDIR/*boost*
+	
+	# Manually copy translations ("macdeployqt" won't copy them).
+	mkdir -p $CONTENTSDIR/translations
+	for lang in "de"; do
+		cp $QTTRANSLATIONSDIR/qt_$lang.qm $CONTENTSDIR/translations
+		cp $QTTRANSLATIONSDIR/qtbase_$lang.qm $CONTENTSDIR/translations
+	done
+fi
 
 $QTBINDIR/macdeployqt $APPNAME.app
 
@@ -107,13 +115,13 @@ install_name_tool -change \
 	@executable_path/../Frameworks/Python.framework/Versions/$PYVER/Python \
 	$FRAMEWORKSDIR/libsigrokdecode.*.dylib
 
-# Add PulseView wrapper (sets PYTHONHOME/SIGROK_FIRMWARE_DIR/SIGROKDECODE_DIR).
+# Add wrapper (sets PYTHONHOME/SIGROK_FIRMWARE_DIR/SIGROKDECODE_DIR).
 mv $MACOSDIR/$APPNAME_BINARY $MACOSDIR/$APPNAME_BINARY.real
-cp ../contrib/pulseview $MACOSDIR
+cp ../contrib/$APPNAME_BINARY $MACOSDIR
 chmod 755 $MACOSDIR/$APPNAME_BINARY
 
-cp ../contrib/Info.plist $CONTENTSDIR
-cp ../contrib/pulseview.icns $CONTENTSDIR/Resources
+cp ../contrib/Info.plist_$APPNAME_BINARY $CONTENTSDIR/Info.plist
+cp ../contrib/$APPNAME_BINARY.icns $CONTENTSDIR/Resources
 
 hdiutil create "${APPNAME}-${APPVER}.dmg" -volname "$APPNAME $APPVER" \
 	-fs HFS+ -srcfolder "$APPNAME.app"
