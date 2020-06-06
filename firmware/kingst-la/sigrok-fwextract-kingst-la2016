@@ -45,7 +45,7 @@ class qt_resources(object):
             s = self._elf.read_section(shdr), shdr
             self._elf_sections[idx] = s
         return s
-    
+
     def _get_elf_sym_value(self, sname):
         sym = self._elf.symtab[sname]
         section, shdr = self._get_elf_section(sym["st_shndx"])
@@ -55,19 +55,19 @@ class qt_resources(object):
             print("warning: symbol %s should be %d bytes, but in section is only %d bytes" % (
                 sname, sym["st_size"], len(value)))
         return value
-    
+
     # qt resource stuff:
     def _get_resource_name(self, offset):
         length, i = struct.unpack(">HI", self._res_names[offset:offset + 2 + 4])
         offset += 2 + 4
         name = self._res_names[offset:offset + 2 * length].decode("utf-16be")
         return name
-    
+
     def _get_resource_data(self, offset):
         length = struct.unpack(">I", self._res_datas[offset:offset + 4])[0]
         offset += 4
         return self._res_datas[offset:offset + length]
-    
+
     def _read_resources(self):
         RCCFileInfo_Directory = 0x02
         def read_table():
@@ -93,17 +93,17 @@ class qt_resources(object):
             child_count, first_child = which[2:]
             for i in range(child_count):
                 child = table[first_child + i]
-                if child[1] & RCCFileInfo_Directory:                
+                if child[1] & RCCFileInfo_Directory:
                     read_dir_entries(table, child, parents + [child[0]])
                 else:
                     country, language, data_offset = child[2:]
                     full_name = "/".join(parents + [child[0]])
                     self._resources[full_name] = data_offset
-        
+
         self._res_datas = self._get_elf_sym_value("_ZL16qt_resource_data")
         self._res_names = self._get_elf_sym_value("_ZL16qt_resource_name")
         self._res_struct = self._get_elf_sym_value("_ZL18qt_resource_struct")
-        
+
         self._resources = {} # res_fn -> res_offset
         table = read_table()
         read_dir_entries(table, table[0])
@@ -118,11 +118,11 @@ class qt_resources(object):
             m = re.match(res_fn_re, key)
             if m is not None:
                 yield key
-    
+
 class res_writer(object):
     def __init__(self, res):
         self.res = res
-        
+
     def _write_file(self, fn, data, decoder=None, zero_pad_to=None):
         if decoder is not None:
             data = decoder(data)
@@ -133,10 +133,10 @@ class res_writer(object):
         with open(fn, "wb") as fp:
             fp.write(data)
         print("saved %d bytes to %s" % (len(data), fn))
-        
+
     def extract(self, res_fn, out_fn, decoder=None, zero_pad_to=None):
         self._write_file(out_fn, self.res.get_resource(res_fn), decoder=decoder, zero_pad_to=zero_pad_to)
-    
+
     def extract_re(self, res_fn_re, out_fn, decoder=None):
         for res_fn in res.find_resource_names(res_fn_re):
             fn = re.sub(res_fn_re, out_fn, res_fn).lower()
@@ -188,9 +188,9 @@ if __name__ == "__main__":
     if len(sys.argv) != 2:
         print("sigrok-fwextract-kingst-la2016 <programfile>")
         sys.exit()
-    
+
     res = qt_resources(sys.argv[1])
-    
+
     writer = res_writer(res)
     writer.extract("fwfpga/LA2016A", "kingst-la2016a-fpga.bitstream", zero_pad_to=180224)
     writer.extract_re(r"fwusb/fw(.*)", r"kingst-la-\1.fw", decoder=maybe_intel_hex_as_blob)
