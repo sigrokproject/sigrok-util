@@ -74,7 +74,7 @@ rm -rf $SHARE_DIR/libsigrokdecode/decoders/**/__pycache__
 rm -rf $SHARE_DIR/libsigrokdecode/decoders/common/**/__pycache__
 cp -R $PREFIX/share/sigrok-firmware $SHARE_DIR
 
-if [ "x$1" = "xpulseview" ]; then
+if [ "x$APPNAME_BINARY" = "xpulseview" ]; then
 	# Manually copy some boost libs that "macdeployqt" won't copy.
 	cp $BOOSTLIBDIR/libboost_timer-mt.dylib $FRAMEWORKSDIR
 	cp $BOOSTLIBDIR/libboost_chrono-mt.dylib $FRAMEWORKSDIR
