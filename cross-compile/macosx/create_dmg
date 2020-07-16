@@ -82,10 +82,8 @@ if [ "x$APPNAME_BINARY" = "xpulseview" ]; then
 	
 	# Manually copy translations ("macdeployqt" won't copy them).
 	mkdir -p $CONTENTSDIR/translations
-	for lang in "de"; do
-		cp $QTTRANSLATIONSDIR/qt_$lang.qm $CONTENTSDIR/translations
-		cp $QTTRANSLATIONSDIR/qtbase_$lang.qm $CONTENTSDIR/translations
-	done
+	cp $QTTRANSLATIONSDIR/qt_*.qm $CONTENTSDIR/translations
+	cp $QTTRANSLATIONSDIR/qtbase_*.qm $CONTENTSDIR/translations
 fi
 
 $QTBINDIR/macdeployqt $APPNAME.app
