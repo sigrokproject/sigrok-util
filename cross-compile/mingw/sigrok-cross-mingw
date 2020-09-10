@@ -215,7 +215,11 @@ cd sigrok-cli
 ./configure $C
 make $PARALLEL $V
 make install $V
-makensis contrib/sigrok-cli_cross.nsi
+if [ $TARGET = "i686" ]; then
+	makensis contrib/sigrok-cli_cross.nsi
+else
+	makensis -DPE64=1 contrib/sigrok-cli_cross.nsi
+fi
 cd ..
 
 # PulseView
@@ -235,6 +239,10 @@ if [ $DEBUG = 1 ]; then
 else
 	make install/strip $V
 fi
-makensis contrib/pulseview_cross.nsi
+if [ $TARGET = "i686" ]; then
+	makensis contrib/pulseview_cross.nsi
+else
+	makensis -DPE64=1 contrib/pulseview_cross.nsi
+fi
 cd ..
 
