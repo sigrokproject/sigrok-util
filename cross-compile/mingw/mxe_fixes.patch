@@ -3,6 +3,9 @@ MXE setup for sigrok usage.
 
  - libsigrok currently requires a special libusb branch.
 
+ - Add an additional libusb RAW_IO patch in MXE directly, which obsoletes
+   the need to build a custom libusb in sigrok-cross-mingw.
+
  - We're reverting to glib 2.44.1 for now since more recent
    versions (e.g. 2.50.2) seem to have a bug. Details:
    https://sigrok.org/bugzilla/show_bug.cgi?id=1232
@@ -12,6 +15,177 @@ MXE setup for sigrok usage.
    https://sigrok.org/bugzilla/show_bug.cgi?id=986
    https://gitlab.gnome.org/GNOME/glib/commit/3d7cde654c4c6f3bdad32f5521f28f5802a7c377
 
+ - Bump MXE's binutils to version 2.35, which added -mbig-obj support
+   for 32bit Windows (64bit was supported already). Required for PulseView.
+
+diff --git a/src/binutils-1-fixes.patch b/src/binutils-1-fixes.patch
+deleted file mode 100644
+index 357428fe..00000000
+--- a/src/binutils-1-fixes.patch
++++ /dev/null
+@@ -1,147 +0,0 @@
+-This file is part of MXE. See LICENSE.md for licensing information.
+-
+-Contains ad hoc patches for cross building.
+-
+-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+-From: Stephen Kitt <skitt@debian.org>
+-Date: Sat, 15 Jul 2017 00:09:40 +1000
+-Subject: [PATCH 1/1] Allow the PE timestamp to be specified with
+- SOURCE_DATE_EPOCH
+-
+-Taken from:
+-https://sources.debian.net/patches/binutils-mingw-w64/7.4/specify-timestamp.patch/
+-
+-diff --git a/bfd/peXXigen.c b/bfd/peXXigen.c
+-index 1111111..2222222 100644
+---- a/bfd/peXXigen.c
+-+++ b/bfd/peXXigen.c
+-@@ -70,6 +70,9 @@
+- #include <wctype.h>
+- #endif
+- 
+-+#include <errno.h>
+-+#include <limits.h>
+-+
+- /* NOTE: it's strange to be including an architecture specific header
+-    in what's supposed to be general (to PE/PEI) code.  However, that's
+-    where the definitions are, and they don't vary per architecture
+-@@ -878,10 +881,38 @@ _bfd_XXi_only_swap_filehdr_out (bfd * abfd, void * in, void * out)
+-   H_PUT_16 (abfd, filehdr_in->f_nscns, filehdr_out->f_nscns);
+- 
+-   /* Only use a real timestamp if the option was chosen.  */
+--  if ((pe_data (abfd)->insert_timestamp))
+--    H_PUT_32 (abfd, time (0), filehdr_out->f_timdat);
+--  else
+-+  if (pe_data (abfd)->insert_timestamp) {
+-+    time_t now;
+-+    char *source_date_epoch;
+-+    unsigned long long epoch;
+-+    char *endptr;
+-+
+-+    now = time(NULL);
+-+    source_date_epoch = getenv("SOURCE_DATE_EPOCH");
+-+    if (source_date_epoch) {
+-+      errno = 0;
+-+      epoch = strtoull(source_date_epoch, &endptr, 10);
+-+      if ((errno == ERANGE && (epoch == ULLONG_MAX || epoch == 0))
+-+          || (errno != 0 && epoch == 0)) {
+-+        _bfd_error_handler("Environment variable $SOURCE_DATE_EPOCH: strtoull: %s\n",
+-+                           strerror(errno));
+-+      } else if (endptr == source_date_epoch) {
+-+        _bfd_error_handler("Environment variable $SOURCE_DATE_EPOCH: No digits were found: %s\n",
+-+                           endptr);
+-+      } else if (*endptr != '\0') {
+-+        _bfd_error_handler("Environment variable $SOURCE_DATE_EPOCH: Trailing garbage: %s\n",
+-+                           endptr);
+-+      } else if (epoch > ULONG_MAX) {
+-+        _bfd_error_handler("Environment variable $SOURCE_DATE_EPOCH: value must be smaller than or equal to: %lu but was found to be: %llu\n",
+-+                           ULONG_MAX, epoch);
+-+      } else {
+-+        now = epoch;
+-+      }
+-+    }
+-+    H_PUT_32 (abfd, now, filehdr_out->f_timdat);
+-+  } else {
+-     H_PUT_32 (abfd, 0, filehdr_out->f_timdat);
+-+  }
+- 
+-   PUT_FILEHDR_SYMPTR (abfd, filehdr_in->f_symptr,
+- 		      filehdr_out->f_symptr);
+-diff --git a/ld/emultempl/pe.em b/ld/emultempl/pe.em
+-index 1111111..2222222 100644
+---- a/ld/emultempl/pe.em
+-+++ b/ld/emultempl/pe.em
+-@@ -305,7 +305,7 @@ gld${EMULATION_NAME}_add_options
+-      OPTION_USE_NUL_PREFIXED_IMPORT_TABLES},
+-     {"no-leading-underscore", no_argument, NULL, OPTION_NO_LEADING_UNDERSCORE},
+-     {"leading-underscore", no_argument, NULL, OPTION_LEADING_UNDERSCORE},
+--    {"insert-timestamp", no_argument, NULL, OPTION_INSERT_TIMESTAMP},
+-+    {"insert-timestamp", optional_argument, NULL, OPTION_INSERT_TIMESTAMP},
+-     {"no-insert-timestamp", no_argument, NULL, OPTION_NO_INSERT_TIMESTAMP},
+- #ifdef DLL_SUPPORT
+-     /* getopt allows abbreviations, so we do this to stop it
+-diff --git a/ld/emultempl/pep.em b/ld/emultempl/pep.em
+-index 1111111..2222222 100644
+---- a/ld/emultempl/pep.em
+-+++ b/ld/emultempl/pep.em
+-@@ -321,7 +321,7 @@ gld${EMULATION_NAME}_add_options
+-     {"no-bind", no_argument, NULL, OPTION_NO_BIND},
+-     {"wdmdriver", no_argument, NULL, OPTION_WDM_DRIVER},
+-     {"tsaware", no_argument, NULL, OPTION_TERMINAL_SERVER_AWARE},
+--    {"insert-timestamp", no_argument, NULL, OPTION_INSERT_TIMESTAMP},
+-+    {"insert-timestamp", optional_argument, NULL, OPTION_INSERT_TIMESTAMP},
+-     {"no-insert-timestamp", no_argument, NULL, OPTION_NO_INSERT_TIMESTAMP},
+-     {"build-id", optional_argument, NULL, OPTION_BUILD_ID},
+-     {NULL, no_argument, NULL, 0}
+-diff --git a/ld/pe-dll.c b/ld/pe-dll.c
+-index 1111111..2222222 100644
+---- a/ld/pe-dll.c
+-+++ b/ld/pe-dll.c
+-@@ -26,6 +26,8 @@
+- #include "filenames.h"
+- #include "safe-ctype.h"
+- 
+-+#include <errno.h>
+-+#include <limits.h>
+- #include <time.h>
+- 
+- #include "ld.h"
+-@@ -1192,8 +1194,36 @@ fill_edata (bfd *abfd, struct bfd_link_info *info ATTRIBUTE_UNUSED)
+- 
+-   memset (edata_d, 0, edata_sz);
+- 
+--  if (pe_data (abfd)->insert_timestamp)
+--    H_PUT_32 (abfd, time (0), edata_d + 4);
+-+  if (pe_data (abfd)->insert_timestamp) {
+-+    time_t now;
+-+    char *source_date_epoch;
+-+    unsigned long long epoch;
+-+    char *endptr;
+-+
+-+    now = time(NULL);
+-+    source_date_epoch = getenv("SOURCE_DATE_EPOCH");
+-+    if (source_date_epoch) {
+-+      errno = 0;
+-+      epoch = strtoull(source_date_epoch, &endptr, 10);
+-+      if ((errno == ERANGE && (epoch == ULLONG_MAX || epoch == 0))
+-+	  || (errno != 0 && epoch == 0)) {
+-+	einfo("Environment variable $SOURCE_DATE_EPOCH: strtoull: %s\n",
+-+	      strerror(errno));
+-+      } else if (endptr == source_date_epoch) {
+-+	einfo("Environment variable $SOURCE_DATE_EPOCH: No digits were found: %s\n",
+-+	      endptr);
+-+      } else if (*endptr != '\0') {
+-+	einfo("Environment variable $SOURCE_DATE_EPOCH: Trailing garbage: %s\n",
+-+	      endptr);
+-+      } else if (epoch > ULONG_MAX) {
+-+	einfo("Environment variable $SOURCE_DATE_EPOCH: value must be smaller than or equal to: %lu but was found to be: %llu\n",
+-+	      ULONG_MAX, epoch);
+-+      } else {
+-+	now = epoch;
+-+      }
+-+    }
+-+    H_PUT_32 (abfd, now, edata_d + 4);
+-+  }
+- 
+-   if (pe_def_file->version_major != -1)
+-     {
+diff --git a/src/binutils.mk b/src/binutils.mk
+index 9721b581..8eab8bf3 100644
+--- a/src/binutils.mk
++++ b/src/binutils.mk
+@@ -3,8 +3,8 @@
+ PKG             := binutils
+ $(PKG)_WEBSITE  := https://www.gnu.org/software/binutils/
+ $(PKG)_DESCR    := GNU Binutils
+-$(PKG)_VERSION  := 2.28
+-$(PKG)_CHECKSUM := 6297433ee120b11b4b0a1c8f3512d7d73501753142ab9e2daa13c5a3edd32a72
++$(PKG)_VERSION  := 2.35
++$(PKG)_CHECKSUM := 7d24660f87093670738e58bcc7b7b06f121c0fcb0ca8fc44368d675a5ef9cff7
+ $(PKG)_SUBDIR   := binutils-$($(PKG)_VERSION)
+ $(PKG)_FILE     := binutils-$($(PKG)_VERSION).tar.bz2
+ $(PKG)_URL      := https://ftp.gnu.org/gnu/binutils/$($(PKG)_FILE)
 diff --git a/src/libusb1.mk b/src/libusb1.mk
 index ab01bf69..53aed36e 100644
 --- a/src/libusb1.mk
@@ -29,7 +203,7 @@ index ab01bf69..53aed36e 100644
 +$(PKG)_CHECKSUM := 58fee7f3f05fda209d14c55763df36ab86028bd9ab82c9bb74f1d5ab3208bcfd
 +$(PKG)_SUBDIR   := libusb-event-abstraction-v4
 +$(PKG)_FILE     := libusb-event-abstraction-v4.zip
-+$(PKG)_URL      := https://github.com/dickens/libusb/archive/event-abstraction-v4.zip
++$(PKG)_URL      := https://github.com/uwehermann/libusb/archive/event-abstraction-v4.zip
  $(PKG)_DEPS     := cc
  
  define $(PKG)_UPDATE
@@ -42,6 +216,43 @@ index ab01bf69..53aed36e 100644
          $(MXE_CONFIGURE_OPTS) \
          CFLAGS=-D_WIN32_WINNT=0x0500
      $(MAKE) -C '$(1)' -j '$(JOBS)' install
+diff --git a/src/libusb1-1-fixes.patch b/src/libusb1-1-fixes.patch
+new file mode 100644
+index 00000000..6cdeb0c4
+--- /dev/null
++++ b/src/libusb1-1-fixes.patch
+@@ -0,0 +1,31 @@
++From d4f7a49d77bd8f4ac871a999fc9ec898cb22b8c3 Mon Sep 17 00:00:00 2001
++From: Vlad Ivanov <vlad-mbx@ya.ru>
++Date: Tue, 9 Feb 2016 10:35:23 +0300
++Subject: [PATCH] windows_usb: enable RAW_IO policy by default
++
++libusb should set RAW_IO policy unconditionally because it
++implements the buffer management itself.
++
++Signed-off-by: Vlad Ivanov <vlad-mbx@ya.ru>
++---
++ libusb/os/windows_usb.c | 4 ++++
++ 1 file changed, 4 insertions(+)
++
++diff --git a/libusb/os/windows_usb.c b/libusb/os/windows_usb.c
++index 6640ad5..12fdab0 100644
++--- a/libusb/os/windows_usb.c
+++++ b/libusb/os/windows_usb.c
++@@ -2890,6 +2890,10 @@ static int winusbx_configure_endpoints(int sub_api, struct libusb_device_handle
++ 			AUTO_CLEAR_STALL, sizeof(UCHAR), &policy)) {
++ 			usbi_dbg("failed to enable AUTO_CLEAR_STALL for endpoint %02X", endpoint_address);
++ 		}
+++		if (!WinUSBX[sub_api].SetPipePolicy(winusb_handle, endpoint_address,
+++			RAW_IO, sizeof(UCHAR), &policy)) {
+++			usbi_dbg("failed to enable RAW_IO for endpoint %02X", endpoint_address);
+++		}
++ 	}
++ 
++ 	return LIBUSB_SUCCESS;
++-- 
++2.5.0
++
 diff --git a/src/glib-1-fixes.patch b/src/glib-1-fixes.patch
 index 764ece9e..428cc6a9 100644
 --- a/src/glib-1-fixes.patch
