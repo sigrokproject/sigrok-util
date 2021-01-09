@@ -179,15 +179,15 @@ if __name__ == '__main__':
 
     parser = ArgumentParser(description='Bootstrap a new sigrok hardware driver')
     parser.add_argument('name', nargs='*', default=[], help='new driver name')
-    parser.add_argument('--giturl', default=defaulturl,
+    parser.add_argument('--giturl', '-u', default=defaulturl,
                         help='URL of the libsigrok git repository '
                         '(defaults to {0})'.format(defaulturl))
-    parser.add_argument('--tmpl-dir', default=defaultdir,
+    parser.add_argument('--tmpl-dir', '-t', default=defaultdir,
                         help='Directory in which the templates are stored '
                         '(defaults to {0})'.format(defaultdir))
-    parser.add_argument('--author', default=author, required=not author,
+    parser.add_argument('--author', '-a', default=author, required=not author,
                         help='User name to write the Copyright lines')
-    parser.add_argument('--email', default=email, required=not email,
+    parser.add_argument('--email', '-e', default=email, required=not email,
                         help='Email address to write the Copyright lines')
     opts = parser.parse_args()
 
