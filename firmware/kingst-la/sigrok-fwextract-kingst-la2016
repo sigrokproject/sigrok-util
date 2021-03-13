@@ -24,6 +24,7 @@ import re
 import struct
 import codecs
 import importlib.util
+import zlib
 
 # reuse parseelf.py module from saleae-logic16:
 fwdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -132,7 +133,8 @@ class res_writer(object):
             data += b"\0" * (zero_pad_to - len(data))
         with open(fn, "wb") as fp:
             fp.write(data)
-        print("saved %d bytes to %s" % (len(data), fn))
+        data_crc32 = zlib.crc32(data) & 0xffffffff
+        print("saved %d bytes to %s (crc32=%08x)" % (len(data), fn, data_crc32))
 
     def extract(self, res_fn, out_fn, decoder=None, zero_pad_to=None):
         self._write_file(out_fn, self.res.get_resource(res_fn), decoder=decoder, zero_pad_to=zero_pad_to)
@@ -192,5 +194,6 @@ if __name__ == "__main__":
     res = qt_resources(sys.argv[1])
 
     writer = res_writer(res)
-    writer.extract("fwfpga/LA2016A", "kingst-la2016a-fpga.bitstream")
+    writer.extract_re(r"fwfpga/(.*)", r"kingst-\1-fpga.bitstream")
     writer.extract_re(r"fwusb/fw(.*)", r"kingst-la-\1.fw", decoder=maybe_intel_hex_as_blob)
+
