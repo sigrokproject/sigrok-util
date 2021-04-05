@@ -1,0 +1,70 @@
+SIGROK-FWEXTRACT-KINGST-LA20General Commands SIGROK-FWEXTRACT-KINGST-LA2016(1)
+
+
+
+NAME
+       sigrok-fwextract-kingst-la2016  -  Extract  Kingst firmware from vendor
+       software
+
+SYNOPSIS
+       sigrok-fwextract-kingst-la2016 [FILE]
+
+DESCRIPTION
+       This tool extracts the FX2 MCU firmware and  FPGA  bitstreams  for  the
+       Kingst  LA2016/LA1016  USB  logic  analyzers  from the vendor software.
+       These analyzers share the  same  USB  VID:PID  and  use  the  same  FX2
+       firmware.   The  correct  FPGA  bitstream  is selected by the libsigrok
+       driver after loading the FX2 firmware and reading the device identifier
+       from EEPROM.
+
+       Download  the Linux version of the vendor software from [1], and unpack
+       it to find the main binary called "KingstVIS". To extract the  firmware
+       and bitstreams, run the following commands:
+
+         $ tar -xzf KingstVIS_v3.5.0_linux.tar.gz KingstVIS
+
+         $ sigrok-fwextract-kingst-la2016 KingstVIS/KingstVIS
+         saved 5430 bytes to kingst-la-01a2.fw (crc32=720551a9)
+         saved 178362 bytes to kingst-la2016a1-fpga.bitstream (crc32=7cc894fa)
+         saved 178542 bytes to kingst-la2016-fpga.bitstream (crc32=20694ff1)
+         saved 178379 bytes to kingst-la1016a1-fpga.bitstream (crc32=166866be)
+         saved 178151 bytes to kingst-la1016-fpga.bitstream (crc32=7db70001)
+
+       Copy  the above firmware and bitstream files to the location where lib-
+       sigrok expects to find firmware files.  By  default  this  is  /usr/lo-
+       cal/share/sigrok-firmware.
+
+OPTIONS
+       None.
+
+EXIT STATUS
+       Exits with 0 on success, 1 on most failures.
+
+SEE ALSO
+       sigrok-fwextract-saleae-logic16(1)
+       sigrok-fwextract-dreamsourcelab-dslogic(1)
+       sigrok-fwextract-hantek-dso(1)
+       sigrok-fwextract-lecroy-logicstudio(1)
+       sigrok-fwextract-sysclk-lwla1016(1)
+       sigrok-fwextract-sysclk-lwla1034(1)
+
+BUGS
+       Please  report any bugs via Bugzilla (http://sigrok.org/bugzilla) or on
+       the sigrok-devel mailing list (sigrok-devel@lists.souceforge.net).
+
+LICENSE
+       This program is covered by the GNU General Public License  (GPL),  ver-
+       sion 3 or later.
+
+AUTHORS
+       Please see the individual source code files.
+
+NOTES
+        1. Vendor website
+           http://www.qdkingst.com/download
+           MD5 of v3.5.0: 812bbd37a16d315a489ca33ea2868a36
+
+
+
+
+                                 Mar 13, 2021SIGROK-FWEXTRACT-KINGST-LA2016(1)
