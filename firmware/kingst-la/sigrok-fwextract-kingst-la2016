@@ -192,5 +192,5 @@ if __name__ == "__main__":
     res = qt_resources(sys.argv[1])
 
     writer = res_writer(res)
-    writer.extract("fwfpga/LA2016A", "kingst-la2016a-fpga.bitstream")
+    writer.extract_re(r"fwfpga/(.*)", r"kingst-\1-fpga.bitstream")
     writer.extract_re(r"fwusb/fw(.*)", r"kingst-la-\1.fw", decoder=maybe_intel_hex_as_blob)
