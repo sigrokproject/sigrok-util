@@ -1,33 +1,35 @@
-.TH SIGROK\-FWEXTRACT\-KINGST\-LA2016 1 "Mar 21, 2020"
+.TH SIGROK\-FWEXTRACT\-KINGST\-LA2016 1 "Mar 13, 2021"
 .SH "NAME"
-sigrok\-fwextract\-kingst\-la2016 \- Extract Kingst LA2016 firmware
+sigrok\-fwextract\-kingst\-la2016 \- Extract Kingst firmware from vendor software
 .SH "SYNOPSIS"
 .B sigrok\-fwextract\-kingst\-la2016 [FILE]
 .SH "DESCRIPTION"
-This tool extracts FX2 firmware and FPGA bitstreams from the vendor
-software for the Kingst LA2016 USB logic analyzer. Download the Linux
-version from[1], and unpack it to find the main binary called "KingstVIS".
+This tool extracts the FX2 MCU firmware and FPGA bitstreams for the Kingst
+LA2016/LA1016 USB logic analyzers from the vendor software. These
+analyzers share the same USB VID:PID and use the same FX2 firmware.
+The correct FPGA bitstream is selected by the libsigrok driver after
+loading the FX2 firmware and reading the device identifier from EEPROM.
 .PP
-In order to extract the firmware/bitstreams, run the following command:
+Download the Linux version of the vendor software from [1], and unpack
+it to find the main binary called "KingstVIS". To extract the
+firmware and bitstreams, run the following commands:
 .PP
-.B "  $ tar -xzf KingstVIS_v3.4.0.tar.gz KingstVIS/KingstVIS"
+.B "  $ tar -xzf KingstVIS_v3.5.0_linux.tar.gz KingstVIS"
 .PP
 .B "  $ sigrok-fwextract-kingst-la2016 KingstVIS/KingstVIS"
 .br
-.RB "  saved 177666 bytes to kingst-la2016a-fpga.bitstream
+.RB "  saved 5430 bytes to kingst-la-01a2.fw (crc32=720551a9)"
 .br
-.RB "  saved 5350 bytes to kingst-la-01a1.fw"
+.RB "  saved 178362 bytes to kingst-la2016a1-fpga.bitstream (crc32=7cc894fa)"
 .br
-.RB "  saved 5430 bytes to kingst-la-01a2.fw"
+.RB "  saved 178542 bytes to kingst-la2016-fpga.bitstream (crc32=20694ff1)"
 .br
-.RB "  saved 5718 bytes to kingst-la-01a3.fw"
+.RB "  saved 178379 bytes to kingst-la1016a1-fpga.bitstream (crc32=166866be)"
 .br
-.RB "  saved 142412 bytes to kingst-la-01a4.fw"
-.br
-.RB "  saved 5452 bytes to kingst-la-03a1.fw"
+.RB "  saved 178151 bytes to kingst-la1016-fpga.bitstream (crc32=7db70001)"
 .PP
-Copy the resulting files over to the location where libsigrok expects
-to find its firmware files. By default this is
+Copy the above firmware and bitstream files to the location where libsigrok
+expects to find firmware files. By default this is
 .BR /usr/local/share/sigrok-firmware .
 .SH OPTIONS
 None.
@@ -61,4 +63,5 @@ Vendor website
 .RS 4
 .RB http://www.qdkingst.com/download
 .br
-\%MD5 of v3.4.0: ca407133cb83b700983d2b704a4255c2
+\%MD5 of v3.5.0: 812bbd37a16d315a489ca33ea2868a36
+

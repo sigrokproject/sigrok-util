@@ -24,6 +24,7 @@ import re
 import struct
 import codecs
 import importlib.util
+import zlib
 
 # reuse parseelf.py module from saleae-logic16:
 fwdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -132,7 +133,8 @@ class res_writer(object):
             data += b"\0" * (zero_pad_to - len(data))
         with open(fn, "wb") as fp:
             fp.write(data)
-        print("saved %d bytes to %s" % (len(data), fn))
+        data_crc32 = zlib.crc32(data) & 0xffffffff
+        print("saved %d bytes to %s (crc32=%08x)" % (len(data), fn, data_crc32))
 
     def extract(self, res_fn, out_fn, decoder=None, zero_pad_to=None):
         self._write_file(out_fn, self.res.get_resource(res_fn), decoder=decoder, zero_pad_to=zero_pad_to)
@@ -192,5 +194,31 @@ if __name__ == "__main__":
     res = qt_resources(sys.argv[1])
 
     writer = res_writer(res)
-    writer.extract("fwfpga/LA2016A", "kingst-la2016a-fpga.bitstream")
-    writer.extract_re(r"fwusb/fw(.*)", r"kingst-la-\1.fw", decoder=maybe_intel_hex_as_blob)
+
+    '''
+    05-APR-2021
+    This extraction script has been tested with the
+    vendor software versions v3.5.0 and v3.5.1
+    These files were extracted and tested successfully:
+    saved 5430 bytes to kingst-la-01a2.fw (crc32=720551a9)
+    saved 178362 bytes to kingst-la2016a1-fpga.bitstream (crc32=7cc894fa)
+    saved 178542 bytes to kingst-la2016-fpga.bitstream (crc32=20694ff1)
+    saved 178379 bytes to kingst-la1016a1-fpga.bitstream (crc32=166866be)
+    saved 178151 bytes to kingst-la1016-fpga.bitstream (crc32=7db70001)
+    '''
+
+    # extract all firmware and fpga bitstreams
+    # writer.extract_re(r"fwfpga/(.*)", r"kingst-\1-fpga.bitstream")
+    # writer.extract_re(r"fwusb/fw(.*)", r"kingst-la-\1.fw", decoder=maybe_intel_hex_as_blob)
+
+    # extract fx2 mcu firmware for both the la2016 and la1016
+    # note that 0x01a2 is the usb pid for both of these devices
+    writer.extract_re("fwusb/fw01A2", "kingst-la-01a2.fw", decoder=maybe_intel_hex_as_blob)
+
+    # extract fpga bitstreams for la2016
+    # there are two bitstreams, newer hardware uses the 'a1' bitstream
+    writer.extract_re("fwfpga/LA2016(.*)", r"kingst-la2016\1-fpga.bitstream")
+
+    # extract fpga bitstreams for la1016
+    # there are two bitstreams, newer hardware uses the 'a1' bitstream
+    writer.extract_re("fwfpga/LA1016(.*)", r"kingst-la1016\1-fpga.bitstream")
