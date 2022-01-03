@@ -69,6 +69,7 @@ PYDIR="$FRAMEWORKSDIR/Python.framework/Versions/$PYVER"
 mkdir -p $MACOSDIR $FRAMEWORKSDIR $SHARE_DIR
 
 cp $PREFIX/bin/$APPNAME_BINARY $MACOSDIR
+# Implementation detail: Shared libraries are handled below.
 cp -R $PREFIX/share/libsigrokdecode $SHARE_DIR
 rm -rf $SHARE_DIR/libsigrokdecode/decoders/**/__pycache__
 rm -rf $SHARE_DIR/libsigrokdecode/decoders/common/**/__pycache__
@@ -79,7 +80,7 @@ if [ "x$APPNAME_BINARY" = "xpulseview" ]; then
 	cp $BOOSTLIBDIR/libboost_timer-mt.dylib $FRAMEWORKSDIR
 	cp $BOOSTLIBDIR/libboost_chrono-mt.dylib $FRAMEWORKSDIR
 	chmod 644 $FRAMEWORKSDIR/*boost*
-	
+
 	# Manually copy translations ("macdeployqt" won't copy them).
 	mkdir -p $CONTENTSDIR/translations
 	cp $QTTRANSLATIONSDIR/qt_*.qm $CONTENTSDIR/translations
@@ -112,6 +113,10 @@ install_name_tool -change \
 	/usr/local/opt/python/Frameworks/Python.framework/Versions/$PYVER/Python \
 	@executable_path/../Frameworks/Python.framework/Versions/$PYVER/Python \
 	$FRAMEWORKSDIR/libsigrokdecode.*.dylib
+install_name_tool -change \
+	/usr/local/opt/python/Frameworks/Python.framework/Versions/$PYVER/Python \
+	@executable_path/../Frameworks/Python.framework/Versions/$PYVER/Python \
+	$FRAMEWORKSDIR/libirmp.*.dylib
 
 # Add wrapper (sets PYTHONHOME/SIGROK_FIRMWARE_DIR/SIGROKDECODE_DIR).
 mv $MACOSDIR/$APPNAME_BINARY $MACOSDIR/$APPNAME_BINARY.real
