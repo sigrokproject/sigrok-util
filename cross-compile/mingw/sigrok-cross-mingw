@@ -41,9 +41,15 @@ PARALLEL="-j 2"
 # Edit this to enable/disable debug builds.
 DEBUG=0
 
+# Optionally show some progress as the script executes.
+# ECHO=true
+ECHO=echo
+
 # You usually don't need to change anything below this line.
 
 # -----------------------------------------------------------------------------
+
+$ECHO "setting up fetch variables ..."
 
 WGET="wget -c --quiet"
 GIT_CLONE="git clone --depth=1"
@@ -69,6 +75,8 @@ fi
 
 # -----------------------------------------------------------------------------
 
+$ECHO "setting up toolchain variables ..."
+
 # We need to find tools in the toolchain.
 export PATH=$MXE/usr/bin:$PATH
 
@@ -88,6 +96,7 @@ else
 fi
 
 # Remove build directory contents (if any) and create a new build dir.
+$ECHO "starting new build directory: $BUILDDIR"
 rm -rf $BUILDDIR
 mkdir $BUILDDIR
 cd $BUILDDIR
@@ -95,6 +104,8 @@ cd $BUILDDIR
 # -----------------------------------------------------------------------------
 
 mkdir -p $PREFIX
+
+$ECHO "preparing Python dependency ..."
 
 # Cross-compiling Python is highly non-trivial, so we avoid it for now.
 # The download below is a repackaged tarball of the official Python 3.4.4 MSI
@@ -153,10 +164,12 @@ fi
 unzip -q $PREFIX/python34.zip *.pyd -d $PREFIX
 
 # Zadig (we ship this with frontends for easy driver switching).
+$ECHO "fetching zadig ..."
 $WGET https://github.com/pbatard/libwdi/releases/download/b721/zadig-2.4.exe -O $PREFIX/zadig.exe
 $WGET https://github.com/pbatard/libwdi/releases/download/v1.2.5/zadig_xp-2.2.exe -O $PREFIX/zadig_xp.exe
 
 # libserialport
+$ECHO "component libserialport ..."
 $GIT_CLONE $REPO_BASE/libserialport
 cd libserialport
 ./autogen.sh
@@ -166,6 +179,7 @@ make install $V
 cd ..
 
 # libsigrok
+$ECHO "component libsigrok ..."
 $GIT_CLONE $REPO_BASE/libsigrok
 cd libsigrok
 ./autogen.sh
@@ -175,6 +189,7 @@ make install $V
 cd ..
 
 # libsigrokdecode
+$ECHO "component libsigrokdecode ..."
 $GIT_CLONE $REPO_BASE/libsigrokdecode
 cd libsigrokdecode
 ./autogen.sh
@@ -184,6 +199,7 @@ make install $V
 cd ..
 
 # sigrok-firmware
+$ECHO "component sigrok-firmware ..."
 $GIT_CLONE $REPO_BASE/sigrok-firmware
 cd sigrok-firmware
 ./autogen.sh
@@ -193,6 +209,7 @@ make install $V
 cd ..
 
 # sigrok-firmware-fx2lafw
+$ECHO "component sigrok-firmware-fx2lafw ..."
 $GIT_CLONE $REPO_BASE/sigrok-firmware-fx2lafw
 cd sigrok-firmware-fx2lafw
 ./autogen.sh
@@ -203,12 +220,14 @@ make install $V
 cd ..
 
 # sigrok-dumps
+$ECHO "component sigrok-dumps ..."
 $GIT_CLONE $REPO_BASE/sigrok-dumps
 cd sigrok-dumps
 make install DESTDIR=$PREFIX/share/sigrok-dumps $V
 cd ..
 
 # sigrok-cli
+$ECHO "component sigrok-cli ..."
 $GIT_CLONE $REPO_BASE/sigrok-cli
 cd sigrok-cli
 ./autogen.sh
@@ -223,6 +242,7 @@ fi
 cd ..
 
 # PulseView
+$ECHO "component pulseview ..."
 $GIT_CLONE $REPO_BASE/pulseview
 cd pulseview
 cp ../../FileAssociation.nsh contrib
@@ -239,6 +259,8 @@ if [ $DEBUG = 1 ]; then
 else
 	make install/strip $V
 fi
+
+$ECHO "creating NSIS installer ..."
 if [ $TARGET = "i686" ]; then
 	makensis contrib/pulseview_cross.nsi
 else
@@ -246,3 +268,4 @@ else
 fi
 cd ..
 
+$ECHO "cross compile script done.""
