@@ -107,6 +107,11 @@ mkdir -p $PREFIX
 
 $ECHO "preparing Python dependency ..."
 
+# This is a HACK which temporarily unbreaks Windows CI builds.
+# TODO Remove this line as well as $WGET_SR references below
+# when the Python34 download works again.
+WGET_SR="$WGET --no-check-certificate"
+
 # Cross-compiling Python is highly non-trivial, so we avoid it for now.
 # The download below is a repackaged tarball of the official Python 3.4.4 MSI
 # installer for Windows:
@@ -114,7 +119,7 @@ $ECHO "preparing Python dependency ..."
 #   - https://www.python.org/ftp/python/3.4.4/python-3.4.4.amd64.msi
 # The MSI file has been installed on a Windows box and then c:\Python34\libs
 # and c:\Python34\include have been stored in the Python34_*.tar.gz tarball.
-$WGET http://www.sigrok.org/tmp/Python34_$TARGET.tar.gz -O $PREFIX/Python34.tar.gz
+$WGET_SR http://www.sigrok.org/tmp/Python34_$TARGET.tar.gz -O $PREFIX/Python34.tar.gz
 tar xzf $PREFIX/Python34.tar.gz -C $PREFIX
 
 # Fix for bug #1195.
@@ -143,8 +148,8 @@ EOF
 # The file python34.zip contains all files from the 'DLLs', 'Lib', and 'libs'
 # subdirectories from an installed Python on Windows (c:\python34), i.e. some
 # libraries and all Python stdlib modules.
-$WGET http://www.sigrok.org/tmp/python34_$TARGET.dll -O $PREFIX/python34.dll
-$WGET http://www.sigrok.org/tmp/python34_$TARGET.zip -O $PREFIX/python34.zip
+$WGET_SR http://www.sigrok.org/tmp/python34_$TARGET.dll -O $PREFIX/python34.dll
+$WGET_SR http://www.sigrok.org/tmp/python34_$TARGET.zip -O $PREFIX/python34.zip
 
 # In order to link against Python we need libpython34.a.
 # The upstream Python 32bit installer ships this, the x86_64 installer
