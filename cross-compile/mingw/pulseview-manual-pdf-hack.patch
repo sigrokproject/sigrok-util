@@ -1,0 +1,34 @@
+From f174de8d8dbe6c51af95d308ff92367ba5649061 Mon Sep 17 00:00:00 2001
+From: Gerhard Sittig <gerhard.sittig@gmx.net>
+Date: Sat, 22 Jan 2022 16:43:04 +0100
+Subject: [PATCH] HACK manual: intentionally break the lookup of the PDF
+ creation utility
+
+Search for the asciidoctor-pdf(1) utility under a name which won't be
+found. Which results in an empty skeleton make(1) rule for the PDF file
+creation which won't fail. Which hopefully unbreaks Windows installer
+creation from CI builds.
+
+This is a temporary evil hack which needs to get reverted when the
+actual issue got addressed which causes the asciidoctor-pdf execution
+to fail on the sigrok.org build machine.
+---
+ manual/CMakeLists.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/manual/CMakeLists.txt b/manual/CMakeLists.txt
+index c425f36b3bdd..480ad0569d4b 100644
+--- a/manual/CMakeLists.txt
++++ b/manual/CMakeLists.txt
+@@ -21,7 +21,7 @@ cmake_minimum_required(VERSION 2.8.12)
+ 
+ # External dependencies, required and optional tools.
+ find_program(ASCIIDOCTOR_EXECUTABLE NAMES asciidoctor)
+-find_program(ASCIIDOCTOR_PDF_EXECUTABLE NAMES asciidoctor-pdf)
++find_program(ASCIIDOCTOR_PDF_EXECUTABLE NAMES asciidoctor-pdf-notfound)
+ 
+ # Tunables.
+ set(STYLES_DIR "asciidoctor-stylesheet-factory/stylesheets")
+-- 
+2.29.0
+
