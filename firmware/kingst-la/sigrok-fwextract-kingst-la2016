@@ -18,6 +18,10 @@
 ## along with this program; if not, see <http://www.gnu.org/licenses/>.
 ##
 
+# This utility extracts FX2 MCU firmware and FPGA bitstream images from
+# the "KingstVIS" vendor software. The blobs are kept in Qt resources
+# sections. The script was tested with several v3.5 software versions.
+
 import argparse
 import os
 import sys
@@ -27,7 +31,7 @@ import codecs
 import importlib.util
 import zlib
 
-# reuse parseelf.py module from saleae-logic16:
+# Reuse the parseelf.py module from saleae-logic16.
 fwdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 parseelf_py = os.path.join(fwdir, "saleae-logic16", "parseelf.py")
 spec = importlib.util.spec_from_file_location("parseelf", parseelf_py)
@@ -58,7 +62,7 @@ class qt_resources(object):
                 sname, sym["st_size"], len(value)))
         return value
 
-    # qt resource stuff:
+    # Qt resource stuff.
     def _get_resource_name(self, offset):
         length, i = struct.unpack(">HI", self._res_names[offset:offset + 2 + 4])
         offset += 2 + 4
@@ -149,7 +153,7 @@ def decode_intel_hex(hexdata):
     """ return list of (address, data)
     """
     datas = []
-    # assume \n or \r\n*
+    # Assume LF-only or CR-LF style end-of-line.
     for line in hexdata.split(b"\n"):
         line = line.strip()
         if chr(line[0]) != ":": raise Exception("invalid line: %r" % line)
@@ -185,7 +189,7 @@ def intel_hex_as_blob(hexdata):
 def maybe_intel_hex_as_blob(data):
     if data[0] == ord(":") and max(data) < 127:
           return intel_hex_as_blob(data)
-    return data # keep binary data
+    return data # Keep binary data.
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description = "KingstVIS firmware extraction")
@@ -196,18 +200,6 @@ if __name__ == "__main__":
     res = qt_resources(exe_fn)
 
     writer = res_writer(res)
-
-    '''
-    05-APR-2021
-    This extraction script has been tested with the
-    vendor software versions v3.5.0 and v3.5.1
-    These files were extracted and tested successfully:
-    saved 5430 bytes to kingst-la-01a2.fw (crc32=720551a9)
-    saved 178362 bytes to kingst-la2016a1-fpga.bitstream (crc32=7cc894fa)
-    saved 178542 bytes to kingst-la2016-fpga.bitstream (crc32=20694ff1)
-    saved 178379 bytes to kingst-la1016a1-fpga.bitstream (crc32=166866be)
-    saved 178151 bytes to kingst-la1016-fpga.bitstream (crc32=7db70001)
-    '''
 
     # extract all firmware and fpga bitstreams
     # writer.extract_re(r"fwfpga/(.*)", r"kingst-\1-fpga.bitstream")
