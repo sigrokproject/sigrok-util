@@ -18,6 +18,7 @@
 ## along with this program; if not, see <http://www.gnu.org/licenses/>.
 ##
 
+import argparse
 import os
 import sys
 import re
@@ -187,11 +188,12 @@ def maybe_intel_hex_as_blob(data):
     return data # keep binary data
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("sigrok-fwextract-kingst-la2016 <programfile>")
-        sys.exit()
+    parser = argparse.ArgumentParser(description = "KingstVIS firmware extraction")
+    parser.add_argument('executable', help = "KingstVIS executable file")
+    options = parser.parse_args()
+    exe_fn = options.executable
 
-    res = qt_resources(sys.argv[1])
+    res = qt_resources(exe_fn)
 
     writer = res_writer(res)
 
