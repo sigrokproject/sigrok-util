@@ -129,25 +129,28 @@ class res_writer(object):
     def __init__(self, res):
         self.res = res
 
-    def _write_file(self, fn, data, decoder=None, zero_pad_to=None):
+    def _decode_crc(self, data, decoder=None):
         if decoder is not None:
             data = decoder(data)
-        if zero_pad_to is not None:
-            if len(data) > zero_pad_to:
-                raise Exception("can not zero_pad_to %d bytes -- data is already %d bytes" % (zero_pad_to, len(data)))
-            data += b"\0" * (zero_pad_to - len(data))
+        data = bytearray(data)
+        crc = zlib.crc32(data) & 0xffffffff
+        return data, crc
+
+    def _write_file(self, fn, data):
         with open(fn, "wb") as fp:
             fp.write(data)
-        data_crc32 = zlib.crc32(data) & 0xffffffff
-        print("saved %d bytes to %s (crc32=%08x)" % (len(data), fn, data_crc32))
 
-    def extract(self, res_fn, out_fn, decoder=None, zero_pad_to=None):
-        self._write_file(out_fn, self.res.get_resource(res_fn), decoder=decoder, zero_pad_to=zero_pad_to)
-
-    def extract_re(self, res_fn_re, out_fn, decoder=None):
-        for res_fn in res.find_resource_names(res_fn_re):
-            fn = re.sub(res_fn_re, out_fn, res_fn).lower()
-            self._write_file(fn, self.res.get_resource(res_fn), decoder=decoder)
+    def extract_re(self, resource_pattern, fname_pattern, decoder=None):
+        resources = sorted(res.find_resource_names(resource_pattern))
+        for resource in resources:
+            fname = re.sub(resource_pattern, fname_pattern, resource)
+            fname = fname.lower()
+            data = self.res.get_resource(resource)
+            data, crc = self._decode_crc(data, decoder=decoder)
+            self._write_file(fname, data)
+            print("resource {rsc}, file {fname}, size {size}, checksum {crc:08x}".format(
+                rsc = resource, fname = fname, size = len(data), crc = crc,
+            ))
 
 def decode_intel_hex(hexdata):
     """ return list of (address, data)
