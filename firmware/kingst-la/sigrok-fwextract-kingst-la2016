@@ -198,21 +198,14 @@ if __name__ == "__main__":
     exe_fn = options.executable
 
     res = qt_resources(exe_fn)
-
     writer = res_writer(res)
 
-    # extract all firmware and fpga bitstreams
-    # writer.extract_re(r"fwfpga/(.*)", r"kingst-\1-fpga.bitstream")
-    # writer.extract_re(r"fwusb/fw(.*)", r"kingst-la-\1.fw", decoder=maybe_intel_hex_as_blob)
-
-    # extract fx2 mcu firmware for both the la2016 and la1016
-    # note that 0x01a2 is the usb pid for both of these devices
-    writer.extract_re("fwusb/fw01A2", "kingst-la-01a2.fw", decoder=maybe_intel_hex_as_blob)
-
-    # extract fpga bitstreams for la2016
-    # there are two bitstreams, newer hardware uses the 'a1' bitstream
-    writer.extract_re("fwfpga/LA2016(.*)", r"kingst-la2016\1-fpga.bitstream")
-
-    # extract fpga bitstreams for la1016
-    # there are two bitstreams, newer hardware uses the 'a1' bitstream
-    writer.extract_re("fwfpga/LA1016(.*)", r"kingst-la1016\1-fpga.bitstream")
+    # Extract all MCU firmware and FPGA bitstream images. The sigrok
+    # project may not cover all KingstVIS supported devices. Users can
+    # either just copy those files which are strictly required for their
+    # specific device (diagnostics will identify those). Or just copy a
+    # few more files while some of them remain unused later (their size
+    # is small). Seeing which files would be contained is considered
+    # valuable, to identify device variants or candidate models.
+    writer.extract_re(r"fwusb/fw(.*)", r"kingst-la-\1.fw", decoder=maybe_intel_hex_as_blob)
+    writer.extract_re(r"fwfpga/(.*)", r"kingst-\1-fpga.bitstream")
