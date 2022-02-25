@@ -26,6 +26,8 @@ Requirements
  - wget
  - unzip
  - pkg-config (>= 0.22)
+ - autoconf
+ - libtool
  - sdcc (needed for building the fx2lafw firmware)
 
 
