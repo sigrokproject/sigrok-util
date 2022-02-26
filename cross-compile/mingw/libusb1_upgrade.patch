@@ -1,28 +1,18 @@
-The sigrok build references an older libusb1 library version, which
-addresses two specific aspects:
+The sigrok project build references a libusb feature which is not yet
+available in mainline libusb1, enabling the RAW_IO policy by default
+to improve performance on Windows. And applies an autotools fix to the
+mainline MXE build rules.
 
-  - Presence of an "event abstraction" is desired. Which once was
-    available as a branch on top of 1.0.20-rc3, but has gone away
-    in the meantime and got archived locally. -- Library versions
-    1.0.24 and above may provide that feature under the common API
-    but are yet to get verified.
-
-  - For performance reasons the RAW_IO feature is enabled. libusb1
-    mainline may provide such an approach later (automatically, after
-    checking more conditions for improved reliability), but does not
-    in versions up to and including 1.0.25 yet.
+See the libusb pull request https://github.com/libusb/libusb/pull/1069
+for a discussion of the RAW_IO policy tweak.
 
 Manipulation of the libusb1 configuration in the MXE setup avoids the
 necessity for a custom libusb1 build as a step in the sigrok procedure.
+When the MXE modification is considered undesirable, then the sigrok
+build script or the manual sequence of building needs to get adjusted
+to include a local libusb1 build which then gets referenced in the
+configure step.
 
-Ideally the sigrok build would use libusb1 version 1.0.25+ to benefit
-from the many portability and robustness and feature set improvements.
-Regardless of which libusb1 version ships with mainline MXE. That is
-why this file is called "libusb1_upgrade.patch". Until then it patches
-the local archive of the older library version.
-
-
-Explicitly prepare autotools use between checkout and configuration.
 
 diff --git a/src/libusb1.mk b/src/libusb1.mk
 index ab01bf69..53aed36e 100644
@@ -38,9 +28,6 @@ index ab01bf69..53aed36e 100644
          CFLAGS=-D_WIN32_WINNT=0x0500
      $(MAKE) -C '$(1)' -j '$(JOBS)' install
 
-
-Don't use MXE's provided 1.0.24 version. Use an "event abstraction"
-enabled older version instead.
 
 diff --git a/src/libusb1.mk b/src/libusb1.mk
 index ab01bf69..53aed36e 100644
@@ -58,10 +45,6 @@ index ab01bf69..53aed36e 100644
  $(PKG)_FILE     := libusb-$($(PKG)_VERSION).tar.bz2
  $(PKG)_URL      := https://$(SOURCEFORGE_MIRROR)/project/libusb/libusb-1.0/libusb-$($(PKG)_VERSION)/$($(PKG)_FILE)
 
-
-Enable RAW_IO policy on Windows when constraints are met. This assumes
-recent libusb1 versions, see https://github.com/libusb/libusb/pull/1069
-for details.
 
 diff --git a/src/libusb1-1-fixes.patch b/src/libusb1-1-fixes.patch
 new file mode 100644
