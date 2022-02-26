@@ -1,0 +1,25 @@
+Newer boost versions phrase numeric literals in ways that are not
+supported out of the box. Pass a compiler switch which unbreaks the
+Pulseview build with current MXE (as of 2022-02). See bug 1771.
+
+TODO It is yet to get determined whether the CMakeLists.txt change is
+universally applicable to all supported platforms and compiler versions
+that are used with Pulseview (after all non-default compiler behaviour
+is enabled). When the pulseview.git repository contains the change,
+then this patch becomes obsolete.
+
+ CMakeLists.txt | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 7791b1b138da..d43681c195cf 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -488,6 +488,7 @@ add_definitions(-D__STDC_LIMIT_MACROS)
+ add_definitions(-Wall -Wextra)
+ add_definitions(-std=c++11)
+ add_definitions(-DBOOST_MATH_DISABLE_FLOAT128=1)
++add_definitions(-fext-numeric-literals)
+ if(WIN32)
+ 	add_definitions(-Wa,-mbig-obj -O3)
+ endif()

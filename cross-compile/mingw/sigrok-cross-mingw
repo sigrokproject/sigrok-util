@@ -250,6 +250,7 @@ cd ..
 $ECHO "component pulseview ..."
 $GIT_CLONE $REPO_BASE/pulseview
 cd pulseview
+patch -p1 < ../../pulseview-boost-numeric-literals.patch
 patch -p1 < ../../pulseview-manual-pdf-hack.patch
 cp ../../FileAssociation.nsh contrib
 $CMAKE \
