@@ -41,6 +41,7 @@ First, get the MXE cross-compile environment for MinGW-w64/Windows:
 Apply some fixes that are currently required for a proper build:
 
  $ patch -p1 < mxe_fixes.patch
+ $ patch -p1 < libusb1_upgrade.patch
 
 Build all required packages:
 
