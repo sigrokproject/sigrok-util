@@ -21,6 +21,27 @@ Regardless of which libusb1 version ships with mainline MXE. That is
 why this file is called "libusb1_upgrade.patch". Until then it patches
 the local archive of the older library version.
 
+
+Explicitly prepare autotools use between checkout and configuration.
+
+diff --git a/src/libusb1.mk b/src/libusb1.mk
+index ab01bf69..53aed36e 100644
+--- a/src/libusb1.mk
++++ b/src/libusb1.mk
+@@ -19,7 +19,7 @@ define $(PKG)_UPDATE
+ endef
+ 
+ define $(PKG)_BUILD
+-    cd '$(1)' && ./configure \
++    cd '$(1)' && autoreconf -i && ./configure \
+         $(MXE_CONFIGURE_OPTS) \
+         CFLAGS=-D_WIN32_WINNT=0x0500
+     $(MAKE) -C '$(1)' -j '$(JOBS)' install
+
+
+Don't use MXE's provided 1.0.24 version. Use an "event abstraction"
+enabled older version instead.
+
 diff --git a/src/libusb1.mk b/src/libusb1.mk
 index ab01bf69..53aed36e 100644
 --- a/src/libusb1.mk
@@ -42,15 +63,10 @@ index ab01bf69..53aed36e 100644
  $(PKG)_DEPS     := cc
  
  define $(PKG)_UPDATE
-@@ -19,7 +19,7 @@ define $(PKG)_UPDATE
- endef
- 
- define $(PKG)_BUILD
--    cd '$(1)' && ./configure \
-+    cd '$(1)' && autoreconf -i && ./configure \
-         $(MXE_CONFIGURE_OPTS) \
-         CFLAGS=-D_WIN32_WINNT=0x0500
-     $(MAKE) -C '$(1)' -j '$(JOBS)' install
+
+
+Unconditionally enable RAW_IO policy to improve performance on Windows.
+
 diff --git a/src/libusb1-1-fixes.patch b/src/libusb1-1-fixes.patch
 new file mode 100644
 index 00000000..6cdeb0c4
