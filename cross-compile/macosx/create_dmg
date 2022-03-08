@@ -116,7 +116,7 @@ install_name_tool -change \
 install_name_tool -change \
 	/usr/local/opt/python/Frameworks/Python.framework/Versions/$PYVER/Python \
 	@executable_path/../Frameworks/Python.framework/Versions/$PYVER/Python \
-	$FRAMEWORKSDIR/libirmp.*.dylib
+	$PREFIX/lib/libirmp.*.dylib
 
 # Add wrapper (sets PYTHONHOME/SIGROK_FIRMWARE_DIR/SIGROKDECODE_DIR).
 mv $MACOSDIR/$APPNAME_BINARY $MACOSDIR/$APPNAME_BINARY.real
