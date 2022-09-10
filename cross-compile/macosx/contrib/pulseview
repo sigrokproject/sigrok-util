@@ -20,6 +20,7 @@
 
 DIR="$(dirname "$0")"
 cd "$DIR"
+export DYLD_LIBRARY_PATH="../Frameworks"
 export PYTHONHOME="../Frameworks/Python.framework/Versions/3.7"
 export SIGROK_FIRMWARE_DIR="../share/sigrok-firmware"
 export SIGROKDECODE_DIR="../share/libsigrokdecode/decoders"
