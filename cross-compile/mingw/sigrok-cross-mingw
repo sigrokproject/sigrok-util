@@ -228,7 +228,7 @@ cd ..
 $ECHO "component sigrok-dumps ..."
 $GIT_CLONE $REPO_BASE/sigrok-dumps
 cd sigrok-dumps
-make install DESTDIR=$PREFIX/share/sigrok-dumps $V
+make install PREFIX=$PREFIX $V
 cd ..
 
 # sigrok-cli
