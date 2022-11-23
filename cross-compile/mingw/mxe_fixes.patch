@@ -1,3 +1,12 @@
+Implementor's note: These patches currently (2022-11) don't apply to
+recent MXE, their context has changed. The patches' motivation might
+have become obsolete, too. This needs reconsideration. When in doubt,
+attempt to build with an MXE toolchain which omits these "MXE fixes"
+(which actually are downgrades of tools and libraries, while mainline
+MXE has upgraded and could have fixed previous issues). Older notes
+from a previous implementation follow below.
+
+
 These patches are currently required to get a properly working
 MXE setup for sigrok usage.
 
@@ -14,6 +23,9 @@ MXE setup for sigrok usage.
    for 32bit Windows (64bit was supported already). Required for PulseView.
 
 See the other file for a libusb discussion.
+
+
+Change from binutils 2.28 to 2.35.
 
 diff --git a/src/binutils-1-fixes.patch b/src/binutils-1-fixes.patch
 deleted file mode 100644
@@ -168,6 +180,7 @@ index 357428fe..00000000
 - 
 -   if (pe_def_file->version_major != -1)
 -     {
+
 diff --git a/src/binutils.mk b/src/binutils.mk
 index 9721b581..8eab8bf3 100644
 --- a/src/binutils.mk
@@ -183,6 +196,10 @@ index 9721b581..8eab8bf3 100644
  $(PKG)_SUBDIR   := binutils-$($(PKG)_VERSION)
  $(PKG)_FILE     := binutils-$($(PKG)_VERSION).tar.bz2
  $(PKG)_URL      := https://ftp.gnu.org/gnu/binutils/$($(PKG)_FILE)
+
+
+Provide glib fixing patches. As well as downgrade to 2.44.1.
+
 diff --git a/src/glib-1-fixes.patch b/src/glib-1-fixes.patch
 index 764ece9e..428cc6a9 100644
 --- a/src/glib-1-fixes.patch
@@ -494,6 +511,7 @@ index 764ece9e..428cc6a9 100644
 -         {
 -           g_set_error (error,
 -                        G_IO_ERROR,
+
 diff --git a/src/glib-2-format.patch b/src/glib-2-format.patch
 new file mode 100644
 index 00000000..3d594af0
@@ -577,6 +595,7 @@ index 00000000..3d594af0
 +   glib_gpi_cast='(gint64)'
 +   glib_gpui_cast='(guint64)'
 +   ;;
+
 diff --git a/src/glib.mk b/src/glib.mk
 index 825b86bb..499a45b8 100644
 --- a/src/glib.mk
@@ -598,7 +617,7 @@ index 825b86bb..499a45b8 100644
      cd '$(BUILD_DIR)' && '$(SOURCE_DIR)/configure' \
          $(MXE_CONFIGURE_OPTS) \
          --enable-regex \
-+	--disable-compile-warnings \
++        --disable-compile-warnings \
          --disable-threads \
          --disable-selinux \
          --disable-inotify \
@@ -606,7 +625,7 @@ index 825b86bb..499a45b8 100644
      cd '$(SOURCE_DIR)' && NOCONFIGURE=true ./autogen.sh
      cd '$(BUILD_DIR)' && '$(SOURCE_DIR)/configure' \
          $(MXE_CONFIGURE_OPTS) \
-+	--disable-compile-warnings \
++        --disable-compile-warnings \
          --enable-regex \
          --disable-threads \
          --disable-selinux \
@@ -614,7 +633,7 @@ index 825b86bb..499a45b8 100644
      cd '$(SOURCE_DIR)' && NOCONFIGURE=true ./autogen.sh
      cd '$(BUILD_DIR)' && '$(SOURCE_DIR)/configure' \
          $(MXE_CONFIGURE_OPTS) \
-+	--disable-compile-warnings \
++        --disable-compile-warnings \
          --with-threads=win32 \
          --with-pcre=system \
          --with-libiconv=gnu \
