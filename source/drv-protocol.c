@@ -27,10 +27,12 @@ SR_PRIV int {lib}_receive_data(int fd, int revents, void *cb_data)
 
 	(void)fd;
 
-	if (!(sdi = cb_data))
+	sdi = cb_data;
+	if (!sdi)
 		return TRUE;
 
-	if (!(devc = sdi->priv))
+	devc = sdi->priv;
+	if (!devc)
 		return TRUE;
 
 	if (revents == G_IO_IN) {{
