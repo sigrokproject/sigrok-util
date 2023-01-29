@@ -99,24 +99,31 @@ class qt_resources(object):
             child_count, first_child = which[2:]
             for i in range(child_count):
                 child = table[first_child + i]
-                if child[1] & RCCFileInfo_Directory:
+                flags = child[1]
+                if flags & RCCFileInfo_Directory:
                     read_dir_entries(table, child, parents + [child[0]])
                 else:
                     country, language, data_offset = child[2:]
                     full_name = "/".join(parents + [child[0]])
                     self._resources[full_name] = data_offset
+                    self._resource_flags[full_name] = flags
 
         self._res_datas = self._get_elf_sym_value("_ZL16qt_resource_data")
         self._res_names = self._get_elf_sym_value("_ZL16qt_resource_name")
         self._res_struct = self._get_elf_sym_value("_ZL18qt_resource_struct")
 
         self._resources = {} # res_fn -> res_offset
+        self._resource_flags = {} # res_fn -> RCC_flags
         table = read_table()
         read_dir_entries(table, table[0])
 
     def get_resource(self, res_fn):
+        RCCFileInfo_Compressed = 1
         offset = self._resources[res_fn]
+        flags = self._resource_flags[res_fn]
         data = self._get_resource_data(offset)
+        if flags & RCCFileInfo_Compressed:
+            data = zlib.decompress(data[4:])
         return data
 
     def find_resource_names(self, res_fn_re):
