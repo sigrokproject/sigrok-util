@@ -39,6 +39,9 @@ parseelf = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(parseelf)
 
 class qt_resources(object):
+    RCCFileInfo_Compressed = 0x01
+    RCCFileInfo_Directory = 0x02
+
     def __init__(self, program):
         self._elf = parseelf.elf(program)
         self._elf_sections = {} # idx -> data
@@ -75,7 +78,6 @@ class qt_resources(object):
         return self._res_datas[offset:offset + length]
 
     def _read_resources(self):
-        RCCFileInfo_Directory = 0x02
         def read_table():
             table = []
             offset = 0
@@ -83,7 +85,7 @@ class qt_resources(object):
                 name_offset, flags = struct.unpack(">IH", self._res_struct[offset:offset+4+2])
                 offset += 6
                 name = self._get_resource_name(name_offset)
-                if flags & RCCFileInfo_Directory:
+                if flags & self.RCCFileInfo_Directory:
                     child_count, first_child_offset = struct.unpack(">II", self._res_struct[offset:offset + 4 + 4])
                     offset += 4 + 4
                     table.append((name, flags, child_count, first_child_offset))
@@ -94,13 +96,13 @@ class qt_resources(object):
             return table
         def read_dir_entries(table, which, parents=[]):
             name, flags = which[:2]
-            if not flags & RCCFileInfo_Directory:
+            if not flags & self.RCCFileInfo_Directory:
                 raise Exception("not a directory!")
             child_count, first_child = which[2:]
             for i in range(child_count):
                 child = table[first_child + i]
                 flags = child[1]
-                if flags & RCCFileInfo_Directory:
+                if flags & self.RCCFileInfo_Directory:
                     read_dir_entries(table, child, parents + [child[0]])
                 else:
                     country, language, data_offset = child[2:]
@@ -118,11 +120,10 @@ class qt_resources(object):
         read_dir_entries(table, table[0])
 
     def get_resource(self, res_fn):
-        RCCFileInfo_Compressed = 1
         offset = self._resources[res_fn]
         flags = self._resource_flags[res_fn]
         data = self._get_resource_data(offset)
-        if flags & RCCFileInfo_Compressed:
+        if flags & self.RCCFileInfo_Compressed:
             data = zlib.decompress(data[4:])
         return data
 
