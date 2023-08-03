@@ -9,7 +9,10 @@ on MSYS2/Windows systems.
 Status
 ------
 
-NOT fully working! This is work in progress.
+NOT fully working! This is work in progress. At the linking stage of Pulseview.exe, this error is thrown:
+[100%] Linking CXX executable pulseview.exe
+C:/msys64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../x86_64-w64-mingw32/bin/ld.exe:
+cannot find -lpython3.10: No such file or directory
 
 
 Requirements
@@ -24,7 +27,7 @@ Toolchain setup
 First, you need to install MSYS2 (use the 64bit installer, msys2-x86_64-*.exe):
 
   http://www.msys2.org
-  https://github.com/msys2/msys2/wiki/MSYS2-installation
+  https://www.msys2.org/wiki/MSYS2-installation/
 
 Then, perform the MSYS2 update procedure as per the documentation above.
 
@@ -33,13 +36,18 @@ Then, perform the MSYS2 update procedure as per the documentation above.
 
 Now close the shell and start an "MSYS2 MinGW 64-bit" or "MSYS2 MinGW 32-bit"
 shell (do NOT use the "MSYS2 MSYS" shell). All other steps will always have to
-be performed in an "MSYS2 MinGW 62-bit" or "MSYS2 MinGW 32-bit" shell.
+be performed in an "MSYS2 MinGW 64-bit" or "MSYS2 MinGW 32-bit" shell.
 
 Install the MSYS2 git package there:
 
   $ pacman -Sy
   $ pacman -S git
 
+Clone this repository and navigate to the correct directory
+  $ git config --global url.https://github.com/.insteadOf git://github.com/
+  $ git clone git://sigrok.org/sigrok-util
+  $ cd sigrok-util/cross-compile/msys2/
+  
 This is all that is needed to bootstrap your MSYS2 system. You can now use
 our sigrok-native-msys2 script to install all other required MSYS2 packages:
 
