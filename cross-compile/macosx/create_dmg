@@ -39,7 +39,7 @@ BUILDDIR=./build_app_$APPNAME_BINARY
 
 if [[ $APPLE_SILICON = y ]]; then
 	# Use Qt6 if building for Apple Silicon
-  QTVER=qt@6
+	QTVER=qt@6
 else
 	# We use Qt 5.5 in order to remain compatible with more versions of Mac OS X.
 	QTVER=qt@5.5
@@ -47,7 +47,11 @@ fi
 
 # Path to Qt5 binaries.
 QTBINDIR=`brew list $QTVER | grep bin | head -n 1 | xargs dirname`
-QTTRANSLATIONSDIR=`brew --prefix $QTVER`/share/qt/translations
+if [[ $APPLE_SILICON = y ]]; then
+	QTTRANSLATIONSDIR=`brew --prefix $QTVER`/share/qt/translations
+else
+	TRANSLATIONSDIR=`brew --prefix $QTVER`/translations
+fi
 
 # Path to boost libraries.
 BOOSTLIBDIR=`brew list boost | grep libboost_system | grep -v cmake | head -n 1 | xargs dirname`
