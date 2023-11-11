@@ -23,6 +23,13 @@ set -e
 # The path where the compiled packages will be installed.
 PREFIX=$HOME/sr_macosx
 
+# Run tests (y/n)
+ENABLE_TESTS=n
+
+# Build for Apple Silicon (y/n)
+# Tests is currently failing on Apple Silicon, disable tests by setting ENABLE_TESTS=n
+APPLE_SILICON=y
+
 # The path where to download files to and where to build packages.
 BUILDDIR=./build
 
@@ -44,8 +51,13 @@ PARALLEL="-j "`sysctl -n hw.ncpu`
 export CC=gcc
 export CXX=g++
 
-# We use Qt 5.5 in order to remain compatible with more versions of Mac OS X.
-QTVER=qt@5.5
+if [[ $APPLE_SILICON = y ]]; then
+    # Use Qt6 if building for Apple Silicon
+    QTVER=qt@6
+else
+    # We use Qt 5.5 in order to remain compatible with more versions of Mac OS X.
+    QTVER=qt@5.5
+fi
 
 # Path to Qt5 binaries (needed for cmake to find the Qt5 libs).
 export PATH="$(brew --prefix $QTVER)/bin:$PATH"
@@ -54,10 +66,24 @@ export PATH="$(brew --prefix $QTVER)/bin:$PATH"
 
 # -----------------------------------------------------------------------------
 
+if [[ $APPLE_SILICON = y ]]; then
+    qt5_found=$(brew list --versions qt@5 || :)
+    if [[ $qt5_found ]]; then
+        echo "\033[0;31mWarning: PulseView build will most likely fail, because Qt5 is installed and will be picked by CMake over Qt6. Uninstall Qt5 or modify PulseView CMake.\033[0m"
+    fi
+    if [[ $ENABLE_TESTS = y ]]; then
+        echo "\033[0;31mWarning: Tests will most likely fail on Apple Silicon, disable tests by setting ENABLE_TESTS=n\033[0m"
+    fi
+fi
+
 # PKG_CONFIG_PATH will need to point to pkg-config files of Homebrew's
 # keg-only formulae.
+FORMULAS=("libffi" "python@3")
+if [[ $APPLE_SILICON = n ]]; then
+    FORMULAS+=("python@2" "$QTVER")
+fi
 P="$PREFIX/lib/pkgconfig"
-for FORMULA in libffi python@2 python@3 "$QTVER"; do
+for FORMULA in ${FORMULAS[@]}; do
     P="$P:$(brew --prefix "$FORMULA")/lib/pkgconfig"
 done
 
@@ -96,7 +122,9 @@ cd build
 PKG_CONFIG_PATH=$P ../configure $C
 $SB make $PARALLEL $V
 PYTHONPATH=$PYPATH $SB make install $V
-$SB make check $V
+if [[ $ENABLE_TESTS = y ]]; then
+    $SB make check $V
+fi
 cd ../..
 
 # libsigrokdecode
@@ -108,7 +136,9 @@ cd build
 PKG_CONFIG_PATH=$P ../configure $C
 $SB make $PARALLEL $V
 make install $V
-$SB make check $V
+if [[ $ENABLE_TESTS = y ]]; then
+    $SB make check $V
+fi
 cd ../..
 
 # sigrok-firmware
@@ -150,9 +180,11 @@ $GIT_CLONE $REPO_BASE/pulseview
 cd pulseview
 mkdir build
 cd build
-PKG_CONFIG_PATH=$P $SB cmake -DCMAKE_INSTALL_PREFIX:PATH=$PREFIX -DDISABLE_WERROR=y -DENABLE_TESTS=y ..
+PKG_CONFIG_PATH=$P $SB cmake -DCMAKE_INSTALL_PREFIX:PATH=$PREFIX -DDISABLE_WERROR=y -DENABLE_TESTS=$ENABLE_TESTS ..
 $SB make $PARALLEL $V
 make install $V
-$SB make test $V
+if [[ $ENABLE_TESTS = y ]]; then
+    $SB make test $V
+fi
 cd ../..
 

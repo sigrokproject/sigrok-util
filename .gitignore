@@ -1,3 +1,4 @@
 build/
+cross-compile/macosx/build*
 firmware/kingst-la/*.bitstream
 firmware/kingst-la/*.fw
