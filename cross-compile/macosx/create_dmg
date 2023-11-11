@@ -23,6 +23,9 @@ set -e
 # The path where the installed sigrok libraries/binaries are located.
 PREFIX=$HOME/sr_macosx
 
+# Build for Apple Silicon (y/n)
+APPLE_SILICON=y
+
 if [ "x$1" = "xsigrok-cli" ]; then
 	APPNAME="sigrok-cli"
 	APPNAME_BINARY="sigrok-cli"
@@ -34,20 +37,30 @@ fi
 # The path where to download files to and where to build packages.
 BUILDDIR=./build_app_$APPNAME_BINARY
 
-# We use Qt 5.5 in order to remain compatible with more versions of Mac OS X.
-QTVER=qt@5.5
+if [[ $APPLE_SILICON = y ]]; then
+	# Use Qt6 if building for Apple Silicon
+  QTVER=qt@6
+else
+	# We use Qt 5.5 in order to remain compatible with more versions of Mac OS X.
+	QTVER=qt@5.5
+fi
 
 # Path to Qt5 binaries.
 QTBINDIR=`brew list $QTVER | grep bin | head -n 1 | xargs dirname`
-QTTRANSLATIONSDIR=`brew --prefix $QTVER`/translations
+QTTRANSLATIONSDIR=`brew --prefix $QTVER`/share/qt/translations
 
 # Path to boost libraries.
 BOOSTLIBDIR=`brew list boost | grep libboost_system | grep -v cmake | head -n 1 | xargs dirname`
 
-# Path to Python 3 framework.
-PYTHONFRAMEWORKDIR=`brew list python3 | grep libpython | head -n 1 | xargs dirname`/../../../..
+# Extract path and version of python3 framework from libsigrokdecode using otool
+PYTHONFRAMEWORKDIR=$(otool -L $PREFIX/lib/libsigrokdecode.*.dylib | grep python | head -n 1)
+PYTHONFRAMEWORKDIR=${PYTHONFRAMEWORKDIR%"/Python.framework"*}
+PYTHONFRAMEWORKDIR=$(readlink -f $PYTHONFRAMEWORKDIR)/
+PYVER=${PYTHONFRAMEWORKDIR#*@}
+PYVER=${PYVER%%"/"*}
 
-PYVER="3.7"
+# Path to dbus
+DBUSLIBDIR=`brew list dbus | grep bin | head -n 1 | xargs dirname`/../lib
 
 # You usually don't need to change anything below this line.
 
@@ -85,6 +98,15 @@ if [ "x$APPNAME_BINARY" = "xpulseview" ]; then
 	mkdir -p $CONTENTSDIR/translations
 	cp $QTTRANSLATIONSDIR/qt_*.qm $CONTENTSDIR/translations
 	cp $QTTRANSLATIONSDIR/qtbase_*.qm $CONTENTSDIR/translations
+
+	if [[ $APPLE_SILICON = y ]]; then
+		# Copy QtDBus, which should be but is not actually copied by macdeployqt
+		cp -R $QTBINDIR/../lib/QtDBus.framework $FRAMEWORKSDIR
+		rm -rf $FRAMEWORKSDIR/QtDBus.framework/Headers
+		# Copy dbus
+		cp $DBUSLIBDIR/*.dylib $FRAMEWORKSDIR
+		chmod 644 $FRAMEWORKSDIR/libdbus*.dylib
+	fi
 fi
 
 $QTBINDIR/macdeployqt $APPNAME.app
@@ -109,18 +131,46 @@ rm -rf $PYDIR/lib/python$PYVER/__pycache__
 rm -rf $PYDIR/lib/python$PYVER/**/__pycache__
 rm -rf $PYDIR/lib/python$PYVER/**/**/__pycache__
 rm -rf $PYDIR/Resources
-install_name_tool -change \
-	/usr/local/opt/python/Frameworks/Python.framework/Versions/$PYVER/Python \
-	@executable_path/../Frameworks/Python.framework/Versions/$PYVER/Python \
-	$FRAMEWORKSDIR/libsigrokdecode.*.dylib
-install_name_tool -change \
-	/usr/local/opt/python/Frameworks/Python.framework/Versions/$PYVER/Python \
-	@executable_path/../Frameworks/Python.framework/Versions/$PYVER/Python \
-	$PREFIX/lib/libirmp.*.dylib
+
+PYFRAMEWORKSDIR_SRC=/usr/local/opt/python/Frameworks/Python.framework/Versions/$PYVER/Python
+if [[ $APPLE_SILICON = y ]]; then
+	PYFRAMEWORKSDIR_SRC=/opt/homebrew/opt/python@$PYVER/Frameworks/Python.framework/Versions/$PYVER/Python
+fi
+PYFRAMEWORKSDIR_DST=@executable_path/../Frameworks/Python.framework/Versions/$PYVER/Python
+install_name_tool -change $PYFRAMEWORKSDIR_SRC $PYFRAMEWORKSDIR_DST $FRAMEWORKSDIR/libsigrokdecode.*.dylib
+install_name_tool -change $PYFRAMEWORKSDIR_SRC $PYFRAMEWORKSDIR_DST $PREFIX/lib/libirmp.*.dylib
+
+if [[ $APPLE_SILICON = y ]]; then
+	# Sign all binaries recursively
+	function sign_all {
+		for f in $1/*; do
+			file_type_str=$(file -Ih $f)
+			mime=${file_type_str#*: }
+			if [[ $mime = "inode/directory;"* ]]; then
+				sign_all $f
+			elif [[ $mime = "application/x-mach-binary;"* ]]; then
+				codesign --force -s - $f &> /dev/null || :
+			fi
+		done
+	}
+	sign_all $MACOSDIR
+	sign_all $FRAMEWORKSDIR
+	sign_all $CONTENTSDIR/PlugIns
+fi
 
 # Add wrapper (sets PYTHONHOME/SIGROK_FIRMWARE_DIR/SIGROKDECODE_DIR).
 mv $MACOSDIR/$APPNAME_BINARY $MACOSDIR/$APPNAME_BINARY.real
-cp ../contrib/$APPNAME_BINARY $MACOSDIR
+cat <<EOT >> $MACOSDIR/$APPNAME_BINARY
+#!/bin/sh
+
+DIR="\$(dirname "\$0")"
+cd "\$DIR"
+export DYLD_LIBRARY_PATH="../Frameworks"
+export PYTHONHOME="../Frameworks/Python.framework/Versions/$PYVER"
+export SIGROK_FIRMWARE_DIR="../share/sigrok-firmware"
+export SIGROKDECODE_DIR="../share/libsigrokdecode/decoders"
+exec ./$APPNAME_BINARY.real "\$@"
+EOT
 chmod 755 $MACOSDIR/$APPNAME_BINARY
 
 cp ../contrib/Info.plist_$APPNAME_BINARY $CONTENTSDIR/Info.plist
