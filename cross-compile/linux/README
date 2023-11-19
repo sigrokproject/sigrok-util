@@ -6,7 +6,7 @@ This is a small script for cross-compiling sigrok and its dependencies
 for Linux systems (various architectures / cross-toolchains).
 
 It can also be used for native builds (this is actually the default) when
-no cross-compiler setup is specified (see the top of the script).
+no cross-compiler setup is specified.
 
 
 Status
@@ -40,5 +40,19 @@ Per default it will install the (cross-)compiled packages in:
 
  $HOME/sr
 
-Please edit the script if you want to change any settings.
+The main variables of interest are printed out before the build gets underway,
+useful for visually validating the configuration.
 
+Run the script with `-h` to see the main configuration options.
+
+### Cross-build
+
+To cross compile, pass the following environment variables to the script:
+ * `TOOLCHAIN_PATH` : the path to the toolchain root that contains the `/bin/`
+   directory with the toolchain executables.
+ * `TOOLCHAIN_TRIPLET` : the cross compilation target triple
+
+For example:
+```sh
+ $ TOOLCHAIN_PATH="/opt/toolchains/mytoolchain" TOOLCHAIN_TRIPLET="x86_64-linux-gnu" ./sigrok-cross-linux
+```

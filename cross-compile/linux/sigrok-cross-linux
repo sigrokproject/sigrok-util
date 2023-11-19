@@ -20,142 +20,269 @@
 
 set -e
 
-# Uncomment/set the following to match your cross-toolchain setup.
-# TOOLCHAIN=...
-# TOOLCHAIN_TRIPLET=...
-# C="--host=$TOOLCHAIN_TRIPLET"
-# export PATH=$TOOLCHAIN/bin:$PATH
+platform_is_freebsd(){
+    [ "$(uname)" = "FreeBsd" ] && return 0  # true
+    return 1                                # false
+}
+
+int2bool(){
+    if [ "${1:?}" -gt 0 ]; then
+        echo "true"
+    else
+        echo "false"
+    fi
+}
+
+IS_CROSS_BUILD="${TOOLCHAIN_TRIPLET:+true}"
+
+# cross compilation configure flags
+C="${TOOLCHAIN_TRIPLET:+ --host=$TOOLCHAIN_TRIPLET}"
+[ -n "$IS_CROSS_BUILD" ] && export PATH="$TOOLCHAIN_PATH/bin:$PATH"
 
 # The path where the compiled packages will be installed.
 PREFIX=$HOME/sr
-
-# The path where to download files to and where to build packages.
-BUILDDIR=./build
 
 # The path where the libsigrok Python bindings will be installed.
 PYPATH=$PREFIX/lib/python2.7/site-packages
 
 # JDK include path. Usually found automatically, except on FreeBSD.
-if [ `uname` = "FreeBSD" ]; then
-	JDK="--with-jni-include-path=/usr/local/openjdk7/include"
-fi
+platform_is_freebsd && JDK="--with-jni-include-path=/usr/local/openjdk7/include"
 
-# Edit this to control verbose build output.
-# V="V=1 VERBOSE=1"
+# verbose output flags (see cli options below)
+V=""
 
 # Edit this to enable/disable/modify parallel compiles.
-PARALLEL="-j 2"
+NJOBS="2"
 
 # Edit this to enable/disable building certain components.
 BUILD_SIGROK_FIRMWARE_FX2LAFW=1
 
-# Uncomment the following lines to build with clang and run scan-build.
-# export CC=clang
-# export CXX=clang++
-# SB="scan-build -k -v"
+# scan-build flags; set via cli (see bottom of file)
+SB=""
 
 # You usually don't need to change anything below this line.
-
 # -----------------------------------------------------------------------------
-
 P="$PREFIX/lib/pkgconfig"
 C="$C --prefix=$PREFIX"
 
-# Remove build directory contents (if any) and create a new build dir.
-rm -rf $BUILDDIR
-mkdir $BUILDDIR
-cd $BUILDDIR
-
-GIT_CLONE="git clone --depth=1"
-
 REPO_BASE="git://sigrok.org"
 
+# The path where to download files to and where to build packages.
+BUILD_DIR="$(pwd)/build"
 # -----------------------------------------------------------------------------
 
-# libserialport
-$GIT_CLONE $REPO_BASE/libserialport
-cd libserialport
-./autogen.sh
-mkdir build
-cd build
-$SB ../configure $C
-$SB make $PARALLEL $V
-make install $V
-cd ../..
+# $1 = repo name (base URL is automatically prepended)
+clone_repo(){
+    git clone --depth=1 "$REPO_BASE/${1:?}"
+}
 
-# libsigrok
-mkdir -p $PYPATH
-$GIT_CLONE $REPO_BASE/libsigrok
-cd libsigrok
-./autogen.sh
-mkdir build
-cd build
-PKG_CONFIG_PATH=$P $SB ../configure $C $JDK
-$SB make $PARALLEL $V
-PYTHONPATH=$PYPATH $SB make install $V
-$SB make check $V
-cd ../..
+# Remove build directory contents (if any) and create a new build dir.
+clean_build_dir(){
+    rm -rf "$BUILD_DIR"
+    mkdir -p "$BUILD_DIR"
+}
 
-# libsigrokdecode
-$GIT_CLONE $REPO_BASE/libsigrokdecode
-cd libsigrokdecode
-./autogen.sh
-mkdir build
-cd build
-PKG_CONFIG_PATH=$P $SB ../configure $C
-$SB make $PARALLEL $V
-make install $V
-$SB make check $V
-cd ../..
+build_and_install_libserialport(){
+    repo_name="libserialport"
+    clone_repo "$repo_name"
+    cd "$repo_name"
+    ./autogen.sh
+    mkdir build
+    cd build
+    $SB ../configure $C
+    $SB make -j"$NJOBS" $V
+    make install $V
+}
 
-# sigrok-firmware
-$GIT_CLONE $REPO_BASE/sigrok-firmware
-cd sigrok-firmware
-./autogen.sh
-mkdir build
-cd build
-# Nothing gets cross-compiled here, we just need 'make install' basically.
-$SB ../configure $C
-make install $V
-cd ../..
+build_and_install_libsigrok(){
+    mkdir -p $PYPATH
 
-if [ $BUILD_SIGROK_FIRMWARE_FX2LAFW = 1 ]; then
-# sigrok-firmware-fx2lafw
-$GIT_CLONE $REPO_BASE/sigrok-firmware-fx2lafw
-cd sigrok-firmware-fx2lafw
-./autogen.sh
-mkdir build
-cd build
-# We're building the fx2lafw firmware on the host, no need to cross-compile.
-$SB ../configure $C
-make $PARALLEL $V
-make install $V
-cd ../..
+    repo_name="libsigrok"
+    clone_repo "$repo_name"
+    cd "$repo_name"
+    ./autogen.sh
+    mkdir build
+    cd build
+    PKG_CONFIG_PATH=$P $SB ../configure $C $JDK
+    $SB make -j"$NJOBS" $V
+    PYTHONPATH=$PYPATH $SB make install $V
+    $SB make check $V
+}
+
+build_and_install_libsigrokdecode(){
+    repo_name="libsigrokdecode"
+    clone_repo "$repo_name"
+    cd "$repo_name"
+    ./autogen.sh
+    mkdir build
+    cd build
+    PKG_CONFIG_PATH=$P $SB ../configure $C
+    $SB make -j"$NJOBS" $V
+    make install $V
+    $SB make check $V
+}
+
+build_and_install_sigrok_firmware(){
+    repo_name="sigrok-firmware"
+    clone_repo "$repo_name"
+    cd "$repo_name"
+    ./autogen.sh
+    mkdir build
+    cd build
+    # Nothing gets cross-compiled here, we just need 'make install' basically.
+    $SB ../configure $C
+    make install $V
+}
+
+build_and_install_sigrok_firmware_fx2lafw(){
+    repo_name="sigrok-firmware-fx2lafw"
+
+    if [ $BUILD_SIGROK_FIRMWARE_FX2LAFW = 0 ]; then
+        printf "Skipping %s build ..." "$repo_name"
+        return
+    fi
+
+    clone_repo "$repo_name"
+    cd "$repo_name"
+    ./autogen.sh
+    mkdir build
+    cd build
+    # We're building the fx2lafw firmware on the host, no need to cross-compile.
+    $SB ../configure $C
+    make -j"$NJOBS" $V
+    make install $V
+}
+
+build_and_install_sigrok_cli(){
+    repo_name="sigrok-cli"
+    clone_repo "$repo_name"
+    cd "$repo_name"
+    ./autogen.sh
+    mkdir build
+    cd build
+
+    if platform_is_freebsd; then
+        # Temporary fix for: http://sigrok.org/bugzilla/show_bug.cgi?id=552
+        PKG_CONFIG_PATH=$P $SB ../configure $C LDFLAGS=-lusb
+    else
+        PKG_CONFIG_PATH=$P $SB ../configure $C
+    fi
+
+    $SB make -j"$NJOBS" $V
+    make install $V
+}
+
+build_and_install_pulseview(){
+    repo_name="pulseview"
+    clone_repo "$repo_name"
+    cd "$repo_name"
+    mkdir build
+    cd build
+    PKG_CONFIG_PATH=$P $SB cmake -DCMAKE_INSTALL_PREFIX:PATH=$PREFIX -DDISABLE_WERROR=y -DENABLE_TESTS=y -DCMAKE_EXPORT_COMPILE_COMMANDS=y ..
+    $SB make -j"$NJOBS" $V
+    make install $V
+    $SB make test $V
+}
+
+help(){
+cat <<EOF
+    $0
+      -h    print this help message and exit
+
+      -b    use the specified base repository root url. The default is
+            git://sigrok.org. Could use the github mirror alternatively
+            https://github.com/sigrokproject if the official website is
+            inaccessible.
+
+      -f    build sigrok FX2LAFW (default=1). Pass 0 to omit it.
+
+      -j    number of build jobs to run simultaneously (this argument is relayed
+            to Make).
+
+      -i    installation prefix path (default=\$HOME/sr/)
+
+      -l    build with clang and clang++ (useful if the default is otherwise gcc)
+
+      -v    get verbose build output
+EOF
+}
+
+parse_cli(){
+    optstring=":hb:f:i:j:lv"
+
+    while getopts "$optstring" option; do
+        case "$option" in
+            h)
+                help; exit 0
+                ;;
+            b)
+                REPO_BASE="$OPTARG"
+                ;;
+            f)
+                BUILD_SIGROK_FIRMWARE_FX2LAFW="$OPTARG"
+                ;;
+            l)
+                export CC=clang
+                export CXX=clang++
+                SB="scan-build -k -v"
+                ;;
+            j)
+                NJOBS="$OPTARG"
+                ;;
+            i)
+                PREFIX="$OPTARG"
+                ;;
+            v)
+                V="V=1 VERBOSE=1"
+                ;;
+            :)
+                echo "Expected argument for '-$OPTARG'"
+                exit 1
+                ;;
+            ?)
+                echo "Unrecognized option: '$OPTARG'"
+                exit 1
+                ;;
+        esac
+    done
+}
+
+############
+## main ####
+############
+parse_cli $@
+
+echo "> Base repository URL:            $REPO_BASE"
+echo "> Root installation path :        $PREFIX"
+echo "> Number of parallel build jobs:  $NJOBS"
+echo "> Build sigrok FX2LAFW:           $(int2bool "$BUILD_SIGROK_FIRMWARE_FX2LAFW")"
+echo "> Verbose build output:           $([ -n "$V" ] && echo "true" || echo "false")"
+echo "> Using clang:                    $([ -n "$SB" ] && echo "true" || echo "false")"
+echo "> Cross compilation:              ${IS_CROSS_BUILD:-false}"
+
+if [ -n "$IS_CROSS_BUILD" ]; then
+echo "> Toolchain path:                 $TOOLCHAIN_PATH"
+echo "> Toolchain target triplet:       $TOOLCHAIN_TRIPLET"
 fi
+echo "> configure flags:                $C"
 
-# sigrok-cli
-$GIT_CLONE $REPO_BASE/sigrok-cli
-cd sigrok-cli
-./autogen.sh
-mkdir build
-cd build
-if [ `uname` = "FreeBSD" ]; then
-	# Temporary fix for: http://sigrok.org/bugzilla/show_bug.cgi?id=552
-	PKG_CONFIG_PATH=$P $SB ../configure $C LDFLAGS=-lusb
-else
-	PKG_CONFIG_PATH=$P $SB ../configure $C
-fi
-$SB make $PARALLEL $V
-make install $V
-cd ../..
+clean_build_dir
 
-# PulseView
-$GIT_CLONE $REPO_BASE/pulseview
-cd pulseview
-mkdir build
-cd build
-PKG_CONFIG_PATH=$P $SB cmake -DCMAKE_INSTALL_PREFIX:PATH=$PREFIX -DDISABLE_WERROR=y -DENABLE_TESTS=y -DCMAKE_EXPORT_COMPILE_COMMANDS=y ..
-$SB make $PARALLEL $V
-make install $V
-$SB make test $V
-cd ../..
+steps="
+    build_and_install_libserialport
+    build_and_install_libsigrok
+    build_and_install_libsigrokdecode
+    build_and_install_sigrok_firmware
+    build_and_install_sigrok_firmware_fx2lafw
+    build_and_install_sigrok_cli
+    build_and_install_pulseview
+"
+num_steps="$(n=0; for step in $steps; do n=$((n+1)); done; echo $n)"
+step_num=1
+for step in $steps; do
+    printf "\e[33m%s \e[0m \n" "STEP $step_num/$num_steps: $step"
+    step_num=$((step_num+1))
+    cd "$BUILD_DIR"; $step
+    echo ""
+done
+
