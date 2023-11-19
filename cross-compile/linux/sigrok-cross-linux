@@ -33,44 +33,6 @@ int2bool(){
     fi
 }
 
-IS_CROSS_BUILD="${TOOLCHAIN_TRIPLET:+true}"
-
-# cross compilation configure flags
-C="${TOOLCHAIN_TRIPLET:+ --host=$TOOLCHAIN_TRIPLET}"
-[ -n "$IS_CROSS_BUILD" ] && export PATH="$TOOLCHAIN_PATH/bin:$PATH"
-
-# The path where the compiled packages will be installed.
-PREFIX=$HOME/sr
-
-# The path where the libsigrok Python bindings will be installed.
-PYPATH=$PREFIX/lib/python2.7/site-packages
-
-# JDK include path. Usually found automatically, except on FreeBSD.
-platform_is_freebsd && JDK="--with-jni-include-path=/usr/local/openjdk7/include"
-
-# verbose output flags (see cli options below)
-V=""
-
-# Edit this to enable/disable/modify parallel compiles.
-NJOBS="2"
-
-# Edit this to enable/disable building certain components.
-BUILD_SIGROK_FIRMWARE_FX2LAFW=1
-
-# scan-build flags; set via cli (see bottom of file)
-SB=""
-
-# You usually don't need to change anything below this line.
-# -----------------------------------------------------------------------------
-P="$PREFIX/lib/pkgconfig"
-C="$C --prefix=$PREFIX"
-
-REPO_BASE="git://sigrok.org"
-
-# The path where to download files to and where to build packages.
-BUILD_DIR="$(pwd)/build"
-# -----------------------------------------------------------------------------
-
 # $1 = repo name (base URL is automatically prepended)
 clone_repo(){
     git clone --depth=1 "$REPO_BASE/${1:?}"
@@ -250,7 +212,48 @@ parse_cli(){
 ############
 ## main ####
 ############
+
+IS_CROSS_BUILD="${TOOLCHAIN_TRIPLET:+true}"
+
+# cross compilation configure flags
+C="${TOOLCHAIN_TRIPLET:+ --host=$TOOLCHAIN_TRIPLET}"
+[ -n "$IS_CROSS_BUILD" ] && export PATH="$TOOLCHAIN_PATH/bin:$PATH"
+
+# The path where the compiled packages will be installed.
+PREFIX=$HOME/sr
+
+# verbose output flags (see cli)
+V=""
+
+# number of parallel jobs as specified to Make
+NJOBS="2"
+
+# Edit this to enable/disable building certain components.
+BUILD_SIGROK_FIRMWARE_FX2LAFW=1
+
+# scan-build flags; set via cli (see bottom of file)
+SB=""
+
+REPO_BASE="git://sigrok.org"
+
+# The path where to download files to and where to build packages.
+BUILD_DIR="$(pwd)/build"
+# -----------------------------------------------------------------------------
+
+# some of the above flags may be overridden at the command line
 parse_cli $@
+
+# The path where the libsigrok Python bindings will be installed.
+PYPATH=$PREFIX/lib/python2.7/site-packages
+
+# JDK include path. Usually found automatically, except on FreeBSD.
+platform_is_freebsd && JDK="--with-jni-include-path=/usr/local/openjdk7/include"
+
+# You usually don't need to change anything below this line.
+# -----------------------------------------------------------------------------
+P="$PREFIX/lib/pkgconfig"
+C="$C --prefix=$PREFIX"
+# ===========================================================
 
 echo "> Base repository URL:            $REPO_BASE"
 echo "> Root installation path :        $PREFIX"
