@@ -1,3 +1,7 @@
 build/
+**/build_release_64/
+*/build_release_32/
+*/build_debug_64/
+*/build_debug_32/
 firmware/kingst-la/*.bitstream
 firmware/kingst-la/*.fw

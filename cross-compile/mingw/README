@@ -5,6 +5,8 @@ README
 This is a small script for cross-compiling sigrok and its dependencies
 for MinGW-w64/Windows systems.
 
+If you have a local fork (or copy) of a sigrok repository in $HOME/sigrok, the script will use it instead of cloning from the remote repository.
+
 
 Status
 ------
@@ -37,24 +39,28 @@ First, get the MXE cross-compile environment for MinGW-w64/Windows:
  $ cd $HOME
  $ git clone https://github.com/mxe/mxe.git mxe-git
  $ cd mxe-git
+ $ git reset --hard b48b3cc7085548e896fe967dc6371ff9951390a4
 
 Apply some fixes that are currently required for a proper build:
 
+ $ cd $HOME/sigrok-util/cross-compile/mingw
+ $ cp mxe_fixes.patch $HOME/mxe-git
+ $ cp hidapi_fixes.patch $HOME/mxe-git
+ $ cd $HOME/mxe-git
  $ patch -p1 < mxe_fixes.patch
- $ patch -p1 < libusb1_upgrade.patch
+ $ patch -p1 < hidapi_fixes.patch
 
-Build all required packages:
+Build all required packages ( for both i686 and x86_64 ):
 
- $ make MXE_TARGETS=i686-w64-mingw32.static.posix \
+ $ make -j$(nproc) MXE_TARGETS="i686-w64-mingw32.static.posix x86_64-w64-mingw32.static.posix" \
    MXE_PLUGIN_DIRS=plugins/examples/qt5-freeze \
    gcc glib libzip libusb1 libftdi1 hidapi glibmm qtbase qtimageformats \
-   qtsvg qttranslations boost check gendef libieee1284 \
-   qtbase_CONFIGURE_OPTS='-no-sql-mysql'
+   qtsvg qttools qttranslations boost check gendef libieee1284 \
+   nettle qwt qtbase_CONFIGURE_OPTS='-no-sql-mysql'
 
 This will take a while.
 
-You can also use "MXE_TARGETS=x86_64-w64-mingw32.static.posix" to build
-64-bit installers instead.
+You can use "MXE_TARGETS=x86_64-w64-mingw32.static.posix" to specifically build 64-bit installer or "MXE_TARGETS=i686-w64-mingw32.static.posix" for 32-bit installer.
 
 See http://mxe.cc for details on MXE.
 

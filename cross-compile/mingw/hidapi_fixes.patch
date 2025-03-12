@@ -1,0 +1,41 @@
+From a69d26c8a1291ecd4febbec7ccc0b0d43410b09d Mon Sep 17 00:00:00 2001
+From: Thomas Hebb <tommyhebb@gmail.com>
+Date: Fri, 16 Jul 2021 22:31:49 -0700
+Subject: [PATCH] hidapi: Switch source to new GitHub repo and update
+
+The README at https://github.com/libusb/hidapi says "HIDAPI library was
+originally developed by Alan Ott (signal11). It was moved to
+libusb/hidapi on June 4th, 2019, in order to merge important bugfixes
+and continue development of the library." As such, the libusb version is
+now the official repository and we should use it.
+
+Also update to the latest master. Among other things, this fixes a
+[bug][autoconf-fix] that broke the build on new versions of autoconf
+(2.70 and later).
+
+[autoconf-fix]: https://github.com/libusb/hidapi/pull/226
+---
+ src/hidapi.mk | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/src/hidapi.mk b/src/hidapi.mk
+index c92e359f7c..5814db2e01 100644
+--- a/src/hidapi.mk
++++ b/src/hidapi.mk
+@@ -1,12 +1,12 @@
+ # This file is part of MXE. See LICENSE.md for licensing information.
+ 
+ PKG             := hidapi
+-$(PKG)_WEBSITE  := https://github.com/signal11/hidapi/
++$(PKG)_WEBSITE  := https://github.com/libusb/hidapi/
+ $(PKG)_DESCR    := HIDAPI
+ $(PKG)_IGNORE   :=
+-$(PKG)_VERSION  := a6a622f
+-$(PKG)_CHECKSUM := 32ea444bdd6c6a8a940bfa3287a2dc8c291a141fdc78cd638b37b546b44d95be
+-$(PKG)_GH_CONF  := signal11/hidapi/branches/master
++$(PKG)_VERSION  := 2a24bf9
++$(PKG)_CHECKSUM := fcf650c10ccd39c47cc86ffd676befc71dd74bd8367f6716418974830f218d1f
++$(PKG)_GH_CONF  := libusb/hidapi/branches/master
+ $(PKG)_DEPS     := cc
+ 
+ define $(PKG)_BUILD

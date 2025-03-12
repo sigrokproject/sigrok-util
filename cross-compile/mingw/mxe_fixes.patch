@@ -1,14 +1,10 @@
-Implementor's note: These patches currently (2022-11) don't apply to
-recent MXE, their context has changed. The patches' motivation might
-have become obsolete, too. This needs reconsideration. When in doubt,
-attempt to build with an MXE toolchain which omits these "MXE fixes"
-(which actually are downgrades of tools and libraries, while mainline
-MXE has upgraded and could have fixed previous issues). Older notes
-from a previous implementation follow below.
-
-
 These patches are currently required to get a properly working
 MXE setup for sigrok usage.
+
+ - libsigrok currently requires a special libusb branch.
+
+ - Add an additional libusb RAW_IO patch in MXE directly, which obsoletes
+   the need to build a custom libusb in sigrok-cross-mingw.
 
  - We're reverting to glib 2.44.1 for now since more recent
    versions (e.g. 2.50.2) seem to have a bug. Details:
@@ -21,11 +17,6 @@ MXE setup for sigrok usage.
 
  - Bump MXE's binutils to version 2.35, which added -mbig-obj support
    for 32bit Windows (64bit was supported already). Required for PulseView.
-
-See the other file for a libusb discussion.
-
-
-Change from binutils 2.28 to 2.35.
 
 diff --git a/src/binutils-1-fixes.patch b/src/binutils-1-fixes.patch
 deleted file mode 100644
@@ -180,7 +171,6 @@ index 357428fe..00000000
 - 
 -   if (pe_def_file->version_major != -1)
 -     {
-
 diff --git a/src/binutils.mk b/src/binutils.mk
 index 9721b581..8eab8bf3 100644
 --- a/src/binutils.mk
@@ -196,10 +186,73 @@ index 9721b581..8eab8bf3 100644
  $(PKG)_SUBDIR   := binutils-$($(PKG)_VERSION)
  $(PKG)_FILE     := binutils-$($(PKG)_VERSION).tar.bz2
  $(PKG)_URL      := https://ftp.gnu.org/gnu/binutils/$($(PKG)_FILE)
-
-
-Provide glib fixing patches. As well as downgrade to 2.44.1.
-
+diff --git a/src/libusb1.mk b/src/libusb1.mk
+index ab01bf69..53aed36e 100644
+--- a/src/libusb1.mk
++++ b/src/libusb1.mk
+@@ -4,11 +4,11 @@ PKG             := libusb1
+ $(PKG)_WEBSITE  := https://libusb.info/
+ $(PKG)_DESCR    := LibUsb-1.0
+ $(PKG)_IGNORE   :=
+-$(PKG)_VERSION  := 1.0.24
+-$(PKG)_CHECKSUM := 7efd2685f7b327326dcfb85cee426d9b871fd70e22caa15bb68d595ce2a2b12a
+-$(PKG)_SUBDIR   := libusb-$($(PKG)_VERSION)
+-$(PKG)_FILE     := libusb-$($(PKG)_VERSION).tar.bz2
+-$(PKG)_URL      := https://$(SOURCEFORGE_MIRROR)/project/libusb/libusb-1.0/libusb-$($(PKG)_VERSION)/$($(PKG)_FILE)
++$(PKG)_VERSION  := 1.0.20-rc3-event-abstraction-v4
++$(PKG)_CHECKSUM := 58fee7f3f05fda209d14c55763df36ab86028bd9ab82c9bb74f1d5ab3208bcfd
++$(PKG)_SUBDIR   := libusb-event-abstraction-v4
++$(PKG)_FILE     := libusb-event-abstraction-v4.zip
++$(PKG)_URL      := https://github.com/uwehermann/libusb/archive/event-abstraction-v4.zip
+ $(PKG)_DEPS     := cc
+ 
+ define $(PKG)_UPDATE
+@@ -19,7 +19,7 @@ define $(PKG)_UPDATE
+ endef
+ 
+ define $(PKG)_BUILD
+-    cd '$(1)' && ./configure \
++    cd '$(1)' && autoreconf -i && ./configure \
+         $(MXE_CONFIGURE_OPTS) \
+         CFLAGS=-D_WIN32_WINNT=0x0500
+     $(MAKE) -C '$(1)' -j '$(JOBS)' install
+diff --git a/src/libusb1-1-fixes.patch b/src/libusb1-1-fixes.patch
+new file mode 100644
+index 00000000..6cdeb0c4
+--- /dev/null
++++ b/src/libusb1-1-fixes.patch
+@@ -0,0 +1,31 @@
++From d4f7a49d77bd8f4ac871a999fc9ec898cb22b8c3 Mon Sep 17 00:00:00 2001
++From: Vlad Ivanov <vlad-mbx@ya.ru>
++Date: Tue, 9 Feb 2016 10:35:23 +0300
++Subject: [PATCH] windows_usb: enable RAW_IO policy by default
++
++libusb should set RAW_IO policy unconditionally because it
++implements the buffer management itself.
++
++Signed-off-by: Vlad Ivanov <vlad-mbx@ya.ru>
++---
++ libusb/os/windows_usb.c | 4 ++++
++ 1 file changed, 4 insertions(+)
++
++diff --git a/libusb/os/windows_usb.c b/libusb/os/windows_usb.c
++index 6640ad5..12fdab0 100644
++--- a/libusb/os/windows_usb.c
+++++ b/libusb/os/windows_usb.c
++@@ -2890,6 +2890,10 @@ static int winusbx_configure_endpoints(int sub_api, struct libusb_device_handle
++ 			AUTO_CLEAR_STALL, sizeof(UCHAR), &policy)) {
++ 			usbi_dbg("failed to enable AUTO_CLEAR_STALL for endpoint %02X", endpoint_address);
++ 		}
+++		if (!WinUSBX[sub_api].SetPipePolicy(winusb_handle, endpoint_address,
+++			RAW_IO, sizeof(UCHAR), &policy)) {
+++			usbi_dbg("failed to enable RAW_IO for endpoint %02X", endpoint_address);
+++		}
++ 	}
++ 
++ 	return LIBUSB_SUCCESS;
++-- 
++2.5.0
++
 diff --git a/src/glib-1-fixes.patch b/src/glib-1-fixes.patch
 index 764ece9e..428cc6a9 100644
 --- a/src/glib-1-fixes.patch
@@ -511,7 +564,6 @@ index 764ece9e..428cc6a9 100644
 -         {
 -           g_set_error (error,
 -                        G_IO_ERROR,
-
 diff --git a/src/glib-2-format.patch b/src/glib-2-format.patch
 new file mode 100644
 index 00000000..3d594af0
@@ -595,7 +647,6 @@ index 00000000..3d594af0
 +   glib_gpi_cast='(gint64)'
 +   glib_gpui_cast='(guint64)'
 +   ;;
-
 diff --git a/src/glib.mk b/src/glib.mk
 index 825b86bb..499a45b8 100644
 --- a/src/glib.mk
@@ -617,7 +668,7 @@ index 825b86bb..499a45b8 100644
      cd '$(BUILD_DIR)' && '$(SOURCE_DIR)/configure' \
          $(MXE_CONFIGURE_OPTS) \
          --enable-regex \
-+        --disable-compile-warnings \
++	--disable-compile-warnings \
          --disable-threads \
          --disable-selinux \
          --disable-inotify \
@@ -625,7 +676,7 @@ index 825b86bb..499a45b8 100644
      cd '$(SOURCE_DIR)' && NOCONFIGURE=true ./autogen.sh
      cd '$(BUILD_DIR)' && '$(SOURCE_DIR)/configure' \
          $(MXE_CONFIGURE_OPTS) \
-+        --disable-compile-warnings \
++	--disable-compile-warnings \
          --enable-regex \
          --disable-threads \
          --disable-selinux \
@@ -633,7 +684,7 @@ index 825b86bb..499a45b8 100644
      cd '$(SOURCE_DIR)' && NOCONFIGURE=true ./autogen.sh
      cd '$(BUILD_DIR)' && '$(SOURCE_DIR)/configure' \
          $(MXE_CONFIGURE_OPTS) \
-+        --disable-compile-warnings \
++	--disable-compile-warnings \
          --with-threads=win32 \
          --with-pcre=system \
          --with-libiconv=gnu \
