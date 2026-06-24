@@ -49,3 +49,12 @@ $WGET $FWURL/DSLogicPlus.fw -O $FWDIR/dreamsourcelab-dslogic-plus-fx2.fw
 
 $WGET $FWURL/DSLogicBasic.bin -O $FWDIR/dreamsourcelab-dslogic-basic-fpga.fw
 $WGET $FWURL/DSLogicBasic.fw -O $FWDIR/dreamsourcelab-dslogic-basic-fx2.fw
+
+# The DSLogic U3Pro16 (USB 3.0) was added to DSView well after the 0.97 set
+# above and is not present at that revision, so its FPGA bitstream is fetched
+# from a later, pinned DSView revision. The U3Pro16 has no dedicated FX2 loader;
+# it reuses the DSLogic Basic FX2 firmware extracted above, matching the
+# libsigrok dreamsourcelab-dslogic driver.
+FWURL_U3PRO16="https://github.com/DreamSourceLab/DSView/raw/2e9e2c8e726df4ef5687d39b83d4f797cc44b574/DSView/res"
+
+$WGET $FWURL_U3PRO16/DSLogicU3Pro16.bin -O $FWDIR/dreamsourcelab-dslogic-u3pro16-fpga.fw
