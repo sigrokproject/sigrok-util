@@ -1,0 +1,50 @@
+.TH SIGROK\-FWEXTRACT\-PX\-LOGIC 1 "Feb 25 2026"
+.SH "NAME"
+sigrok\-fwextract\-px\-logic \- Extract PX Logic firmware
+.SH "SYNOPSIS"
+.B sigrok\-fwextract\-px\-logic
+.SH "DESCRIPTION"
+This tool downloads firmware and FPGA bitstreams from the vendor
+software GitHub repository for the PX Logic USB logic analyzer.
+.PP
+In order to extract the firmware/bitstreams, run the following command:
+.PP
+.B "  $ sigrok-fwextract-px-logic"
+.br
+.RB "  Downloading px-logic-mcu.fw..."
+.br
+.RB "  Downloading px-logic-fpga-stage1.fw..."
+.br
+.RB "  Downloading px-logic-fpga-stage2.fw..."
+.PP
+Copy the resulting files over to the location where libsigrok expects
+to find its firmware files. By default this is
+.BR /usr/local/share/sigrok-firmware .
+.SH OPTIONS
+None.
+.SH "EXIT STATUS"
+Exits with 0 on success, 1 on most failures.
+.SH "SEE ALSO"
+\fBsigrok\-fwextract\-dreamsourcelab\-dslogic\fP(1)
+.br
+\fBsigrok\-fwextract\-hantek\-dso\fP(1)
+.br
+\fBsigrok\-fwextract\-kingst\-la2016\fP(1)
+.br
+\fBsigrok\-fwextract\-lecroy\-logicstudio\fP(1)
+.br
+\fBsigrok\-fwextract\-saleae\-logic16\fP(1)
+.br
+\fBsigrok\-fwextract\-sysclk\-lwla1016\fP(1)
+.br
+\fBsigrok\-fwextract\-sysclk\-lwla1034\fP(1)
+.SH "BUGS"
+Please report any bugs via Bugzilla
+.RB "(" http://sigrok.org/bugzilla ")"
+or on the sigrok\-devel mailing list
+.RB "(" sigrok\-devel@lists.souceforge.net ")."
+.SH "LICENSE"
+This program is covered by the GNU General Public License (GPL),
+version 3 or later.
+.SH "AUTHORS"
+Please see the individual source code files.

@@ -1,0 +1,58 @@
+#!/usr/bin/env python3
+##
+## This file is part of the sigrok-util project.
+##
+## Copyright (C) 2026 dogtopus <dogtopus@users.noreply.github.com>
+##
+## This program is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation; either version 3 of the License, or
+## (at your option) any later version.
+##
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, see <http://www.gnu.org/licenses/>.
+##
+
+import hashlib
+import os
+import shutil
+import sys
+import urllib.parse
+import urllib.request
+
+
+COMMIT = '8be58dea74acc300b772915b3adc368691db3075'
+FILES = [
+    {
+        'name': 'px-logic-mcu.fw',
+        'original_name': 'SCI_LOGIC.bin',
+        'sha256': 'da9b1e4912d3bc3757aa1d1ef71c4a19971bdc7ab66a6d31a9754fa82769ceaa',
+    }, {
+        'name': 'px-logic-fpga-stage1.fw',
+        'original_name': 'hspi_ddr_RST.bin',
+        'sha256': '1b4bf398a4cafd9d2fb0f118982ebc064db22ebdd50db36097610f82ec45ec69',
+    }, {
+        'name': 'px-logic-fpga-stage2.fw',
+        'original_name': 'hspi_ddr.bin',
+        'sha256': 'aa2fb803a46886dc77633c7e6fec87ca0a699a3db6a7d22732d3084bd76dd514',
+    },
+]
+REPO_RES_URL = 'https://github.com/PXLogic/PXView/raw/{commit}/PXView/res/'.format(commit=COMMIT)
+
+
+if __name__ == '__main__':
+    for file in FILES:
+        url = urllib.parse.urljoin(REPO_RES_URL, file['original_name'])
+        target = os.path.join('.', file['name'])
+        print('Downloading', '{}...'.format(file['name']))
+        urllib.request.urlretrieve(url, filename=target)
+        with open(target, 'rb') as f:
+            sha256 = hashlib.sha256(f.read())
+            if sha256.hexdigest() != file['sha256']:
+                print(file['name'], 'failed validation. Aborting.')
+                sys.exit(1)
