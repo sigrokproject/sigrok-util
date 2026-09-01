@@ -38,13 +38,49 @@ spec = importlib.util.spec_from_file_location("parseelf", parseelf_py)
 parseelf = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(parseelf)
 
+def qt_hash(name):
+    """Qt's qt_hash() from qresource.cpp.
+
+    rcc stores this value next to every resource name. Recomputing it lets
+    us recognise a name table entry with near-zero false positive rate,
+    which is what makes locating the tables without symbols practical.
+    """
+    h = 0
+    for c in name:
+        h = (h << 4) + ord(c)
+        h ^= (h & 0xf0000000) >> 23
+        h &= 0x0fffffff
+    return h
+
 class qt_resources(object):
     RCCFileInfo_Compressed = 0x01
     RCCFileInfo_Directory = 0x02
 
+    # Minimum number of consecutive valid entries before a run of bytes is
+    # accepted as a resource table. Chosen well above what random data
+    # produces, and well below the table sizes KingstVIS actually ships.
+    MIN_NAME_ENTRIES = 8
+    MIN_STRUCT_ENTRIES = 4
+
     def __init__(self, program):
-        self._elf = parseelf.elf(program)
+        self._elf = None
         self._elf_sections = {} # idx -> data
+        with open(program, "rb") as fp:
+            image = fp.read()
+        if image[:4] == b"\x7fELF":
+            try:
+                self._elf = parseelf.elf(program)
+                self._res_datas = self._get_elf_sym_value("_ZL16qt_resource_data")
+                self._res_names = self._get_elf_sym_value("_ZL16qt_resource_name")
+                self._res_struct = self._get_elf_sym_value("_ZL18qt_resource_struct")
+            except Exception:
+                # A stripped ELF still contains the tables, just not the
+                # symbols that name them. Locate them by content instead.
+                self._elf = None
+        if self._elf is None:
+            # Not an ELF, or an ELF without the symbols. The macOS (Mach-O)
+            # and Windows (PE) KingstVIS builds are both in this category.
+            self._locate_resources(image)
         self._read_resources()
 
     def _get_elf_section(self, idx):
@@ -64,6 +100,152 @@ class qt_resources(object):
             print("warning: symbol %s should be %d bytes, but in section is only %d bytes" % (
                 sname, sym["st_size"], len(value)))
         return value
+
+    # Locating the resource tables without symbols.
+    #
+    # The three arrays the ELF path resolves by symbol are plain static data
+    # and survive stripping, so each can be found by its own structure:
+    #
+    #   name    entries embed a hash of the name they carry, so a run of
+    #           entries whose hashes check out is unambiguously the table
+    #   struct  fixed 14 byte entries, each starting with an offset into the
+    #           name table; rcc emits the root node's name first, so the
+    #           table starts at the entry whose name offset is zero
+    #   data    length prefixed blobs; the base is solved for by requiring
+    #           every file entry to describe a well formed blob
+
+    def _locate_resources(self, buf):
+        name_base = self._find_name_table(buf)
+        struct_base, struct_size = self._find_struct_table(buf, name_base)
+        data_base = self._find_data_table(buf, struct_base, struct_size)
+        # Offsets are relative to each table's base, so trailing bytes are
+        # harmless for name and data. The struct table is walked end to end,
+        # and therefore has to be bounded exactly.
+        self._res_names = buf[name_base:]
+        self._res_struct = buf[struct_base:struct_base + struct_size]
+        self._res_datas = buf[data_base:]
+
+    def _name_entry(self, buf, pos):
+        """Decode one qt_resource_name entry, None if pos is not one."""
+        if pos < 0 or pos + 6 > len(buf):
+            return None
+        length, stored_hash = struct.unpack(">HI", buf[pos:pos + 6])
+        if length == 0 or length > 256:
+            return None
+        raw = buf[pos + 6:pos + 6 + 2 * length]
+        if len(raw) != 2 * length:
+            return None
+        try:
+            name = raw.decode("utf-16be")
+        except UnicodeDecodeError:
+            return None
+        if qt_hash(name) != stored_hash:
+            return None
+        return name, 6 + 2 * length
+
+    def _find_name_table(self, buf):
+        best_start, best_count = None, 0
+        pos, end = 0, len(buf)
+        while pos < end:
+            # A valid entry's length is at most 256, so its high byte is 0
+            # or 1. Cheap test, skips almost every candidate position.
+            if buf[pos] > 1:
+                pos += 1
+                continue
+            entry = self._name_entry(buf, pos)
+            if entry is None:
+                pos += 1
+                continue
+            start, count = pos, 0
+            while entry is not None:
+                pos += entry[1]
+                count += 1
+                entry = self._name_entry(buf, pos)
+            if count > best_count:
+                best_start, best_count = start, count
+        if best_count < self.MIN_NAME_ENTRIES:
+            raise Exception("could not locate qt_resource_name")
+        return best_start
+
+    def _find_struct_table(self, buf, name_base):
+        # The root node is a directory whose name is the first one emitted,
+        # so its entry begins with a zero name offset and the directory flag.
+        root = struct.pack(">IH", 0, self.RCCFileInfo_Directory)
+        best_start, best_count = None, 0
+        pos = 0
+        while True:
+            pos = buf.find(root, pos)
+            if pos < 0:
+                break
+            count, walk = 0, pos
+            while walk + 14 <= len(buf):
+                name_offset = struct.unpack(">I", buf[walk:walk + 4])[0]
+                if self._name_entry(buf, name_base + name_offset) is None:
+                    break
+                count += 1
+                walk += 14
+            if count > best_count:
+                best_start, best_count = pos, count
+            pos += 1
+        if best_count < self.MIN_STRUCT_ENTRIES:
+            raise Exception("could not locate qt_resource_struct")
+        return best_start, best_count * 14
+
+    def _struct_files(self, buf, struct_base, struct_size):
+        """Yield (flags, data_offset) for every non-directory entry."""
+        for pos in range(struct_base, struct_base + struct_size, 14):
+            flags = struct.unpack(">H", buf[pos + 4:pos + 6])[0]
+            if not flags & self.RCCFileInfo_Directory:
+                yield flags, struct.unpack(">I", buf[pos + 10:pos + 14])[0]
+
+    def _find_data_table(self, buf, struct_base, struct_size):
+        files = list(self._struct_files(buf, struct_base, struct_size))
+        if not files:
+            raise Exception("no file entries in qt_resource_struct")
+        # A compressed blob is a length, then the uncompressed size, then a
+        # zlib stream. Every zlib header in the image therefore proposes one
+        # candidate base, and the right one describes *every* file entry.
+        probe = next((f for f in files if f[0] & self.RCCFileInfo_Compressed), None)
+        if probe is None:
+            raise Exception("no compressed resource to anchor qt_resource_data")
+        seen = set()
+        for magic in (b"\x78\x01", b"\x78\x5e", b"\x78\x9c", b"\x78\xda"):
+            pos = 0
+            while True:
+                pos = buf.find(magic, pos)
+                if pos < 0:
+                    break
+                base = pos - 8 - probe[1]
+                if base >= 0 and base not in seen:
+                    seen.add(base)
+                    if self._data_table_valid(buf, base, files):
+                        return base
+                pos += 1
+        raise Exception("could not locate qt_resource_data")
+
+    def _data_table_valid(self, buf, base, files):
+        # Cheap structural pass first, so a wrong base is rejected without
+        # ever running inflate.
+        for flags, offset in files:
+            pos = base + offset
+            if pos + 4 > len(buf):
+                return False
+            length = struct.unpack(">I", buf[pos:pos + 4])[0]
+            if length < 4 or pos + 4 + length > len(buf):
+                return False
+        for flags, offset in files:
+            if not flags & self.RCCFileInfo_Compressed:
+                continue
+            pos = base + offset
+            length = struct.unpack(">I", buf[pos:pos + 4])[0]
+            blob = buf[pos + 4:pos + 4 + length]
+            expected = struct.unpack(">I", blob[:4])[0]
+            try:
+                if len(zlib.decompress(blob[4:])) != expected:
+                    return False
+            except zlib.error:
+                return False
+        return True
 
     # Qt resource stuff.
     def _get_resource_name(self, offset):
@@ -109,10 +291,6 @@ class qt_resources(object):
                     full_name = "/".join(parents + [child[0]])
                     self._resources[full_name] = data_offset
                     self._resource_flags[full_name] = flags
-
-        self._res_datas = self._get_elf_sym_value("_ZL16qt_resource_data")
-        self._res_names = self._get_elf_sym_value("_ZL16qt_resource_name")
-        self._res_struct = self._get_elf_sym_value("_ZL18qt_resource_struct")
 
         self._resources = {} # res_fn -> res_offset
         self._resource_flags = {} # res_fn -> RCC_flags

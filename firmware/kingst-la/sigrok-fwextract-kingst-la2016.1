@@ -1,4 +1,4 @@
-.TH SIGROK\-FWEXTRACT\-KINGST\-LA2016 1 "Mar 13, 2021"
+.TH SIGROK\-FWEXTRACT\-KINGST\-LA2016 1 "Sep 1, 2026"
 .SH "NAME"
 sigrok\-fwextract\-kingst\-la2016 \- Extract Kingst firmware from vendor software
 .SH "SYNOPSIS"
@@ -10,11 +10,16 @@ analyzers share the same USB VID:PID and use the same FX2 firmware.
 The correct FPGA bitstream is selected by the libsigrok driver after
 loading the FX2 firmware and reading the device identifier from EEPROM.
 .PP
-Download the Linux version of the vendor software from [1], and unpack
-it to find the main binary called "KingstVIS". To extract the
-firmware and bitstreams, run the following commands:
+Download the vendor software from [1], and unpack it to find the main
+binary called "KingstVIS". The Linux, macOS and Windows builds all embed
+the same firmware and bitstreams, so any of them can be used as the
+source. To extract the firmware and bitstreams, run the following
+commands:
 .PP
 .B "  $ tar -xzf KingstVIS_v3.5.0_linux.tar.gz KingstVIS"
+.PP
+On macOS the binary lives inside the application bundle, at
+.BR KingstVIS.app/Contents/MacOS/KingstVIS .
 .PP
 .B "  $ sigrok-fwextract-kingst-la2016 KingstVIS/KingstVIS"
 .br
