@@ -1,0 +1,160 @@
+#!/usr/bin/env python3
+##
+## This file is part of the sigrok-util project.
+##
+## Copyright (C) 2026 Miguel Angel Ajo Pelayo <miguelangel@ajo.es>
+##
+## This program is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation; either version 3 of the License, or
+## (at your option) any later version.
+##
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, see <http://www.gnu.org/licenses/>.
+##
+
+"""Get LogicPort.ccf (the Intronix LogicPort LA1034 FPGA bitstreams) from the vendor software."""
+
+import argparse
+import hashlib
+import os
+import shutil
+import struct
+import subprocess
+import sys
+import tempfile
+import urllib.request
+
+URL = 'https://www.pctestinstruments.com/downloads/logicport_2371.exe'
+
+KNOWN = {
+    '4943568f001a481250dd73ce9d841de73b274c0f93d0897f3c7adc222f811d0c': 'logicport_2371.exe',
+    '9298a5eacb3cf1a791b8ce48460a19e031eb81baffa378bab3f94f2d78483f9c': 'LogicPort.ccf (build 2371)',
+}
+
+# The driver loads LogicPort.ccf unmodified, under this name.
+OUTPUT = 'intronix-logicport.ccf'
+
+ENTRY_MAGIC = b'LS\x03\x04'
+
+
+def die(msg):
+    print(msg, file=sys.stderr)
+    sys.exit(1)
+
+
+def check_known(data, what):
+    digest = hashlib.sha256(data).hexdigest()
+    if digest not in KNOWN:
+        print('Warning: unknown %s (sha256 %s), trying anyway.' % (what, digest))
+
+
+def ccf_from_installer(exe, tmpdir):
+    # Find the LogicPort.ccf entry in the installer payload. It is Deflate64
+    # compressed, which Python can't inflate, so repack it as a one entry
+    # ZIP file and let 7-Zip decompress it.
+    i = exe.find(ENTRY_MAGIC)
+    while i >= 0 and exe[i:i + 4] == ENTRY_MAGIC:
+        method, = struct.unpack_from('<H', exe, i + 0x08)
+        crc, csize, usize = struct.unpack_from('<III', exe, i + 0x26)
+        namelen, = struct.unpack_from('<I', exe, i + 0x3a)
+        name = exe[i + 0x3e:i + 0x3e + namelen].decode('latin1')
+        body = i + 0x3e + namelen
+        if name.lower().endswith('.ccf'):
+            break
+        i = body + csize
+    else:
+        die('No LogicPort.ccf found in the installer.')
+
+    fname = b'LogicPort.ccf'
+    local = struct.pack('<IHHHHHIIIHH', 0x04034b50, 21, 0, method, 0, 0x21,
+                        crc, csize, usize, len(fname), 0) + fname
+    central = struct.pack('<IHHHHHHIIIHHHHHII', 0x02014b50, 21, 21, 0, method,
+                          0, 0x21, crc, csize, usize, len(fname), 0, 0, 0, 0,
+                          0, 0) + fname
+    offset = len(local) + csize
+    end = struct.pack('<IHHHHIIH', 0x06054b50, 0, 0, 1, 1, len(central),
+                      offset, 0)
+    zippath = os.path.join(tmpdir, 'ccf.zip')
+    with open(zippath, 'wb') as f:
+        f.write(local + exe[body:body + csize] + central + end)
+
+    sevenzip = next((c for c in ('7zz', '7z', '7za') if shutil.which(c)), None)
+    if not sevenzip:
+        die('7-Zip (7zz, 7z or 7za) is needed to decompress the installer.')
+    subprocess.run([sevenzip, 'x', '-y', '-o' + tmpdir, zippath], check=True,
+                   stdout=subprocess.DEVNULL)
+    with open(os.path.join(tmpdir, 'LogicPort.ccf'), 'rb') as f:
+        return f.read()
+
+
+def check_ccf(data):
+    # Header: image sizes in 16 byte units, XOR obfuscated, plus a checksum.
+    eol = data.find(b'\r\n')
+    try:
+        lens = [int(x) ^ 0x916662 for x in data[:eol].decode('ascii').split(',')]
+    except ValueError:
+        die('Not a LogicPort.ccf file.')
+    if eol < 0 or len(lens) != 9:
+        die('Not a LogicPort.ccf file.')
+    chk = 0
+    for v in lens[:8]:
+        chk ^= v
+    if chk != lens[8]:
+        die('Header checksum mismatch.')
+    if eol + 2 + sum(lens[:8]) * 16 != len(data):
+        die('Unexpected file size.')
+
+    # Each image is a bit-bang stream (two bytes per bit, data in bit 0)
+    # with its first two 4 KiB blocks swapped. Check for an RBF header.
+    off = eol + 2
+    for i, v in enumerate(lens[:8]):
+        seg = bytearray(data[off:off + v * 16])
+        off += v * 16
+        seg[0:4096], seg[4096:8192] = seg[4096:8192], seg[0:4096]
+        head = bytes(sum((seg[(b * 8 + k) * 2] & 1) << k for k in range(8))
+                     for b in range(17))
+        if head != b'\xff' * 16 + b'\x6a':
+            die('Image %d is not an Altera bitstream.' % i)
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('file', nargs='?',
+                        help='LogicPort.ccf, or the vendor installer (logicport_*.exe)')
+    parser.add_argument('-d', '--download', action='store_true',
+                        help='download the vendor installer from ' + URL)
+    parser.add_argument('-o', '--output-dir', default='.',
+                        help='where to write the files (default: current directory)')
+    args = parser.parse_args()
+    if bool(args.file) == args.download:
+        parser.error('give either a FILE or --download')
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        if args.download:
+            path = os.path.join(tmpdir, os.path.basename(URL))
+            print('Downloading %s' % URL)
+            urllib.request.urlretrieve(URL, path)
+        else:
+            path = args.file
+        with open(path, 'rb') as f:
+            data = f.read()
+        if data[:2] == b'MZ':
+            check_known(data, 'installer')
+            data = ccf_from_installer(data, tmpdir)
+        check_known(data, 'LogicPort.ccf')
+        check_ccf(data)
+
+    os.makedirs(args.output_dir, exist_ok=True)
+    with open(os.path.join(args.output_dir, OUTPUT), 'wb') as f:
+        f.write(data)
+    print('saved %d bytes to %s (sha256 %s)' %
+          (len(data), OUTPUT, hashlib.sha256(data).hexdigest()))
+
+
+main()

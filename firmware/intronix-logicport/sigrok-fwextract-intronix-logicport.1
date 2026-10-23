@@ -1,0 +1,57 @@
+.TH SIGROK\-FWEXTRACT\-INTRONIX\-LOGICPORT 1 "October 18, 2026"
+.SH "NAME"
+sigrok\-fwextract\-intronix\-logicport \- Get Intronix LogicPort bitstreams
+.SH "SYNOPSIS"
+.B sigrok\-fwextract\-intronix\-logicport [\-o DIR] FILE
+.br
+.B sigrok\-fwextract\-intronix\-logicport [\-o DIR] \-d
+.SH "DESCRIPTION"
+This tool provides the FPGA bitstream file for the Intronix LogicPort
+LA1034 USB logic analyzer. The FPGA is volatile and gets configured by the
+libsigrok driver with one of eight bitstreams, depending on the sampling
+mode (timing SDR, timing DDR at 500MHz, and several state mode variants).
+.PP
+All eight bitstreams ship in one file called "LogicPort.ccf", inside the
+vendor's Windows installer [1]. The libsigrok driver uses this file as is,
+under the name intronix\-logicport.ccf. The tool takes either LogicPort.ccf
+(from an installed copy of the software) or the installer itself, or it can
+download the installer. It checks the file and saves it unmodified.
+Unpacking the installer needs 7\-Zip (7zz, 7z or 7za), as the file is
+Deflate64 compressed. To download the installer and get the file, run:
+.PP
+.B "  $ sigrok-fwextract-intronix-logicport -d"
+.br
+.RB "  Downloading https://www.pctestinstruments.com/downloads/logicport_2371.exe"
+.br
+.RB "  saved 8387769 bytes to intronix-logicport.ccf (sha256 9298a5ea...)"
+.PP
+The output above is for LogicPort software build 2371. Copy the resulting
+file to the location where libsigrok expects to find firmware files.
+By default this is /usr/local/share/sigrok\-firmware.
+.SH OPTIONS
+.TP
+.B \-d, \-\-download
+Download the vendor installer [1] instead of reading FILE.
+.TP
+.B \-o, \-\-output\-dir DIR
+Write the files to DIR instead of the current directory.
+.SH "EXIT STATUS"
+Exits with 0 on success, 1 on most failures.
+.SH "SEE ALSO"
+\fBsigrok\-fwextract\-kingst\-la2016\fP(1),
+\fBsigrok\-fwextract\-sysclk\-lwla1016\fP(1)
+.SH "BUGS"
+Please report any bugs via Bugzilla
+.RB "(" http://sigrok.org/bugzilla/ ")"
+or on the sigrok\-devel mailing list
+.RB "(" sigrok\-devel@lists.sourceforge.net ")."
+.SH "LICENSE"
+This program is covered by the GNU General Public License (GPL),
+version 3 or later.
+.SH "AUTHORS"
+Please see the individual source code files.
+.PP
+This manual page was written by Miguel Angel Ajo Pelayo.
+It is licensed under the terms of the GNU GPL (version 3 or later).
+.SH "REFERENCES"
+[1] https://www.pctestinstruments.com/downloads/logicport_2371.exe
